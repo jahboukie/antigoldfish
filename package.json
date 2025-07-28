@@ -1,0 +1,76 @@
+{
+  "name": "antigoldfishmode",
+  "version": "1.0.0",
+  "description": "🧠 AI Memory Engine - Built by AI, for AI. Persistent memory and code execution for AI coding assistants.",
+  "main": "dist/index.js",
+  "bin": {
+    "antigoldfishmode": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/cli.js",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "ai",
+    "memory",
+    "coding-assistant",
+    "developer-tools",
+    "ai-assistant",
+    "persistent-memory",
+    "code-execution",
+    "claude",
+    "chatgpt",
+    "copilot"
+  ],
+  "author": "AntiGoldfishMode Team",
+  "license": "MIT",
+  "homepage": "https://github.com/antigoldfishmode/antigoldfishmode",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antigoldfishmode/antigoldfishmode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/antigoldfishmode/antigoldfishmode/issues"
+  },
+  "devDependencies": {
+    "@types/dockerode": "^3.3.31",
+    "@types/fs-extra": "^11.0.4",
+    "@types/jest": "^29.5.14",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.10.2",
+    "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.2",
+    "@typescript-eslint/parser": "^8.18.2",
+    "eslint": "^9.17.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^12.1.0",
+    "dockerode": "^4.0.2",
+    "dotenv": "^16.4.7",
+    "fs-extra": "^11.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-machine-id": "^1.1.12",
+    "sqlite3": "^5.1.7",
+    "uuid": "^11.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ]
+}

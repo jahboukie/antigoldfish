@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm:*)",
+      "Bash(node dist/cli.js --help)",
+      "Bash(npm run build:*)"
+    ],
+    "deny": []
+  }
+}
