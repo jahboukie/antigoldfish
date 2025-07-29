@@ -18,7 +18,7 @@ import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const version = "1.1.0";
+export const version = "1.2.0";
 
 export class CodeContextCLI {
     private memoryEngine: MemoryEngine;
