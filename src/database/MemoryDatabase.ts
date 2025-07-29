@@ -19,7 +19,7 @@
  * Compatible with SQLite3 3.44.2 on Node.js 22+ Windows x64
  */
 
-import * as sqlite3 from 'sqlite3';
+import Database from 'better-sqlite3';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
@@ -95,7 +95,7 @@ interface EncryptedDatabaseFile {
 }
 
 export class MemoryDatabase {
-    private db: sqlite3.Database | null = null;
+    private db: Database.Database | null = null;
     private dbPath: string;
     private encryptedDbPath: string;
     private tempDbPath: string;
@@ -269,25 +269,13 @@ export class MemoryDatabase {
             // await this.decryptDatabaseFile();
             console.log('📋 Using unencrypted database for testing');
 
-            return new Promise((resolve, reject) => {
-                // Create database connection
-                this.db = new sqlite3.Database(this.dbPath, (err) => {
-                    if (err) {
-                        console.error('❌ Failed to connect to SQLite database:', err.message);
-                        reject(err);
-                        return;
-                    }
+            // Create database connection (synchronous with better-sqlite3)
+            this.db = new Database(this.dbPath);
+            console.log('✅ Connected to SQLite database');
 
-                    console.log('✅ Connected to SQLite database');
-
-                    this.createTables()
-                        .then(() => {
-                            this.initialized = true;
-                            resolve();
-                        })
-                        .catch(reject);
-                });
-            });
+            // Create tables
+            await this.createTables();
+            this.initialized = true;
         } catch (error) {
             throw new Error(`Database initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
@@ -298,107 +286,101 @@ export class MemoryDatabase {
      * Designed for efficient memory storage and retrieval
      */
     private async createTables(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (!this.db) {
-                reject(new Error('Database not connected'));
-                return;
-            }
+        if (!this.db) {
+            throw new Error('Database not connected');
+        }
 
-            const schema = `
-                -- Memories table with full-text search support
-                CREATE TABLE IF NOT EXISTS memories (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    content TEXT NOT NULL,
-                    context TEXT NOT NULL DEFAULT 'general',
-                    type TEXT NOT NULL DEFAULT 'general',
-                    tags TEXT DEFAULT '[]',
-                    metadata TEXT DEFAULT '{}',
-                    content_hash TEXT NOT NULL UNIQUE,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
+        const schema = `
+            -- Memories table with full-text search support
+            CREATE TABLE IF NOT EXISTS memories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content TEXT NOT NULL,
+                context TEXT NOT NULL DEFAULT 'general',
+                type TEXT NOT NULL DEFAULT 'general',
+                tags TEXT DEFAULT '[]',
+                metadata TEXT DEFAULT '{}',
+                content_hash TEXT NOT NULL UNIQUE,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
 
-                -- Full-text search index for content
-                CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts USING fts5(
-                    content,
-                    context,
-                    tags,
-                    content='memories',
-                    content_rowid='id'
-                );
+            -- Full-text search index for content
+            CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts USING fts5(
+                content,
+                context,
+                tags,
+                content='memories',
+                content_rowid='id'
+            );
 
-                -- Triggers to maintain FTS index
-                CREATE TRIGGER IF NOT EXISTS memories_fts_insert AFTER INSERT ON memories 
-                BEGIN
-                    INSERT INTO memories_fts(rowid, content, context, tags) 
-                    VALUES (new.id, new.content, new.context, new.tags);
-                END;
+            -- Triggers to maintain FTS index
+            CREATE TRIGGER IF NOT EXISTS memories_fts_insert AFTER INSERT ON memories
+            BEGIN
+                INSERT INTO memories_fts(rowid, content, context, tags)
+                VALUES (new.id, new.content, new.context, new.tags);
+            END;
 
-                CREATE TRIGGER IF NOT EXISTS memories_fts_delete AFTER DELETE ON memories 
-                BEGIN
-                    DELETE FROM memories_fts WHERE rowid = old.id;
-                END;
+            CREATE TRIGGER IF NOT EXISTS memories_fts_delete AFTER DELETE ON memories
+            BEGIN
+                DELETE FROM memories_fts WHERE rowid = old.id;
+            END;
 
-                CREATE TRIGGER IF NOT EXISTS memories_fts_update AFTER UPDATE ON memories 
-                BEGIN
-                    DELETE FROM memories_fts WHERE rowid = old.id;
-                    INSERT INTO memories_fts(rowid, content, context, tags) 
-                    VALUES (new.id, new.content, new.context, new.tags);
-                END;
+            CREATE TRIGGER IF NOT EXISTS memories_fts_update AFTER UPDATE ON memories
+            BEGIN
+                DELETE FROM memories_fts WHERE rowid = old.id;
+                INSERT INTO memories_fts(rowid, content, context, tags)
+                VALUES (new.id, new.content, new.context, new.tags);
+            END;
 
-                -- Indexes for performance
-                CREATE INDEX IF NOT EXISTS idx_memories_type ON memories(type);
-                CREATE INDEX IF NOT EXISTS idx_memories_context ON memories(context);
-                CREATE INDEX IF NOT EXISTS idx_memories_created_at ON memories(created_at);
-                CREATE INDEX IF NOT EXISTS idx_memories_hash ON memories(content_hash);
+            -- Indexes for performance
+            CREATE INDEX IF NOT EXISTS idx_memories_type ON memories(type);
+            CREATE INDEX IF NOT EXISTS idx_memories_context ON memories(context);
+            CREATE INDEX IF NOT EXISTS idx_memories_created_at ON memories(created_at);
+            CREATE INDEX IF NOT EXISTS idx_memories_hash ON memories(content_hash);
 
-                -- Memory usage statistics
-                CREATE TABLE IF NOT EXISTS memory_stats (
-                    id INTEGER PRIMARY KEY,
-                    total_memories INTEGER DEFAULT 0,
-                    total_size_bytes INTEGER DEFAULT 0,
-                    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
+            -- Memory usage statistics
+            CREATE TABLE IF NOT EXISTS memory_stats (
+                id INTEGER PRIMARY KEY,
+                total_memories INTEGER DEFAULT 0,
+                total_size_bytes INTEGER DEFAULT 0,
+                last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
 
-                -- Initialize stats if empty
-                INSERT OR IGNORE INTO memory_stats (id, total_memories, total_size_bytes)
-                VALUES (1, 0, 0);
+            -- Initialize stats if empty
+            INSERT OR IGNORE INTO memory_stats (id, total_memories, total_size_bytes)
+            VALUES (1, 0, 0);
 
-                -- Conversation tracking tables
-                CREATE TABLE IF NOT EXISTS conversations (
-                    id TEXT PRIMARY KEY,
-                    project_id TEXT,
-                    ai_assistant TEXT NOT NULL,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    context TEXT,
-                    summary TEXT
-                );
+            -- Conversation tracking tables
+            CREATE TABLE IF NOT EXISTS conversations (
+                id TEXT PRIMARY KEY,
+                project_id TEXT,
+                ai_assistant TEXT NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                context TEXT,
+                summary TEXT
+            );
 
-                CREATE TABLE IF NOT EXISTS messages (
-                    id TEXT PRIMARY KEY,
-                    conversation_id TEXT,
-                    role TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    metadata TEXT,
-                    FOREIGN KEY (conversation_id) REFERENCES conversations (id)
-                );
+            CREATE TABLE IF NOT EXISTS messages (
+                id TEXT PRIMARY KEY,
+                conversation_id TEXT,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                metadata TEXT,
+                FOREIGN KEY (conversation_id) REFERENCES conversations (id)
+            );
 
-                CREATE INDEX IF NOT EXISTS idx_conversations_timestamp ON conversations(timestamp);
-                CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
-            `;
+            CREATE INDEX IF NOT EXISTS idx_conversations_timestamp ON conversations(timestamp);
+            CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
+        `;
 
-            this.db.exec(schema, (err) => {
-                if (err) {
-                    console.error('❌ Failed to create database schema:', err.message);
-                    reject(err);
-                    return;
-                }
-
-                console.log('✅ Database schema created successfully');
-                resolve();
-            });
-        });
+        try {
+            this.db.exec(schema);
+            console.log('✅ Database schema created successfully');
+        } catch (err) {
+            console.error('❌ Failed to create database schema:', err);
+            throw err;
+        }
     }
 
     /**
@@ -420,26 +402,21 @@ export class MemoryDatabase {
         const tagsJson = JSON.stringify(tags);
         const metadataJson = JSON.stringify(metadata);
 
-        return new Promise((resolve, reject) => {
-            const stmt = this.db!.prepare(`
+        try {
+            const stmt = this.db.prepare(`
                 INSERT OR REPLACE INTO memories
                 (content, context, type, tags, metadata, content_hash, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             `);
 
-            stmt.run([content, context, type, tagsJson, metadataJson, contentHash], function(err) {
-                if (err) {
-                    console.error('❌ Failed to store memory:', err.message);
-                    reject(err);
-                    return;
-                }
+            const result = stmt.run(content, context, type, tagsJson, metadataJson, contentHash);
+            console.log(`✅ Memory stored with ID: ${result.lastInsertRowid}`);
+            return result.lastInsertRowid as number;
 
-                console.log(`✅ Memory stored with ID: ${this.lastID}`);
-                resolve(this.lastID);
-            });
-
-            stmt.finalize();
-        });
+        } catch (err) {
+            console.error('❌ Failed to store memory:', err);
+            throw err;
+        }
     }
 
     /**
@@ -494,31 +471,30 @@ export class MemoryDatabase {
         sql += ' ORDER BY rank LIMIT ? OFFSET ?';
         params.push(limit, offset);
 
-        return new Promise((resolve, reject) => {
-            this.db!.all(sql, params, (err, rows: any[]) => {
-                if (err) {
-                    console.error('❌ Search failed:', err.message);
-                    reject(err);
-                    return;
-                }
+        try {
+            const stmt = this.db.prepare(sql);
+            const rows = stmt.all(...params);
 
-                const results: SearchResult[] = rows.map(row => ({
-                    id: row.id,
-                    content: row.content,
-                    relevance: this.calculateRelevance(row.rank),
-                    timestamp: row.timestamp,
-                    type: row.type,
-                    context: row.context,
-                    tags: JSON.parse(row.tags || '[]')
-                }));
+            const results: SearchResult[] = rows.map((row: any) => ({
+                id: row.id,
+                content: row.content,
+                relevance: this.calculateRelevance(row.rank),
+                timestamp: row.timestamp,
+                type: row.type,
+                context: row.context,
+                tags: JSON.parse(row.tags || '[]')
+            }));
 
-                // Filter by minimum relevance
-                const filteredResults = results.filter(r => r.relevance >= minRelevance);
+            // Filter by minimum relevance
+            const filteredResults = results.filter(r => r.relevance >= minRelevance);
 
-                console.log(`✅ Search completed: "${query}" - Found ${filteredResults.length} results`);
-                resolve(filteredResults);
-            });
-        });
+            console.log(`✅ Search completed: "${query}" - Found ${filteredResults.length} results`);
+            return filteredResults;
+
+        } catch (err) {
+            console.error('❌ Search failed:', err);
+            throw err;
+        }
     }
 
     /**
@@ -529,33 +505,31 @@ export class MemoryDatabase {
             throw new Error('Database not initialized');
         }
 
-        return new Promise((resolve, reject) => {
+        try {
             const sql = 'SELECT * FROM memories WHERE id = ?';
-            
-            this.db!.get(sql, [id], (err, row: any) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
+            const stmt = this.db.prepare(sql);
+            const row = stmt.get(id) as any;
 
-                if (!row) {
-                    resolve(null);
-                    return;
-                }
+            if (!row) {
+                return null;
+            }
 
-                resolve({
-                    id: row.id,
-                    content: row.content,
-                    context: row.context,
-                    type: row.type,
-                    tags: row.tags,
-                    metadata: row.metadata,
-                    contentHash: row.content_hash,
-                    createdAt: row.created_at,
-                    updatedAt: row.updated_at
-                });
-            });
-        });
+            return {
+                id: row.id,
+                content: row.content,
+                context: row.context,
+                type: row.type,
+                tags: row.tags,
+                metadata: row.metadata,
+                contentHash: row.content_hash,
+                createdAt: row.created_at,
+                updatedAt: row.updated_at
+            };
+
+        } catch (err) {
+            console.error('❌ Failed to get memory:', err);
+            throw err;
+        }
     }
 
     /**
@@ -566,20 +540,15 @@ export class MemoryDatabase {
             throw new Error('Database not initialized');
         }
 
-        return new Promise((resolve, reject) => {
-            const stmt = this.db!.prepare('DELETE FROM memories WHERE id = ?');
-            
-            stmt.run([id], function(err) {
-                if (err) {
-                    reject(err);
-                    return;
-                }
+        try {
+            const stmt = this.db.prepare('DELETE FROM memories WHERE id = ?');
+            const result = stmt.run(id);
+            return result.changes > 0;
 
-                resolve(this.changes > 0);
-            });
-
-            stmt.finalize();
-        });
+        } catch (err) {
+            console.error('❌ Failed to delete memory:', err);
+            throw err;
+        }
     }
 
     /**
@@ -597,63 +566,46 @@ export class MemoryDatabase {
         const conversationId = this.generateUUID();
         const projectId = 'codecontextpro-production'; // Simple project ID for now
 
-        return new Promise((resolve, reject) => {
+        try {
             // Insert conversation
-            const conversationStmt = this.db!.prepare(`
+            const conversationStmt = this.db.prepare(`
                 INSERT INTO conversations (id, project_id, ai_assistant, context)
                 VALUES (?, ?, ?, ?)
             `);
 
-            const self = this; // Capture 'this' context
-            conversationStmt.run([
+            conversationStmt.run(
                 conversationId,
                 projectId,
                 aiAssistant,
                 JSON.stringify(context || {})
-            ], function(err: any) {
-                if (err) {
-                    console.error('❌ Failed to record conversation:', err.message);
-                    reject(err);
-                    return;
-                }
+            );
 
-                // Insert messages
-                const messageStmt = self.db!.prepare(`
+            // Insert messages
+            if (messages.length > 0) {
+                const messageStmt = this.db.prepare(`
                     INSERT INTO messages (id, conversation_id, role, content, metadata)
                     VALUES (?, ?, ?, ?, ?)
                 `);
 
-                let messageCount = 0;
                 for (const message of messages) {
-                    const messageId = message.id || self.generateUUID();
-                    messageStmt.run([
+                    const messageId = message.id || this.generateUUID();
+                    messageStmt.run(
                         messageId,
                         conversationId,
                         message.role,
                         message.content,
                         JSON.stringify(message.metadata || {})
-                    ], (err: any) => {
-                        if (err) {
-                            console.error('❌ Failed to record message:', err.message);
-                            reject(err);
-                            return;
-                        }
-
-                        messageCount++;
-                        if (messageCount === messages.length) {
-                            console.log(`✅ Conversation recorded with ${messages.length} messages`);
-                            resolve(conversationId);
-                        }
-                    });
+                    );
                 }
+            }
 
-                // Handle empty messages array
-                if (messages.length === 0) {
-                    console.log('✅ Conversation recorded (no messages)');
-                    resolve(conversationId);
-                }
-            });
-        });
+            console.log(`✅ Conversation recorded with ${messages.length} messages`);
+            return conversationId;
+
+        } catch (err) {
+            console.error('❌ Failed to record conversation:', err);
+            throw err;
+        }
     }
 
     /**
@@ -664,71 +616,66 @@ export class MemoryDatabase {
             throw new Error('Database not initialized');
         }
 
-        return new Promise((resolve, reject) => {
+        try {
             const sql = `
                 SELECT * FROM conversations
                 ORDER BY timestamp DESC
                 LIMIT ?
             `;
 
-            this.db!.all(sql, [limit], async (err, conversations: any[]) => {
-                if (err) {
-                    console.error('❌ Failed to get conversations:', err.message);
-                    reject(err);
-                    return;
-                }
+            const stmt = this.db.prepare(sql);
+            const conversations = stmt.all(limit);
 
-                try {
-                    const conversationsWithMessages = await Promise.all(
-                        conversations.map(async (conv) => {
-                            const messages = await this.getMessagesForConversation(conv.id);
-                            return {
-                                id: conv.id,
-                                timestamp: new Date(conv.timestamp),
-                                aiAssistant: conv.ai_assistant,
-                                context: JSON.parse(conv.context || '{}'),
-                                messages,
-                                outcomes: []
-                            };
-                        })
-                    );
+            const conversationsWithMessages = await Promise.all(
+                conversations.map(async (conv: any) => {
+                    const messages = await this.getMessagesForConversation(conv.id);
+                    return {
+                        id: conv.id,
+                        timestamp: new Date(conv.timestamp),
+                        aiAssistant: conv.ai_assistant,
+                        context: JSON.parse(conv.context || '{}'),
+                        messages,
+                        outcomes: []
+                    };
+                })
+            );
 
-                    resolve(conversationsWithMessages);
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        });
+            return conversationsWithMessages;
+
+        } catch (err) {
+            console.error('❌ Failed to get conversations:', err);
+            throw err;
+        }
     }
 
     /**
      * Get messages for a specific conversation
      */
     private async getMessagesForConversation(conversationId: string): Promise<Message[]> {
-        return new Promise((resolve, reject) => {
+        try {
             const sql = `
                 SELECT * FROM messages
                 WHERE conversation_id = ?
                 ORDER BY timestamp
             `;
 
-            this.db!.all(sql, [conversationId], (err, messages: any[]) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
+            const stmt = this.db!.prepare(sql);
+            const messages = stmt.all(conversationId);
 
-                const formattedMessages = messages.map(msg => ({
-                    id: msg.id,
-                    role: msg.role as 'user' | 'assistant' | 'system',
-                    content: msg.content,
-                    timestamp: new Date(msg.timestamp),
-                    metadata: JSON.parse(msg.metadata || '{}')
-                }));
+            const formattedMessages = messages.map((msg: any) => ({
+                id: msg.id,
+                role: msg.role as 'user' | 'assistant' | 'system',
+                content: msg.content,
+                timestamp: new Date(msg.timestamp),
+                metadata: JSON.parse(msg.metadata || '{}')
+            }));
 
-                resolve(formattedMessages);
-            });
-        });
+            return formattedMessages;
+
+        } catch (err) {
+            console.error('❌ Failed to get messages:', err);
+            throw err;
+        }
     }
 
     /**
@@ -750,28 +697,28 @@ export class MemoryDatabase {
             throw new Error('Database not initialized');
         }
 
-        return new Promise((resolve, reject) => {
+        try {
             const sql = `
-                SELECT 
+                SELECT
                     COUNT(*) as total_memories,
                     SUM(LENGTH(content)) as total_size_bytes,
                     MAX(updated_at) as last_updated
                 FROM memories
             `;
 
-            this.db!.get(sql, [], (err, row: any) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
+            const stmt = this.db.prepare(sql);
+            const row = stmt.get() as any;
 
-                resolve({
-                    totalMemories: row.total_memories || 0,
-                    totalSizeBytes: row.total_size_bytes || 0,
-                    lastUpdated: row.last_updated || new Date().toISOString()
-                });
-            });
-        });
+            return {
+                totalMemories: row.total_memories || 0,
+                totalSizeBytes: row.total_size_bytes || 0,
+                lastUpdated: row.last_updated || new Date().toISOString()
+            };
+
+        } catch (err) {
+            console.error('❌ Failed to get stats:', err);
+            throw err;
+        }
     }
 
     /**
@@ -781,28 +728,22 @@ export class MemoryDatabase {
     async close(): Promise<void> {
         if (!this.db) return;
 
-        return new Promise((resolve) => {
-            this.db!.close(async (err) => {
-                if (err) {
-                    console.error('❌ Error closing database:', err.message);
-                } else {
-                    console.log('✅ Database connection closed');
-                }
-                
-                try {
-                    // TEMPORARILY DISABLED: Skip encryption for testing
-                    // await this.encryptDatabaseFile();
-                    console.log('📋 Database closed (encryption disabled for testing)');
-                } catch (encryptError) {
-                    console.error('❌ Failed to encrypt database on close:', encryptError);
-                }
-                
-                this.db = null;
-                this.initialized = false;
-                this.encryptionKey = null; // Clear encryption key from memory
-                resolve();
-            });
-        });
+        try {
+            this.db.close();
+            console.log('✅ Database connection closed');
+
+            // TEMPORARILY DISABLED: Skip encryption for testing
+            // await this.encryptDatabaseFile();
+            console.log('📋 Database closed (encryption disabled for testing)');
+
+            this.db = null;
+            this.initialized = false;
+            this.encryptionKey = null; // Clear encryption key from memory
+
+        } catch (err) {
+            console.error('❌ Error closing database:', err);
+            throw err;
+        }
     }
 
     /**
