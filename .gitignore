@@ -53,6 +53,13 @@ coverage/
 *.db-journal
 LICENSING.md
 
+# License Manager (separate tool, not in repo)
+../license-manager/
+license-manager/
+**/license-manager/
+license-log.json
+*.license-key
+
 # Test files (keep source tests)
 test-*.js
 simulate-*.js

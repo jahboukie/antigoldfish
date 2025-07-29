@@ -5,10 +5,15 @@
 
 const nodemailer = require('nodemailer');
 
-// License generation function (same as Zapier!)
-function makeLicenseKey() {
+// License generation function - Correct format: AGM-TYPE-HASH-HASH-HASH
+function makeLicenseKey(type = 'EARLY') {
   const part = () => Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `AGM-EARLY-${part()}-${part()}-${part()}`;
+  return `AGM-${type}-${part()}-${part()}-${part()}`;
+}
+
+// Generate trial license key
+function makeTrialLicenseKey() {
+  return makeLicenseKey('TRIAL');
 }
 
 // Email configuration
@@ -130,44 +135,116 @@ async function sendLicenseEmail(customerEmail, customerName, licenseKey) {
   }
 }
 
+// Verify Stripe webhook signature (optional but recommended)
+function verifyStripeSignature(payload, signature, secret) {
+  if (!secret || !signature) {
+    console.log('⚠️ Skipping signature verification (no secret configured)');
+    return true; // Allow if not configured
+  }
+
+  try {
+    const crypto = require('crypto');
+    const elements = signature.split(',');
+    const signatureHash = elements.find(el => el.startsWith('v1=')).split('=')[1];
+    const timestamp = elements.find(el => el.startsWith('t=')).split('=')[1];
+
+    const expectedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(timestamp + '.' + payload)
+      .digest('hex');
+
+    return crypto.timingSafeEqual(
+      Buffer.from(signatureHash, 'hex'),
+      Buffer.from(expectedSignature, 'hex')
+    );
+  } catch (error) {
+    console.error('❌ Signature verification failed:', error);
+    return false;
+  }
+}
+
 // Main serverless function handler
 module.exports = async function handler(req, res) {
+  // Set CORS headers for preflight requests
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, stripe-signature');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    // Basic environment check
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.error('❌ Missing email configuration');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+
+    // Get event data
     const event = req.body;
+
+    // Basic validation
+    if (!event || !event.type) {
+      console.error('❌ Invalid webhook payload');
+      return res.status(400).json({ error: 'Invalid payload' });
+    }
     
     console.log('📦 Received Stripe webhook:', event.type);
-    
+
     // Handle successful checkout
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
-      
+
       // Extract customer info
       const customerEmail = session.customer_details?.email || session.customer_email;
       const customerName = session.customer_details?.name || 'Customer';
-      
+
       if (!customerEmail) {
         console.error('❌ No customer email found in session');
         return res.status(400).json({ error: 'No customer email' });
       }
-      
+
       console.log(`🎯 Processing license for: ${customerEmail}`);
-      
-      // Generate license key (replaces Zapier!)
-      const licenseKey = makeLicenseKey();
-      
-      console.log(`🔑 Generated license: ${licenseKey}`);
-      
+
+      // Determine license type based on session metadata or amount
+      let licenseKey;
+      const sessionMetadata = session.metadata || {};
+      const amount = session.amount_total || 0;
+
+      if (sessionMetadata.license_type === 'trial' || amount === 0) {
+        // Free trial
+        licenseKey = makeTrialLicenseKey();
+        console.log(`🆓 Generated TRIAL license: ${licenseKey}`);
+      } else {
+        // Paid license (Early Adopter or Standard)
+        licenseKey = makeLicenseKey('EARLY'); // Default to early adopter
+        console.log(`💰 Generated EARLY license: ${licenseKey}`);
+      }
+
       // Send email (replaces Zapier!)
       const emailSent = await sendLicenseEmail(customerEmail, customerName, licenseKey);
-      
+
       if (emailSent) {
         console.log(`✅ Complete! License ${licenseKey} sent to ${customerEmail}`);
+      } else {
+        console.error(`❌ Failed to send license email to ${customerEmail}`);
+        // Still return 200 to Stripe to avoid retries, but log the failure
       }
+    }
+
+    // Handle other webhook events (customer.subscription.created, etc.)
+    else if (event.type === 'customer.subscription.created') {
+      console.log('📋 Subscription created - license already sent via checkout.session.completed');
+    }
+    else {
+      console.log(`ℹ️ Unhandled webhook type: ${event.type}`);
     }
     
     // Always respond with 200
