@@ -20,16 +20,16 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const version = "1.4.0";
+export const version = "1.4.1";
 
 export class CodeContextCLI {
-    private memoryEngine: MemoryEngine;
+    public memoryEngine: MemoryEngine;
     private licenseService: LicenseService;
     // Note: Execution engine removed for v1.0 - coming in v2.0
     private program: Command;
 
-    constructor(projectPath: string = process.cwd(), skipValidation: boolean = false) {
-        this.memoryEngine = new MemoryEngine(projectPath, skipValidation);
+    constructor(projectPath: string = process.cwd(), skipValidation: boolean = false, devMode: boolean = false) {
+        this.memoryEngine = new MemoryEngine(projectPath, skipValidation, devMode);
         this.licenseService = new LicenseService(projectPath);
         this.program = new Command();
 
@@ -40,7 +40,8 @@ export class CodeContextCLI {
         this.program
             .name('antigoldfishmode')
             .description('🧠 AntiGoldfishMode - Because AI assistants shouldn\'t have goldfish memory!')
-            .version(version);
+            .version(version)
+            .option('--dev-mode', '🔓 Development mode (disables encryption - use only for testing)');
 
         // codecontextpro remember command (unlimited)
         this.program
@@ -500,7 +501,13 @@ export class CodeContextCLI {
 
 // Main function for CLI entry point
 export function main(argv: string[]): void {
-    const cli = new CodeContextCLI();
+    // Check for dev-mode flag
+    const devMode = argv.includes('--dev-mode');
+    if (devMode) {
+        console.log(chalk.yellow('🔓 Development mode enabled - encryption disabled'));
+    }
+
+    const cli = new CodeContextCLI(process.cwd(), false, devMode);
     cli.run(argv);
 }
 

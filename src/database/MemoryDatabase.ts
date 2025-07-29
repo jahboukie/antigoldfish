@@ -101,11 +101,13 @@ export class MemoryDatabase {
     private tempDbPath: string;
     private initialized = false;
     private encryptionKey: Buffer | null = null;
+    private devMode: boolean;
 
-    constructor(dbPath: string) {
+    constructor(dbPath: string, devMode: boolean = false) {
         this.dbPath = dbPath;
         this.encryptedDbPath = dbPath + '.enc';
         this.tempDbPath = dbPath + '.temp';
+        this.devMode = devMode;
     }
 
     /**
@@ -265,9 +267,13 @@ export class MemoryDatabase {
                 fs.mkdirSync(dbDir, { recursive: true });
             }
 
-            // TEMPORARILY DISABLED: Skip decryption for testing
-            // await this.decryptDatabaseFile();
-            console.log('📋 Using unencrypted database for testing');
+            // Handle encryption based on mode
+            if (this.devMode) {
+                console.log('🔓 Development mode: Using unencrypted database');
+            } else {
+                await this.decryptDatabaseFile();
+                console.log('🔐 Database decrypted and ready for use');
+            }
 
             // Create database connection (synchronous with better-sqlite3)
             this.db = new Database(this.dbPath);
@@ -729,14 +735,23 @@ export class MemoryDatabase {
         if (!this.db) return;
 
         try {
-            this.db.close();
-            console.log('✅ Database connection closed');
+            // Close database connection first
+            if (this.db) {
+                this.db.close();
+                this.db = null;
+                console.log('✅ Database connection closed');
+            }
 
-            // TEMPORARILY DISABLED: Skip encryption for testing
-            // await this.encryptDatabaseFile();
-            console.log('📋 Database closed (encryption disabled for testing)');
+            // Handle encryption based on mode
+            if (this.devMode) {
+                console.log('🔓 Development mode: Database closed without encryption');
+            } else {
+                // Small delay to ensure file handle is released on Windows
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await this.encryptDatabaseFile();
+                console.log('🔒 Database encrypted and secured');
+            }
 
-            this.db = null;
             this.initialized = false;
             this.encryptionKey = null; // Clear encryption key from memory
 

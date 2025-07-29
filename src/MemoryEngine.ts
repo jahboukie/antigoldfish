@@ -47,10 +47,10 @@ export class MemoryEngine {
     public database: MemoryDatabase;
     private initialized: boolean = false;
 
-    constructor(projectPath: string, skipValidation: boolean = false) {
+    constructor(projectPath: string, skipValidation: boolean = false, devMode: boolean = false) {
         this.projectPath = projectPath;
         this.dbPath = path.join(projectPath, '.codecontext', 'memory.db');
-        this.database = new MemoryDatabase(this.dbPath);
+        this.database = new MemoryDatabase(this.dbPath, devMode);
 
         if (!skipValidation) {
             this.validateProjectPath();
