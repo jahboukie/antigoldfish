@@ -62,18 +62,8 @@ export class CodeContextCLI {
                 await this.handleRecall(query, options);
             });
 
-        // codecontextpro execute command (NEW - local sandbox)
-        this.program
-            .command('execute')
-            .description('Execute code in secure local sandbox')
-            .argument('<language>', 'Programming language (js, ts, python, go, rust)')
-            .argument('<code>', 'Code to execute')
-            .option('-t, --timeout <timeout>', 'Execution timeout in seconds', '30')
-            .option('-m, --memory <memory>', 'Memory limit', '512m')
-            .option('--tests <tests>', 'Test cases (JSON array)')
-            .action(async (language: string, code: string, options) => {
-                await this.handleExecute(language, code, options);
-            });
+        // Note: Secure code execution sandbox coming in v2.0
+        // Early adopters: +$49/year | Standard users: +$51/year
 
         // codecontextpro status command
         this.program
@@ -515,11 +505,12 @@ export class CodeContextCLI {
             console.log(`   Total memories: ${memoryStats.totalMemories}`);
             console.log(`   Database size: ${(memoryStats.totalSizeBytes / 1024 / 1024).toFixed(2)} MB`);
 
-            // Execution engine status
+            // Execution engine status (v2.0 feature)
             console.log(chalk.cyan('\n🚀 Execution Engine:'));
-            console.log('   Status: ✅ Ready');
-            console.log('   Sandbox: 🐳 Docker Local');
+            console.log('   Status: 🔄 Coming in v2.0');
+            console.log('   Sandbox: 🐳 Docker Secure Execution');
             console.log('   Languages: JS/TS/Python/Go/Rust');
+            console.log(chalk.yellow('   💰 Early Adopters: +$49/year | Standard: +$51/year'));
 
             console.log(chalk.green('\n🎯 System ready for unlimited local development!'));
 
@@ -579,11 +570,11 @@ export class CodeContextCLI {
             console.log(chalk.cyan('\n📋 Ready to Use:'));
             console.log('   ✅ License activated (machine-bound)');
             console.log('   ✅ Project initialized');
-            console.log('   🚀 Start using unlimited features:');
+            console.log('   🚀 Start using unlimited AI memory features:');
             console.log('      antigoldfishmode remember "Your insights"');
             console.log('      antigoldfishmode recall "search query"');
-            console.log('      antigoldfishmode execute python "print(\'Hello!\')"');
             console.log('      antigoldfishmode status');
+            console.log(chalk.yellow('   🔄 Code execution sandbox coming in v2.0!'));
 
         } catch (error) {
             console.error(chalk.red('❌ Failed to initialize AntiGoldfishMode:'));
