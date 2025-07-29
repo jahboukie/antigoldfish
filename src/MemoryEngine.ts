@@ -47,10 +47,13 @@ export class MemoryEngine {
     public database: MemoryDatabase;
     private initialized: boolean = false;
 
-    constructor(projectPath: string, skipValidation: boolean = false, devMode: boolean = false) {
+    constructor(projectPath: string, skipValidation: boolean = false, devMode: boolean = false, secureMode: boolean = false) {
         this.projectPath = projectPath;
         this.dbPath = path.join(projectPath, '.codecontext', 'memory.db');
-        this.database = new MemoryDatabase(this.dbPath, devMode);
+
+        // Determine encryption mode: secure-mode enables it, dev-mode disables it, default is disabled for reliability
+        const encryptionEnabled = secureMode && !devMode;
+        this.database = new MemoryDatabase(this.dbPath, !encryptionEnabled); // devMode parameter controls encryption
 
         if (!skipValidation) {
             this.validateProjectPath();

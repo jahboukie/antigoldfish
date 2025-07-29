@@ -20,7 +20,7 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const version = "1.4.1";
+export const version = "1.4.2";
 
 export class CodeContextCLI {
     public memoryEngine: MemoryEngine;
@@ -28,8 +28,8 @@ export class CodeContextCLI {
     // Note: Execution engine removed for v1.0 - coming in v2.0
     private program: Command;
 
-    constructor(projectPath: string = process.cwd(), skipValidation: boolean = false, devMode: boolean = false) {
-        this.memoryEngine = new MemoryEngine(projectPath, skipValidation, devMode);
+    constructor(projectPath: string = process.cwd(), skipValidation: boolean = false, devMode: boolean = false, secureMode: boolean = false) {
+        this.memoryEngine = new MemoryEngine(projectPath, skipValidation, devMode, secureMode);
         this.licenseService = new LicenseService(projectPath);
         this.program = new Command();
 
@@ -41,7 +41,8 @@ export class CodeContextCLI {
             .name('antigoldfishmode')
             .description('🧠 AntiGoldfishMode - Because AI assistants shouldn\'t have goldfish memory!')
             .version(version)
-            .option('--dev-mode', '🔓 Development mode (disables encryption - use only for testing)');
+            .option('--dev-mode', '🔓 Development mode (disables encryption - use only for testing)')
+            .option('--secure-mode', '🔒 Enterprise security mode (enables encryption - recommended for production)');
 
         // codecontextpro remember command (unlimited)
         this.program
@@ -196,10 +197,27 @@ export class CodeContextCLI {
                 }
             );
 
+            // Ensure database is properly closed and encrypted
+            await this.cleanup();
+
         } catch (error) {
             console.error(chalk.red('❌ Failed to store memory:'));
             console.error(chalk.red(`   ${error instanceof Error ? error.message : 'Unknown error'}`));
+            await this.cleanup();
             process.exit(1);
+        }
+    }
+
+    /**
+     * Cleanup method to ensure database is properly closed
+     */
+    private async cleanup(): Promise<void> {
+        try {
+            if (this.memoryEngine && this.memoryEngine.database) {
+                await this.memoryEngine.database.close();
+            }
+        } catch (error) {
+            // Ignore cleanup errors
         }
     }
 
@@ -262,9 +280,13 @@ export class CodeContextCLI {
                 }
             );
 
+            // Ensure database is properly closed and encrypted
+            await this.cleanup();
+
         } catch (error) {
             console.error(chalk.red('❌ Failed to recall memories:'));
             console.error(chalk.red(`   ${error instanceof Error ? error.message : 'Unknown error'}`));
+            await this.cleanup();
             process.exit(1);
         }
     }
@@ -361,9 +383,13 @@ export class CodeContextCLI {
 
             console.log(chalk.green('\n🎯 System ready for unlimited local development!'));
 
+            // Ensure database is properly closed and encrypted
+            await this.cleanup();
+
         } catch (error) {
             console.error(chalk.red('❌ Failed to get status:'));
             console.error(chalk.red(`   ${error instanceof Error ? error.message : 'Unknown error'}`));
+            await this.cleanup();
             process.exit(1);
         }
     }
@@ -501,13 +527,24 @@ export class CodeContextCLI {
 
 // Main function for CLI entry point
 export function main(argv: string[]): void {
-    // Check for dev-mode flag
+    // Check for mode flags
     const devMode = argv.includes('--dev-mode');
-    if (devMode) {
-        console.log(chalk.yellow('🔓 Development mode enabled - encryption disabled'));
+    const secureMode = argv.includes('--secure-mode');
+
+    if (devMode && secureMode) {
+        console.log(chalk.red('❌ Cannot use both --dev-mode and --secure-mode'));
+        process.exit(1);
     }
 
-    const cli = new CodeContextCLI(process.cwd(), false, devMode);
+    if (devMode) {
+        console.log(chalk.yellow('🔓 Development mode enabled - encryption disabled'));
+    } else if (secureMode) {
+        console.log(chalk.green('🔒 Enterprise security mode enabled - encryption active'));
+    } else {
+        console.log(chalk.cyan('📋 Standard mode - reliable operation (use --secure-mode for encryption)'));
+    }
+
+    const cli = new CodeContextCLI(process.cwd(), false, devMode, secureMode);
     cli.run(argv);
 }
 
