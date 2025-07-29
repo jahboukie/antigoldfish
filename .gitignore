@@ -59,6 +59,20 @@ license-manager/
 **/license-manager/
 license-log.json
 *.license-key
+license-generator.js
+setup-license-manager.bat
+webhook-server.js
+WEBHOOK_SETUP.md
+.env.example
+
+# Website/Landing page files (separate repo)
+public/
+*.html
+faq-section.html
+landing-page.html
+privacy-policy.html
+terms-of-service.html
+CHANGELOG.md
 
 # Test files (keep source tests)
 test-*.js

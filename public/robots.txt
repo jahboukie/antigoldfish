@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://antigoldfish.dev/sitemap.xml
