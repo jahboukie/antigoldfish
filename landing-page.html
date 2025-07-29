@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AntiGoldfishMode - Stop Re-Explaining Your Code to AI</title>
+    <meta name="description" content="Give your AI assistant an elephant's memory. 7-day free trial, then lock in $69/year forever. Never lose context again.">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 60px 0 40px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+        
+        .hero-section {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            margin: 40px 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+        }
+        
+        .early-adopter-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: inline-block;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(238, 90, 36, 0.3);
+        }
+        
+        .pricing-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .price-crossed {
+            font-size: 1.5rem;
+            text-decoration: line-through;
+            color: #999;
+            margin-right: 20px;
+        }
+        
+        .price-current {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #2d3748;
+            display: inline-block;
+        }
+        
+        .price-period {
+            font-size: 1.2rem;
+            color: #666;
+            margin-left: 10px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 50px 0;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            border-left: 5px solid #4ecdc4;
+        }
+        
+        .feature-card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .feature-list {
+            list-style: none;
+            margin: 30px 0;
+        }
+        
+        .feature-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 1.1rem;
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 20px 10px;
+            box-shadow: 0 15px 35px rgba(68, 160, 141, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(68, 160, 141, 0.4);
+        }
+        
+        .cta-button.secondary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin-top: 10px;
+        }
+        
+        .comparison-section {
+            background: #f8f9fa;
+            padding: 50px;
+            border-radius: 20px;
+            margin: 50px 0;
+        }
+        
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            margin-top: 30px;
+        }
+        
+        .before, .after {
+            padding: 30px;
+            border-radius: 15px;
+        }
+        
+        .before {
+            background: #ffebee;
+            border-left: 5px solid #f44336;
+        }
+        
+        .after {
+            background: #e8f5e8;
+            border-left: 5px solid #4caf50;
+        }
+        
+        .standard-pricing {
+            background: #f1f3f4;
+            padding: 40px;
+            border-radius: 15px;
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .guarantee-section {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 40px;
+            border-radius: 20px;
+            margin: 50px 0;
+            text-align: center;
+        }
+        
+        .guarantee-list {
+            list-style: none;
+            display: inline-block;
+            text-align: left;
+            margin: 20px 0;
+        }
+        
+        .guarantee-list li {
+            padding: 10px 0;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .install-section {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 40px 0;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .install-section h3 {
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin-bottom: 20px;
+        }
+        
+        .code-block {
+            background: #000;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-section {
+                padding: 30px 20px;
+            }
+            
+            .before-after {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .price-current {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🧠 AntiGoldfishMode</h1>
+            <p class="subtitle">Stop Re-Explaining Your Code to AI Every Single Time</p>
+            <p style="font-size: 1.2rem; opacity: 0.8;">Give your AI assistant an elephant's memory. 7-day free trial, then lock in $69/year forever.</p>
+        </header>
+
+        <section class="hero-section">
+            <div class="early-adopter-badge">
+                🔥 EARLY ADOPTER SPECIAL - LIMITED TIME
+            </div>
+            
+            <h2 style="font-size: 2.5rem; margin-bottom: 20px; text-align: center;">
+                AntiGoldfishMode Pro: Lifetime Price Lock
+            </h2>
+            
+            <p style="text-align: center; font-size: 1.3rem; color: #e74c3c; font-weight: bold; margin-bottom: 30px;">
+                ⚠️ ONLY 20,000 LICENSES AVAILABLE
+            </p>
+            
+            <div class="pricing-container">
+                <span class="price-crossed">$149/year</span>
+                <span class="price-current">$69<span class="price-period">/year</span></span>
+                <p style="margin-top: 10px; color: #666;">Billed Annually</p>
+            </div>
+            
+            <div style="text-align: center; margin: 40px 0;">
+                <!-- Early Adopter $69/year Payment Link - LIVE -->
+                <a href="https://buy.stripe.com/4gMcN58QMaXO9Bsbdr4Ja0a" class="cta-button" style="font-size: 1.3rem;">
+                    🚀 Start 7-Day Free Trial - $69/year
+                </a>
+                <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">No Credit Card Required</p>
+            </div>
+
+            <h3 style="text-align: center; margin: 40px 0 30px; font-size: 1.8rem;">Why This Changes Everything:</h3>
+            
+            <div style="background: #e8f5e8; padding: 25px; border-radius: 15px; margin: 30px 0; border-left: 5px solid #4caf50;">
+                <h4 style="color: #2e7d32; margin-bottom: 15px; font-size: 1.4rem;">🐳 Secure Code Execution Sandbox</h4>
+                <p style="font-size: 1.1rem; margin-bottom: 15px;">Test AI-generated code safely in isolated Docker containers before running on your machine. Supports JavaScript, TypeScript, Python, Go, and Rust.</p>
+                <div style="background: #1a1a1a; color: #00ff00; padding: 15px; border-radius: 8px; font-family: 'Monaco', monospace; font-size: 1rem;">
+                    $ antigoldfishmode execute python "print('Hello from secure sandbox!')"<br>
+                    ✅ Execution successful! Output: Hello from secure sandbox!
+                </div>
+            </div>
+            
+            <ul class="feature-list">
+                <li>✅ <strong>Price Locked FOR LIFE</strong> - Never pay more than $69/year, even when new users pay $149</li>
+                <li>🧠 <strong>Persistent AI Memory</strong> - AI remembers your entire project history across sessions</li>
+                <li>🐳 <strong>Secure Code Execution</strong> - Test code in isolated Docker sandbox (JS/TS/Python/Go/Rust)</li>
+                <li>🔒 <strong>100% Local & Private</strong> - Your code and data never leave your machine</li>
+                <li>📝 <strong>Conversation Recording</strong> - All AI interactions automatically saved and searchable</li>
+                <li>🔐 <strong>Local encryption</strong> - Your intellectual property stays yours</li>
+                <li>💻 <strong>1 machine license</strong> - Perfect for your main development setup</li>
+                <li>📧 <strong>Priority developer support</strong> - Direct access to our team</li>
+                <li>🚀 <strong>All future updates included</strong> - No additional charges ever</li>
+                <li>⏰ <strong>7-day offline grace period</strong> - Works without internet connection</li>
+            </ul>
+        </section>
+
+        <section class="install-section">
+            <h3>🛠️ Quick Install & Setup:</h3>
+            <div class="code-block">$ npm install -g antigoldfishmode</div>
+            <div class="code-block">$ antigoldfishmode activate [your-license-key]</div>
+            <div class="code-block">$ antigoldfishmode remember "My first persistent memory"</div>
+            <div class="code-block">$ antigoldfishmode recall "search anything"</div>
+            <div style="margin: 20px 0; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <strong>🐳 Test code safely in Docker sandbox:</strong>
+            </div>
+            <div class="code-block">$ antigoldfishmode execute javascript "console.log('Safe execution!')"</div>
+            <div class="code-block">$ antigoldfishmode execute python "import requests; print('Network calls work too!')"</div>
+        </section>
+
+        <section class="comparison-section">
+            <h2 style="text-align: center; margin-bottom: 30px; font-size: 2.2rem;">💡 Why Developers Love This</h2>
+            
+            <div class="before-after">
+                <div class="before">
+                    <h3 style="color: #f44336; margin-bottom: 20px;">😤 Before AntiGoldfishMode:</h3>
+                    <ul style="list-style: none;">
+                        <li>❌ "Here's my project structure again..."</li>
+                        <li>❌ "Let me re-explain this authentication flow..."</li>
+                        <li>❌ "I already told you about this bug..."</li>
+                        <li>❌ "Wait, what was that solution from yesterday?"</li>
+                        <li>❌ Starting from scratch every conversation</li>
+                    </ul>
+                </div>
+                
+                <div class="after">
+                    <h3 style="color: #4caf50; margin-bottom: 20px;">🚀 After AntiGoldfishMode:</h3>
+                    <ul style="list-style: none;">
+                        <li>✅ AI remembers your architecture patterns</li>
+                        <li>✅ Builds on previous conversations seamlessly</li>
+                        <li>✅ Understands your coding style and preferences</li>
+                        <li>✅ Recalls solutions and decisions instantly</li>
+                        <li>✅ Persistent context across all sessions</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="standard-pricing">
+            <h2 style="margin-bottom: 20px;">🔮 After Early Adopter Sells Out</h2>
+            <h3 style="font-size: 2rem; color: #666; margin-bottom: 20px;">$149/year</h3>
+            <p style="margin-bottom: 20px; font-size: 1.1rem;">Same features as Early Adopter, just regular price. Once we sell 20,000 licenses, new users will pay $149/year. Early adopters keep their $69 rate forever.</p>
+            
+            <!-- Waitlist for Standard Plan -->
+            <a href="mailto:antigoldfish.dev@gmail.com?subject=AntiGoldfishMode%20Waitlist%20-%20Standard%20Plan&body=Hi%2C%20please%20add%20me%20to%20the%20AntiGoldfishMode%20waitlist%20for%20when%20the%20Early%20Adopter%20offer%20ends!%0D%0A%0D%0AName%3A%20%0D%0AEmail%3A%20%0D%0ACompany%20(optional)%3A%20%0D%0A%0D%0AInterested%20in%3A%20Standard%20Plan%20%24149%2Fyear%20(after%20Early%20Adopter%20ends)%0D%0A%0D%0AThanks!" 
+               class="cta-button secondary">
+                📧 Join Waitlist for $149 Plan
+            </a>
+            
+            <p style="margin-top: 15px; font-size: 0.9rem; color: #666;">
+                Get notified when Early Adopter licenses sell out
+            </p>
+        </section>
+
+        <section class="guarantee-section">
+            <h2 style="margin-bottom: 30px; font-size: 2.2rem;">🛡️ Risk-Free Promise</h2>
+            <ul class="guarantee-list">
+                <li>✅ <strong>7-day free trial</strong> - Full features, no restrictions</li>
+                <li>✅ <strong>30-day money-back guarantee</strong> after subscription</li>
+                <li>✅ <strong>Cancel anytime</strong> - No long-term commitments</li>
+                <li>✅ <strong>Price locked for life</strong> - Early adopters never pay more</li>
+            </ul>
+        </section>
+
+        <footer style="text-align: center; padding: 40px 0; color: white;">
+            <h3 style="margin-bottom: 20px;">🎉 Join 20,000 Developers Getting Early Adopter Pricing</h3>
+            <p style="opacity: 0.8; margin-bottom: 30px;">Once we hit 20,000 licenses, the price goes to $149/year permanently.</p>
+            
+            <!-- Early Adopter $69/year Payment Link - LIVE -->
+            <a href="https://buy.stripe.com/4gMcN58QMaXO9Bsbdr4Ja0a" class="cta-button" style="font-size: 1.4rem;">
+                🚀 Secure Your $69/Year Price Now
+            </a>
+            
+            <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.7;">
+                Need help? Email us at <a href="mailto:antigoldfish.dev@gmail.com" style="color: #4ecdc4;">antigoldfish.dev@gmail.com</a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
