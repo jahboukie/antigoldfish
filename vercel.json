@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "webhook-server.js": {
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/stripe-webhook",
+      "destination": "/webhook-server.js"
+    }
+  ]
+}
