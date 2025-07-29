@@ -278,7 +278,9 @@ export class MemoryDatabase {
                         return;
                     }
 
-                    console.log('✅ Connected to encrypted SQLite database:', this.dbPath);
+                    console.log('✅ Connected to SQLite database');
+
+
                     this.createTables()
                         .then(() => {
                             this.initialized = true;
@@ -421,7 +423,7 @@ export class MemoryDatabase {
 
         return new Promise((resolve, reject) => {
             const stmt = this.db!.prepare(`
-                INSERT OR REPLACE INTO memories 
+                INSERT OR REPLACE INTO memories
                 (content, context, type, tags, metadata, content_hash, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             `);
