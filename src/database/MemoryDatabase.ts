@@ -280,7 +280,6 @@ export class MemoryDatabase {
 
                     console.log('✅ Connected to SQLite database');
 
-
                     this.createTables()
                         .then(() => {
                             this.initialized = true;

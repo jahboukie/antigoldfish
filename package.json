@@ -9,6 +9,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/cli.js",
+    "webhook": "node webhook-server.js",
+    "webhook:dev": "nodemon webhook-server.js",
     "clean": "rmdir /s /q dist 2>nul || echo dist cleaned",
     "prepublishOnly": "npm run clean && npm run build"
   },
@@ -42,9 +44,19 @@
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "fs-extra": "^11.2.0",
     "node-machine-id": "^1.1.12",
+    "nodemailer": "^6.10.1",
     "sqlite3": "^5.1.7"
+  },
+  "overrides": {
+    "@npmcli/fs": "^3.1.1",
+    "lru-cache": "^11.0.2",
+    "proc-log": "^4.2.0",
+    "rimraf": "^6.0.1",
+    "glob": "^11.0.0"
   },
   "engines": {
     "node": ">=18.0.0",
