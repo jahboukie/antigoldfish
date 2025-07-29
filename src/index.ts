@@ -1,30 +1,31 @@
 /**
- * CodeContextPro-MES - AI Cognitive Upgrade
- * UNLIMITED LOCAL-ONLY VERSION - Security-first for developers
- * 
+ * AntiGoldfishMode v1.0 - AI Memory Engine
+ * UNLIMITED LOCAL-ONLY VERSION - Privacy-first for developers
+ *
  * Features:
  * - Unlimited memory operations (no rate limits)
- * - Local-only execution sandbox
+ * - Persistent AI conversation recording
  * - Machine-bound licensing
  * - No cloud dependencies for core operations
+ *
+ * Coming in v2.0:
+ * - Secure code execution sandbox (Q4 2025)
+ * - Early adopters: +$49/year | Standard: +$51/year
  */
 
 import { Command } from 'commander';
 import { MemoryEngine } from './MemoryEngine';
 import { LicenseService } from './LicenseService';
 import chalk from 'chalk';
-import * as http from 'http';
-import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const version = "1.2.0";
+export const version = "1.1.0";
 
 export class CodeContextCLI {
     private memoryEngine: MemoryEngine;
     private licenseService: LicenseService;
-    private executionServerProcess: any = null;
-    private executionServerPort: number = 3001;
+    // Note: Execution engine removed for v1.0 - coming in v2.0
     private program: Command;
 
     constructor(projectPath: string = process.cwd(), skipValidation: boolean = false) {
@@ -62,8 +63,18 @@ export class CodeContextCLI {
                 await this.handleRecall(query, options);
             });
 
-        // Note: Secure code execution sandbox coming in v2.0
-        // Early adopters: +$49/year | Standard users: +$51/year
+        // Execute command (v2.0 feature - show helpful message)
+        this.program
+            .command('execute')
+            .description('Execute code in secure local sandbox (Coming in v2.0)')
+            .argument('<language>', 'Programming language (js, ts, python, go, rust)')
+            .argument('<code>', 'Code to execute')
+            .option('-t, --timeout <timeout>', 'Execution timeout in seconds', '30')
+            .option('-m, --memory <memory>', 'Memory limit', '512m')
+            .option('--tests <tests>', 'Test cases (JSON array)')
+            .action(async (language: string, code: string, options) => {
+                await this.handleExecuteV2Message(language, code, options);
+            });
 
         // codecontextpro status command
         this.program
@@ -258,209 +269,44 @@ export class CodeContextCLI {
     }
 
     /**
-     * Handle execute command - Keygen Licensed Execution
+     * Handle execute command - Show v2.0 message
      */
-    private async handleExecute(language: string, code: string, options: any): Promise<void> {
-        try {
-            console.log(chalk.cyan('🚀 AntiGoldfishMode - Secure Code Execution'));
-            
-            // Validate license before allowing operation
-            const isLicenseValid = await this.licenseService.validateLicense();
-            if (!isLicenseValid) {
-                console.log(chalk.red('❌ Valid license required'));
-                console.log(chalk.gray('   Run `antigoldfishmode activate <license-key>` to activate'));
-                process.exit(1);
-            }
-            
-            console.log(chalk.green('✅ License validated - secure code execution enabled!'));
+    private async handleExecuteV2Message(language: string, code: string, options: any): Promise<void> {
+        console.log(chalk.cyan('🚀 AntiGoldfishMode - Code Execution'));
+        console.log(chalk.yellow('🔄 Code execution sandbox is coming in v2.0 (Q4 2025)!'));
+        console.log('');
+        console.log(chalk.white('📋 Your request:'));
+        console.log(chalk.gray(`   Language: ${language}`));
+        console.log(chalk.gray(`   Code: ${code.substring(0, 50)}${code.length > 50 ? '...' : ''}`));
+        console.log('');
+        console.log(chalk.cyan('💰 Upgrade Pricing:'));
+        console.log(chalk.green('   Early Adopters: $69 + $49 = $118/year total'));
+        console.log(chalk.red('   Standard Users: $149 + $51 = $200/year total'));
+        console.log('');
+        console.log(chalk.yellow('🎯 Current v1.0 Features:'));
+        console.log('   ✅ Persistent AI Memory');
+        console.log('   ✅ Conversation Recording');
+        console.log('   ✅ Local Data Storage');
+        console.log('');
+        console.log(chalk.blue('📧 Want early access? Email: antigoldfish.dev@gmail.com'));
 
-            // Start execution server if not running
-            await this.ensureExecutionServerRunning();
-
-            // Create execution request
-            const request = {
-                id: Date.now().toString(),
+        // Record this interaction
+        await this.recordAIConversation(
+            `antigoldfishmode execute ${language} "${code}"`,
+            `User attempted to execute ${language} code. Showed v2.0 upgrade message with pricing: Early adopters $118/year total, Standard users $200/year total.`,
+            {
+                command: 'execute',
                 language: language,
                 code: code,
-                timeout: parseInt(options.timeout) * 1000,
-                memoryLimit: options.memory,
-                tests: options.tests ? JSON.parse(options.tests) : undefined,
-                projectContext: {
-                    workingDirectory: process.cwd()
-                }
-            };
-
-            console.log(chalk.yellow(`📊 Executing ${language} code...`));
-
-            // Call execution service
-            const result = await this.callExecutionService(request);
-
-            // Display results
-            if (result.success) {
-                console.log(chalk.green('✅ Execution successful!'));
-                console.log(chalk.gray(`   Execution time: ${result.executionTime}ms`));
-                console.log(chalk.gray(`   Memory usage: ${result.memoryUsage}MB`));
-
-                if (result.output) {
-                    console.log(chalk.cyan('\n📤 Output:'));
-                    console.log(result.output);
-                }
-
-                if (result.testResults && result.testResults.length > 0) {
-                    console.log(chalk.cyan('\n🧪 Test Results:'));
-                    result.testResults.forEach((test: any) => {
-                        const status = test.passed ? chalk.green('✅') : chalk.red('❌');
-                        console.log(`${status} ${test.name} (${test.duration}ms)`);
-                        if (!test.passed && test.error) {
-                            console.log(chalk.red(`   Error: ${test.error}`));
-                        }
-                    });
-                }
-            } else {
-                console.log(chalk.red('❌ Execution failed'));
-
-                if (result.errors && result.errors.length > 0) {
-                    console.log(chalk.red('\n🚨 Errors:'));
-                    result.errors.forEach((error: string) => {
-                        console.log(chalk.red(`   ${error}`));
-                    });
-                }
-
-                if (result.improvements) {
-                    console.log(chalk.yellow('\n💡 Suggestions:'));
-                    result.improvements.codeImprovements.forEach((improvement: string) => {
-                        console.log(chalk.yellow(`   • ${improvement}`));
-                    });
-                }
+                status: 'v2.0_feature',
+                message: 'Code execution coming in v2.0 (Q4 2025)'
             }
-
-            // Auto-record this AI interaction
-            const executionSummary = result.success
-                ? `Code executed successfully in Docker sandbox. Output: ${result.output || 'No output'}. Execution time: ${result.executionTime}ms, Memory usage: ${result.memoryUsage}MB.`
-                : `Code execution failed. ${result.errors ? 'Errors: ' + result.errors.join(', ') : 'Unknown error occurred.'}`;
-
-            await this.recordAIConversation(
-                `antigoldfishmode execute ${language} "${code}"`,
-                executionSummary,
-                {
-                    command: 'execute',
-                    language: language,
-                    code: code,
-                    success: result.success,
-                    executionTime: result.executionTime + 'ms',
-                    memoryUsage: result.memoryUsage + 'MB',
-                    output: result.output
-                }
-            );
-
-        } catch (error) {
-            console.error(chalk.red('❌ Failed to execute code:'));
-            console.error(chalk.red(`   ${error instanceof Error ? error.message : 'Unknown error'}`));
-            process.exit(1);
-        }
+        );
     }
 
-    /**
-     * Ensure execution server is running
-     */
-    private async ensureExecutionServerRunning(): Promise<void> {
-        // Check if server is already running
-        if (await this.isExecutionServerRunning()) {
-            console.log(chalk.gray('🔗 Execution server already running'));
-            return;
-        }
+    // Note: Execution server methods removed for v1.0
 
-        console.log(chalk.yellow('🚀 Starting execution server...'));
 
-        // Start the execution server
-        this.executionServerProcess = spawn('node', ['execution-engine/dist/index.js'], {
-            cwd: process.cwd(),
-            env: { ...process.env, PROJECT_PATH: process.cwd() },
-            stdio: 'pipe'
-        });
-
-        // Wait for server to start
-        await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                reject(new Error('Execution server startup timeout'));
-            }, 10000);
-
-            const checkServer = async () => {
-                if (await this.isExecutionServerRunning()) {
-                    clearTimeout(timeout);
-                    console.log(chalk.green('✅ Execution server started'));
-                    resolve(true);
-                } else {
-                    setTimeout(checkServer, 500);
-                }
-            };
-
-            setTimeout(checkServer, 1000);
-        });
-    }
-
-    /**
-     * Check if execution server is running
-     */
-    private async isExecutionServerRunning(): Promise<boolean> {
-        return new Promise((resolve) => {
-            const req = http.request({
-                hostname: 'localhost',
-                port: this.executionServerPort,
-                path: '/health',
-                method: 'GET',
-                timeout: 1000
-            }, (res) => {
-                resolve(res.statusCode === 200);
-            });
-
-            req.on('error', () => resolve(false));
-            req.on('timeout', () => resolve(false));
-            req.end();
-        });
-    }
-
-    /**
-     * Call execution service
-     */
-    private async callExecutionService(request: any): Promise<any> {
-        return new Promise((resolve, reject) => {
-            const data = JSON.stringify(request);
-
-            const req = http.request({
-                hostname: 'localhost',
-                port: this.executionServerPort,
-                path: '/execute',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(data)
-                }
-            }, (res) => {
-                let responseData = '';
-
-                res.on('data', (chunk) => {
-                    responseData += chunk;
-                });
-
-                res.on('end', () => {
-                    try {
-                        const result = JSON.parse(responseData);
-                        resolve(result);
-                    } catch (error) {
-                        reject(new Error('Invalid response from execution server'));
-                    }
-                });
-            });
-
-            req.on('error', (error) => {
-                reject(error);
-            });
-
-            req.write(data);
-            req.end();
-        });
-    }
 
     /**
      * Handle status command - Show unlimited local-only status
