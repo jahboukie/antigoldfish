@@ -5,6 +5,31 @@ All notable changes to AntiGoldfishMode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-07-29
+
+### Added
+- 🤔 **Comprehensive FAQ Section** - Added detailed FAQ to landing page covering all major user questions
+- 📋 **6 FAQ Categories** - Getting Started, Core Features, Technical Details, Usage & Best Practices, Licensing & Support, Advanced Usage
+- 🎯 **Conversion-Optimized** - Strategic CTAs and trust-building content throughout FAQ
+- 📱 **Responsive Design** - Clean, professional styling that works on all devices
+
+### Enhanced
+- 🌐 **Landing Page Experience** - Complete user journey from awareness to purchase with comprehensive information
+- 💬 **User Support** - Proactive answers to common questions reducing support burden
+- 🔍 **SEO Optimization** - Proper heading structure and comprehensive content for better search visibility
+
+## [1.0.1] - 2025-07-29
+
+### Fixed
+- 🏷️ **Branding Consistency** - Fixed all user-facing messages to consistently use "AntiGoldfishMode" instead of "CodeContext Pro"
+- 📝 **Command Suggestions** - Fixed initialization success message to suggest correct `antigoldfishmode` commands instead of `codecontextpro`
+- ✅ **Terminal Flow** - Resolved command name mismatch that caused confusion when following CLI suggestions
+
+### Changed
+- All status messages now consistently display "AntiGoldfishMode" branding
+- Initialization messages updated to reflect correct product name
+- Error messages updated for consistency
+
 ## [1.0.0] - 2025-07-26
 
 ### Added

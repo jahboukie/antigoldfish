@@ -380,6 +380,237 @@
             </p>
         </section>
 
+        <!-- FAQ Section -->
+        <section class="faq-section" style="background: white; margin: 40px 0; padding: 60px 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="container">
+                <h2 style="text-align: center; font-size: 2.5rem; color: #333; margin-bottom: 50px; font-weight: 700;">
+                    🤔 Frequently Asked Questions
+                </h2>
+
+                <div class="faq-grid" style="display: grid; gap: 30px; max-width: 1000px; margin: 0 auto;">
+
+                    <!-- Getting Started -->
+                    <div class="faq-category">
+                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                            🚀 Getting Started
+                        </h3>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: How do I install AntiGoldfishMode?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Simply run <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">npm install -g antigoldfishmode</code> in your terminal. You'll need Node.js 16+ installed.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: Do I need to set up anything after installation?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Yes! Run <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode activate [your-license-key]</code> to activate your license, then <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode init</code> in your project directory to initialize the memory system.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: What's the difference between trial and paid versions?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: The 7-day trial includes all features (unlimited memory, code execution, conversation recording). After trial, you get the same features for $69/year with priority support and lifetime price lock.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Core Features -->
+                    <div class="faq-category">
+                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                            🧠 Core Features
+                        </h3>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: How does the AI memory system work?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: AntiGoldfishMode automatically records every AI conversation and stores memories in an encrypted SQLite database. Use <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode remember "content"</code> to store insights and <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode recall "query"</code> to search them.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: What programming languages can I execute safely?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: JavaScript/Node.js, TypeScript, Python 3.x, Go, and Rust. All code runs in isolated Docker containers with configurable timeouts and memory limits for security.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: Can I search through past conversations with my AI assistant?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Absolutely! Every command automatically records AI interactions with rich metadata. Use the recall command to search through everything: conversations, code executions, and stored memories.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Technical Questions -->
+                    <div class="faq-category">
+                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                            ⚙️ Technical Details
+                        </h3>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: Where is my data stored? Is it secure?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Everything is stored locally on your machine in an encrypted SQLite database. No data ever leaves your computer. The database is machine-specific and encrypted for security.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: Do I need Docker for code execution?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Docker is recommended for secure code execution but not required. Without Docker, the memory and recall features still work perfectly. Install Docker for the full experience.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: What are the system requirements?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Node.js 16+, ~10MB storage for installation (variable for memories), and any modern OS (Windows, macOS, Linux). Docker optional but recommended.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Usage & Best Practices -->
+                    <div class="faq-category">
+                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                            💡 Usage & Best Practices
+                        </h3>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: How should I use the memory system effectively?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Store project patterns, code snippets, architectural decisions, and bug fixes. Use contexts like <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">--context "api-design"</code> to categorize memories for better organization.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: Can I use this with any AI assistant?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Yes! AntiGoldfishMode works with ChatGPT, Claude, Copilot, or any AI coding assistant. It's designed to enhance any AI interaction by providing persistent memory and context.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: What happens if I work on multiple projects?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Each project gets its own <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">.codecontext</code> directory with project-specific memories. You can also use global memories that work across all projects.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Licensing & Support -->
+                    <div class="faq-category">
+                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                            🎫 Licensing & Support
+                        </h3>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: How does the licensing work?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Licenses are machine-bound for security. You get a 7-day offline grace period, so you can work without internet. Use <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode deactivate</code> to move your license to another machine.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: What if I need help or have issues?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Paid users get priority email support. Check <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode status</code> for system diagnostics, and use <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode --help</code> for command reference.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: Is there a refund policy?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: We offer a 7-day free trial so you can test everything first. If you're not satisfied within 30 days of purchase, contact support for a full refund.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Usage -->
+                    <div class="faq-category">
+                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                            🔧 Advanced Usage
+                        </h3>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: Can I customize execution timeouts and memory limits?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: Yes! Use <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">--timeout 60</code> for longer executions and <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">--memory 1g</code> for more memory. Default is 30 seconds and 512MB.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: How do I backup or share my memories?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: The database is in <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">.codecontext/memory.db</code>. You can backup this file, but it's encrypted and machine-specific. For team sharing, export specific memories and share the text.
+                            </p>
+                        </div>
+
+                        <div class="faq-item" style="margin-bottom: 25px;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                                Q: Does AntiGoldfishMode work with CI/CD or automated workflows?
+                            </h4>
+                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                                A: AntiGoldfishMode is designed for interactive development. For automated workflows, the code execution features work, but the memory system is optimized for human-AI collaboration.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Call to Action -->
+                <div style="text-align: center; margin-top: 50px; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px;">
+                    <h3 style="color: white; font-size: 1.5rem; margin-bottom: 15px;">
+                        Still have questions?
+                    </h3>
+                    <p style="color: white; opacity: 0.9; margin-bottom: 20px; font-size: 1.1rem;">
+                        Start your 7-day free trial and experience the difference persistent AI memory makes!
+                    </p>
+                    <a href="https://buy.stripe.com/4gMcN58QMaXO9Bsbdr4Ja0a" style="display: inline-block; background: white; color: #667eea; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.1rem; transition: transform 0.2s;">
+                        Start Free Trial →
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
         <section class="guarantee-section">
             <h2 style="margin-bottom: 30px; font-size: 2.2rem;">🛡️ Risk-Free Promise</h2>
             <ul class="guarantee-list">

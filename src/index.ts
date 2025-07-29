@@ -18,7 +18,7 @@ import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const version = "1.0.0";
+export const version = "1.1.0";
 
 export class CodeContextCLI {
     private memoryEngine: MemoryEngine;
@@ -86,7 +86,7 @@ export class CodeContextCLI {
         // codecontextpro init command (project initialization)
         this.program
             .command('init')
-            .description('Initialize CodeContext Pro in current project')
+            .description('Initialize AntiGoldfishMode in current project')
             .option('--force', 'Force reinitialize if already exists')
             .action(async (options) => {
                 await this.handleInit(options);
@@ -477,7 +477,7 @@ export class CodeContextCLI {
      */
     private async handleStatus(): Promise<void> {
         try {
-            console.log(chalk.cyan('📊 CodeContext Pro - Unlimited Local-Only Status\n'));
+            console.log(chalk.cyan('📊 AntiGoldfishMode - Unlimited Local-Only Status\n'));
 
             // Project information
             const projectInfo = this.memoryEngine.getProjectInfo();
@@ -531,18 +531,18 @@ export class CodeContextCLI {
     }
 
     /**
-     * Handle init command - Initialize CodeContext Pro in project
+     * Handle init command - Initialize AntiGoldfishMode in project
      */
     private async handleInit(options: any): Promise<void> {
         try {
-            console.log(chalk.cyan('🚀 CodeContext Pro - Project Initialization'));
+            console.log(chalk.cyan('🚀 AntiGoldfishMode - Project Initialization'));
             console.log(`   Project: ${process.cwd()}`);
 
             const codecontextDir = path.join(process.cwd(), '.codecontext');
 
             // Check if already initialized
             if (fs.existsSync(codecontextDir) && !options.force) {
-                console.log(chalk.yellow('⚠️ CodeContext Pro already initialized in this project'));
+                console.log(chalk.yellow('⚠️ AntiGoldfishMode already initialized in this project'));
                 console.log(chalk.gray('   Use --force to reinitialize'));
                 return;
             }
@@ -559,7 +559,7 @@ export class CodeContextCLI {
 
             // Create .gitignore entry
             const gitignorePath = path.join(process.cwd(), '.gitignore');
-            const gitignoreEntry = '\n# CodeContext Pro\n.codecontext/\n';
+            const gitignoreEntry = '\n# AntiGoldfishMode\n.codecontext/\n';
 
             try {
                 let gitignoreContent = '';
@@ -575,18 +575,18 @@ export class CodeContextCLI {
                 console.log(chalk.yellow('⚠️ Could not update .gitignore (optional)'));
             }
 
-            console.log(chalk.green('\n🎉 CodeContext Pro initialized successfully!'));
+            console.log(chalk.green('\n🎉 AntiGoldfishMode initialized successfully!'));
             console.log(chalk.cyan('\n📋 Ready to Use:'));
             console.log('   ✅ License activated (machine-bound)');
             console.log('   ✅ Project initialized');
             console.log('   🚀 Start using unlimited features:');
-            console.log('      codecontextpro remember "Your insights"');
-            console.log('      codecontextpro recall "search query"');
-            console.log('      codecontextpro execute python "print(\'Hello!\')"');
-            console.log('      codecontextpro status');
+            console.log('      antigoldfishmode remember "Your insights"');
+            console.log('      antigoldfishmode recall "search query"');
+            console.log('      antigoldfishmode execute python "print(\'Hello!\')"');
+            console.log('      antigoldfishmode status');
 
         } catch (error) {
-            console.error(chalk.red('❌ Failed to initialize CodeContext Pro:'));
+            console.error(chalk.red('❌ Failed to initialize AntiGoldfishMode:'));
             console.error(chalk.red(`   ${error instanceof Error ? error.message : 'Unknown error'}`));
             process.exit(1);
         }
