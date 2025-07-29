@@ -65,9 +65,7 @@ webhook-server.js
 WEBHOOK_SETUP.md
 .env.example
 
-# Website/Landing page files (separate repo)
-public/
-*.html
+# Website/Landing page files (keep public/ for website)
 faq-section.html
 landing-page.html
 privacy-policy.html
