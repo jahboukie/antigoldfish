@@ -1,6 +1,6 @@
 {
   "name": "antigoldfishmode",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "🧠 AI Memory Engine - Built by AI, for AI. Persistent memory for AI coding assistants. Code execution coming in v2.0.",
   "main": "dist/index.js",
   "bin": {
