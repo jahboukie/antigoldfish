@@ -5,9 +5,7 @@
  * Launches the CLI application
  */
 
-// Load environment variables
-import * as dotenv from 'dotenv';
-dotenv.config();
+// No environment variables needed for v1.0
 
 import { main } from './index';
 

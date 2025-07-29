@@ -8,13 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/index.ts",
     "start": "node dist/cli.js",
-    "webhook": "node webhook-server.js",
-    "webhook:dev": "nodemon webhook-server.js",
-    "test": "jest",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
     "clean": "rmdir /s /q dist 2>nul || echo dist cleaned",
     "prepublishOnly": "npm run clean && npm run build"
   },
@@ -41,32 +35,16 @@
     "url": "https://github.com/antigoldfishmode/antigoldfishmode/issues"
   },
   "devDependencies": {
-    "@types/dockerode": "^3.3.31",
     "@types/fs-extra": "^11.0.4",
-    "@types/jest": "^29.5.14",
-    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.2",
-    "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.18.2",
-    "@typescript-eslint/parser": "^8.18.2",
-    "eslint": "^9.17.0",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.2.5",
-    "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   },
   "dependencies": {
     "chalk": "^4.1.2",
     "commander": "^12.1.0",
-    "dockerode": "^4.0.2",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
     "fs-extra": "^11.2.0",
-    "jsonwebtoken": "^9.0.2",
     "node-machine-id": "^1.1.12",
-    "nodemailer": "^6.10.1",
-    "sqlite3": "^5.1.7",
-    "uuid": "^11.0.3"
+    "sqlite3": "^5.1.7"
   },
   "engines": {
     "node": ">=18.0.0",
