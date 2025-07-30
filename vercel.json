@@ -6,7 +6,7 @@
       "use": "@vercel/node"
     },
     {
-      "src": "admin-panel/**",
+      "src": "public/**",
       "use": "@vercel/static"
     }
   ],
@@ -17,7 +17,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/admin-panel/$1"
+      "dest": "/public/$1"
     }
   ]
 }
