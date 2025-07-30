@@ -1,7 +1,23 @@
 {
-  "functions": {
-    "webhook-server.js": {
-      "runtime": "nodejs18.x"
+  "version": 2,
+  "builds": [
+    {
+      "src": "webhook-server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "admin-panel/**",
+      "use": "@vercel/static"
     }
-  }
+  ],
+  "routes": [
+    {
+      "src": "/webhook",
+      "dest": "/webhook-server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/admin-panel/$1"
+    }
+  ]
 }
