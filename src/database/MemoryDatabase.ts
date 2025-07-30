@@ -327,22 +327,148 @@ export class MemoryDatabase {
 
             // Handle encryption based on mode
             if (this.devMode) {
-                console.log('🔓 Development mode: Using unencrypted database');
+                // Using unencrypted database for reliability
             } else {
                 await this.decryptDatabaseFile();
-                console.log('🔐 Database decrypted and ready for use');
             }
 
             // Create database connection (synchronous with better-sqlite3)
             this.db = new Database(this.dbPath);
+
+            // Enable foreign key constraints
+            this.db.pragma('foreign_keys = ON');
+
             console.log('✅ Connected to SQLite database');
 
-            // Create tables
-            await this.createTables();
+            // Check and migrate database if needed
+            await this.checkAndMigrateDatabase();
             this.initialized = true;
         } catch (error) {
             throw new Error(`Database initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
+    }
+
+    /**
+     * Check database version and migrate if needed
+     */
+    private async checkAndMigrateDatabase(): Promise<void> {
+        if (!this.db) {
+            throw new Error('Database not initialized');
+        }
+
+        try {
+            // Check if database has any tables (new database)
+            const tables = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
+
+            if (tables.length === 0) {
+                // New database - create fresh schema
+                console.log('🆕 Creating new database with latest schema');
+                await this.createTables();
+                return;
+            }
+
+            // Check if conversations table exists and has the correct schema
+            const conversationsExists = tables.some((table: any) => table.name === 'conversations');
+
+            if (!conversationsExists) {
+                // Old database without conversations table
+                console.log('🔄 Adding conversation tracking to existing database...');
+                await this.addConversationTables();
+                return;
+            }
+
+            // Check if conversations table has the correct schema
+            const conversationsInfo = this.db.prepare("PRAGMA table_info(conversations)").all();
+            const hasCorrectSchema = conversationsInfo.some((col: any) => col.name === 'summary');
+
+            if (!hasCorrectSchema) {
+                console.log('🔄 Migrating database to latest schema...');
+                await this.migrateConversationTable();
+            } else {
+                console.log('✅ Database schema is up to date');
+            }
+        } catch (error) {
+            console.log('🔄 Database migration needed, recreating conversation tables...');
+            await this.recreateConversationTables();
+        }
+    }
+
+    /**
+     * Add conversation tables to existing database
+     */
+    private async addConversationTables(): Promise<void> {
+        if (!this.db) {
+            throw new Error('Database not initialized');
+        }
+
+        const conversationSchema = `
+            -- Conversation tracking tables
+            CREATE TABLE IF NOT EXISTS conversations (
+                id TEXT PRIMARY KEY,
+                project_id TEXT,
+                ai_assistant TEXT NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                context TEXT,
+                summary TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS messages (
+                id TEXT PRIMARY KEY,
+                conversation_id TEXT,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                metadata TEXT,
+                FOREIGN KEY (conversation_id) REFERENCES conversations (id)
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_conversations_timestamp ON conversations(timestamp);
+            CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
+        `;
+
+        this.db.exec(conversationSchema);
+        console.log('✅ Conversation tables added successfully');
+    }
+
+    /**
+     * Migrate existing conversation table to new schema
+     */
+    private async migrateConversationTable(): Promise<void> {
+        if (!this.db) {
+            throw new Error('Database not initialized');
+        }
+
+        try {
+            // Drop and recreate conversation tables with new schema
+            this.db.exec(`
+                DROP TABLE IF EXISTS messages;
+                DROP TABLE IF EXISTS conversations;
+            `);
+
+            await this.addConversationTables();
+            console.log('✅ Conversation tables migrated successfully');
+        } catch (error) {
+            console.log('⚠️ Migration failed, recreating conversation tables...');
+            await this.recreateConversationTables();
+        }
+    }
+
+    /**
+     * Recreate conversation tables from scratch (fallback)
+     */
+    private async recreateConversationTables(): Promise<void> {
+        if (!this.db) {
+            throw new Error('Database not initialized');
+        }
+
+        // Drop conversation tables and recreate
+        this.db.exec(`
+            DROP TABLE IF EXISTS messages;
+            DROP TABLE IF EXISTS conversations;
+        `);
+
+        await this.addConversationTables();
+        console.log('✅ Conversation tables recreated with latest schema');
     }
 
     /**
@@ -631,37 +757,45 @@ export class MemoryDatabase {
         const projectId = 'codecontextpro-production'; // Simple project ID for now
 
         try {
-            // Insert conversation
-            const conversationStmt = this.db.prepare(`
-                INSERT INTO conversations (id, project_id, ai_assistant, context)
-                VALUES (?, ?, ?, ?)
-            `);
-
-            conversationStmt.run(
-                conversationId,
-                projectId,
-                aiAssistant,
-                JSON.stringify(context || {})
-            );
-
-            // Insert messages
-            if (messages.length > 0) {
-                const messageStmt = this.db.prepare(`
-                    INSERT INTO messages (id, conversation_id, role, content, metadata)
+            // Use a transaction to ensure atomicity
+            const db = this.db; // Capture db reference for transaction
+            const transaction = db.transaction(() => {
+                // Insert conversation
+                const conversationStmt = db.prepare(`
+                    INSERT INTO conversations (id, project_id, ai_assistant, context, summary)
                     VALUES (?, ?, ?, ?, ?)
                 `);
 
-                for (const message of messages) {
-                    const messageId = message.id || this.generateUUID();
-                    messageStmt.run(
-                        messageId,
-                        conversationId,
-                        message.role,
-                        message.content,
-                        JSON.stringify(message.metadata || {})
-                    );
+                conversationStmt.run(
+                    conversationId,
+                    projectId,
+                    aiAssistant,
+                    JSON.stringify(context || {}),
+                    '' // Empty summary for now
+                );
+
+                // Insert messages
+                if (messages.length > 0) {
+                    const messageStmt = db.prepare(`
+                        INSERT INTO messages (id, conversation_id, role, content, metadata)
+                        VALUES (?, ?, ?, ?, ?)
+                    `);
+
+                    for (const message of messages) {
+                        const messageId = message.id || this.generateUUID();
+                        messageStmt.run(
+                            messageId,
+                            conversationId,
+                            message.role,
+                            message.content,
+                            JSON.stringify(message.metadata || {})
+                        );
+                    }
                 }
-            }
+            });
+
+            // Execute the transaction
+            transaction();
 
             console.log(`✅ Conversation recorded with ${messages.length} messages`);
             return conversationId;
@@ -802,7 +936,7 @@ export class MemoryDatabase {
 
             // Handle encryption based on mode
             if (this.devMode) {
-                console.log('🔓 Development mode: Database closed without encryption');
+                // Database closed without encryption for reliability
             } else {
                 // Use enterprise-grade encryption with graceful fallback
                 await this.performEnterpriseEncryption();

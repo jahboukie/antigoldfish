@@ -43,7 +43,7 @@ ehthumbs.db
 Thumbs.db
 
 # Development databases
-.codecontext/
+.antigoldfishmode/
 *.db
 *.db-journal
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * CodeContextPro-MES CLI Entry Point
+ * AntiGoldfishMode CLI Entry Point
  * Launches the CLI application
  */
 

@@ -1,6 +1,6 @@
 {
   "name": "antigoldfishmode",
-  "version": "1.4.2",
+  "version": "1.5.5",
   "description": "🧠 AI Memory Engine - Built by AI, for AI. Persistent memory for AI coding assistants. Code execution coming in v2.0.",
   "main": "dist/index.js",
   "bin": {
@@ -31,7 +31,7 @@
   "homepage": "https://github.com/antigoldfishmode/antigoldfishmode",
   "repository": {
     "type": "git",
-    "url": "https://github.com/antigoldfishmode/antigoldfishmode.git"
+    "url": "git+https://github.com/antigoldfishmode/antigoldfishmode.git"
   },
   "bugs": {
     "url": "https://github.com/antigoldfishmode/antigoldfishmode/issues"
@@ -45,6 +45,7 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
+    "axios": "^1.11.0",
     "better-sqlite3": "^11.10.0",
     "chalk": "^5.3.0",
     "commander": "^14.0.0",
@@ -80,6 +81,7 @@
   "files": [
     "dist/**/*",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "AI_ASSISTANT_INSTRUCTIONS.md"
   ]
 }

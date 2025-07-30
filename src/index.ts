@@ -10,7 +10,7 @@
  *
  * Coming in v2.0:
  * - Secure code execution sandbox (Q4 2025)
- * - Early adopters: +$49/year | Standard: +$51/year
+ * - Early adopters: $69/year total | Standard: $149/year total
  */
 
 import { Command } from 'commander';
@@ -20,7 +20,7 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const version = "1.4.2";
+export const version = "1.5.5";
 
 export class CodeContextCLI {
     public memoryEngine: MemoryEngine;
@@ -39,12 +39,10 @@ export class CodeContextCLI {
     private setupCommands(): void {
         this.program
             .name('antigoldfishmode')
-            .description('🧠 AntiGoldfishMode - Because AI assistants shouldn\'t have goldfish memory!')
-            .version(version)
-            .option('--dev-mode', '🔓 Development mode (disables encryption - use only for testing)')
-            .option('--secure-mode', '🔒 Enterprise security mode (enables encryption - recommended for production)');
+            .description('🧠 AntiGoldfishMode - Because AI assistants shouldn\'t have goldfish memory!\n\n🤖 AI Assistants: Run `antigoldfishmode ai-guide` for operating instructions')
+            .version(version);
 
-        // codecontextpro remember command (unlimited)
+        // AntiGoldfishMode remember command (unlimited)
         this.program
             .command('remember')
             .description('Store unlimited memories locally')
@@ -78,7 +76,7 @@ export class CodeContextCLI {
                 await this.handleExecuteV2Message(language, code, options);
             });
 
-        // codecontextpro status command
+        // AntiGoldfishMode status command
         this.program
             .command('status')
             .description('Show unlimited local-only status')
@@ -86,13 +84,15 @@ export class CodeContextCLI {
                 await this.handleStatus();
             });
 
-        // codecontextpro init command (project initialization)
+        // AntiGoldfishMode init command (project initialization)
         this.program
             .command('init')
             .description('Initialize AntiGoldfishMode in current project')
             .option('--force', 'Force reinitialize if already exists')
             .action(async (options) => {
-                await this.handleInit(options);
+                // Create a new instance with skipValidation=true for init command
+                const initCLI = new CodeContextCLI(process.cwd(), true, true, false);
+                await initCLI.handleInitCommand(options);
             });
 
         // License activation command (Keygen-based)
@@ -110,6 +110,14 @@ export class CodeContextCLI {
             .description('Deactivate current license (remove local files)')
             .action(async () => {
                 await this.handleDeactivate();
+            });
+
+        // AI Assistant Instructions command
+        this.program
+            .command('ai-guide')
+            .description('📖 Show AI assistant operating instructions')
+            .action(async () => {
+                await this.handleAIGuide();
             });
     }
 
@@ -316,7 +324,7 @@ export class CodeContextCLI {
         // Record this interaction
         await this.recordAIConversation(
             `antigoldfishmode execute ${language} "${code}"`,
-            `User attempted to execute ${language} code. Showed v2.0 upgrade message with pricing: Early adopters $118/year total, Standard users $200/year total.`,
+            `User attempted to execute ${language} code. Showed v2.0 upgrade message with pricing: Early adopters $69/year total, Standard users $149/year total.`,
             {
                 command: 'execute',
                 language: language,
@@ -379,7 +387,7 @@ export class CodeContextCLI {
             console.log('   Status: 🔄 Coming in v2.0');
             console.log('   Sandbox: 🐳 Docker Secure Execution');
             console.log('   Languages: JS/TS/Python/Go/Rust');
-            console.log(chalk.yellow('   💰 Early Adopters: +$49/year | Standard: +$51/year'));
+            console.log(chalk.yellow('   💰 Early Adopters: $69/year | Standard: $149/year'));
 
             console.log(chalk.green('\n🎯 System ready for unlimited local development!'));
 
@@ -395,26 +403,27 @@ export class CodeContextCLI {
     }
 
     /**
-     * Handle init command - Initialize AntiGoldfishMode in project
+     * Handle init command - Initialize AntiGoldfishMode in project (public for init action)
      */
-    private async handleInit(options: any): Promise<void> {
+    public async handleInitCommand(options: any): Promise<void> {
         try {
             console.log(chalk.cyan('🚀 AntiGoldfishMode - Project Initialization'));
             console.log(`   Project: ${process.cwd()}`);
 
-            const codecontextDir = path.join(process.cwd(), '.codecontext');
+            const antigoldfishDir = path.join(process.cwd(), '.antigoldfishmode');
+            const memoryDbPath = path.join(antigoldfishDir, 'memory.db');
 
-            // Check if already initialized
-            if (fs.existsSync(codecontextDir) && !options.force) {
+            // Check if already initialized (look for actual database file, not just directory)
+            if (fs.existsSync(memoryDbPath) && !options.force) {
                 console.log(chalk.yellow('⚠️ AntiGoldfishMode already initialized in this project'));
                 console.log(chalk.gray('   Use --force to reinitialize'));
                 return;
             }
 
-            // Create .codecontext directory
-            if (!fs.existsSync(codecontextDir)) {
-                fs.mkdirSync(codecontextDir, { recursive: true });
-                console.log(chalk.green('✅ Created .codecontext directory'));
+            // Create .antigoldfishmode directory
+            if (!fs.existsSync(antigoldfishDir)) {
+                fs.mkdirSync(antigoldfishDir, { recursive: true });
+                console.log(chalk.green('✅ Created .antigoldfishmode directory'));
             }
 
             // Initialize memory database
@@ -423,7 +432,7 @@ export class CodeContextCLI {
 
             // Create .gitignore entry
             const gitignorePath = path.join(process.cwd(), '.gitignore');
-            const gitignoreEntry = '\n# AntiGoldfishMode\n.codecontext/\n';
+            const gitignoreEntry = '\n# AntiGoldfishMode\n.antigoldfishmode/\n';
 
             try {
                 let gitignoreContent = '';
@@ -431,9 +440,71 @@ export class CodeContextCLI {
                     gitignoreContent = fs.readFileSync(gitignorePath, 'utf8');
                 }
 
-                if (!gitignoreContent.includes('.codecontext/')) {
+                if (!gitignoreContent.includes('.antigoldfishmode/')) {
                     fs.appendFileSync(gitignorePath, gitignoreEntry);
-                    console.log(chalk.green('✅ Added .codecontext/ to .gitignore'));
+                    console.log(chalk.green('✅ Added .antigoldfishmode/ to .gitignore'));
+                }
+            } catch (error) {
+                console.log(chalk.yellow('⚠️ Could not update .gitignore (this is optional)'));
+            }
+
+            console.log(chalk.green('\n🎉 AntiGoldfishMode initialized successfully!'));
+            console.log(chalk.gray('   You can now use:'));
+            console.log(chalk.gray('   • antigoldfishmode remember "information"'));
+            console.log(chalk.gray('   • antigoldfishmode recall "search term"'));
+            console.log(chalk.gray('   • antigoldfishmode status'));
+
+            // Ensure database is properly closed
+            await this.cleanup();
+
+        } catch (error) {
+            console.log(chalk.red('❌ Initialization failed:'), error instanceof Error ? error.message : 'Unknown error');
+            await this.cleanup();
+            process.exit(1);
+        }
+    }
+
+    /**
+     * Handle init command - Initialize AntiGoldfishMode in project (legacy method)
+     */
+    private async handleInit(options: any): Promise<void> {
+        try {
+            console.log(chalk.cyan('🚀 AntiGoldfishMode - Project Initialization'));
+            console.log(`   Project: ${process.cwd()}`);
+
+            const antigoldfishDir = path.join(process.cwd(), '.antigoldfishmode');
+            const memoryDbPath = path.join(antigoldfishDir, 'memory.db');
+
+            // Check if already initialized (look for actual database file, not just directory)
+            if (fs.existsSync(memoryDbPath) && !options.force) {
+                console.log(chalk.yellow('⚠️ AntiGoldfishMode already initialized in this project'));
+                console.log(chalk.gray('   Use --force to reinitialize'));
+                return;
+            }
+
+            // Create .antigoldfishmode directory if it doesn't exist
+            if (!fs.existsSync(antigoldfishDir)) {
+                fs.mkdirSync(antigoldfishDir, { recursive: true });
+                console.log(chalk.green('✅ Created .antigoldfishmode directory'));
+            }
+
+            // Initialize memory database
+            await this.memoryEngine.initialize();
+            console.log(chalk.green('✅ Memory database initialized'));
+
+            // Create .gitignore entry
+            const gitignorePath = path.join(process.cwd(), '.gitignore');
+            const gitignoreEntry = '\n# AntiGoldfishMode\n.antigoldfishmode/\n';
+
+            try {
+                let gitignoreContent = '';
+                if (fs.existsSync(gitignorePath)) {
+                    gitignoreContent = fs.readFileSync(gitignorePath, 'utf8');
+                }
+
+                if (!gitignoreContent.includes('.antigoldfishmode/')) {
+                    fs.appendFileSync(gitignorePath, gitignoreEntry);
+                    console.log(chalk.green('✅ Added .antigoldfishmode/ to .gitignore'));
                 }
             } catch (error) {
                 console.log(chalk.yellow('⚠️ Could not update .gitignore (optional)'));
@@ -520,6 +591,42 @@ export class CodeContextCLI {
         }
     }
 
+    /**
+     * Handle AI guide command - Show AI assistant instructions
+     */
+    private async handleAIGuide(): Promise<void> {
+        try {
+            console.log(chalk.cyan('📖 AntiGoldfishMode - AI Assistant Operating Guide'));
+            console.log('');
+
+            // Try to read the AI instructions file from the package
+            const instructionsPath = path.join(__dirname, '..', 'AI_ASSISTANT_INSTRUCTIONS.md');
+
+            if (fs.existsSync(instructionsPath)) {
+                const instructions = fs.readFileSync(instructionsPath, 'utf8');
+                console.log(instructions);
+            } else {
+                // Fallback instructions if file not found
+                console.log(chalk.yellow('📋 Quick AI Assistant Guide:'));
+                console.log('');
+                console.log(chalk.green('🧠 Memory Commands:'));
+                console.log('  antigoldfishmode remember "information to store"');
+                console.log('  antigoldfishmode recall "search term"');
+                console.log('  antigoldfishmode status');
+                console.log('');
+                console.log(chalk.blue('🎯 AI Assistant Tips:'));
+                console.log('  • Store solutions, insights, and user preferences');
+                console.log('  • Search memories before solving similar problems');
+                console.log('  • Be proactive - remember important decisions');
+                console.log('  • Use descriptive, searchable language');
+                console.log('');
+                console.log(chalk.gray('📖 Full guide: https://github.com/antigoldfishmode/antigoldfishmode/blob/main/AI_ASSISTANT_INSTRUCTIONS.md'));
+            }
+        } catch (error) {
+            console.log(chalk.red('❌ Failed to show AI guide:'), error instanceof Error ? error.message : 'Unknown error');
+        }
+    }
+
     public run(argv: string[]): void {
         this.program.parse(argv);
     }
@@ -527,24 +634,9 @@ export class CodeContextCLI {
 
 // Main function for CLI entry point
 export function main(argv: string[]): void {
-    // Check for mode flags
-    const devMode = argv.includes('--dev-mode');
-    const secureMode = argv.includes('--secure-mode');
+    console.log(chalk.cyan('🧠 AntiGoldfishMode - AI Memory Engine'));
 
-    if (devMode && secureMode) {
-        console.log(chalk.red('❌ Cannot use both --dev-mode and --secure-mode'));
-        process.exit(1);
-    }
-
-    if (devMode) {
-        console.log(chalk.yellow('🔓 Development mode enabled - encryption disabled'));
-    } else if (secureMode) {
-        console.log(chalk.green('🔒 Enterprise security mode enabled - encryption active'));
-    } else {
-        console.log(chalk.cyan('📋 Standard mode - reliable operation (use --secure-mode for encryption)'));
-    }
-
-    const cli = new CodeContextCLI(process.cwd(), false, devMode, secureMode);
+    const cli = new CodeContextCLI(process.cwd(), false, true, false); // devMode=true for reliable operation
     cli.run(argv);
 }
 

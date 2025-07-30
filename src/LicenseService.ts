@@ -38,8 +38,8 @@ export class LicenseService {
     private machineFingerprint: string | null = null;
 
     constructor(projectPath: string = process.cwd()) {
-        this.licenseTokenFile = path.join(projectPath, '.codecontext', 'license-token.json');
-        this.licenseFile = path.join(projectPath, '.codecontext', 'license.json');
+        this.licenseTokenFile = path.join(projectPath, '.antigoldfishmode', 'license-token.json');
+        this.licenseFile = path.join(projectPath, '.antigoldfishmode', 'license.json');
         
         // Load license asynchronously
         this.loadCurrentLicense().catch(error => {
@@ -107,17 +107,17 @@ export class LicenseService {
         switch (typeCode) {
             case 'TRIAL':
                 type = 'trial';
-                features = ['unlimited-memory', 'code-execution', 'conversation-recording'];
+                features = ['unlimited-memory', 'conversation-recording'];
                 // Trial expires in 7 days
                 expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
                 break;
             case 'EARLY':
                 type = 'early_adopter';
-                features = ['unlimited-memory', 'code-execution', 'conversation-recording', 'priority-support'];
+                features = ['unlimited-memory', 'conversation-recording'];
                 break;
             case 'STD':
                 type = 'standard';
-                features = ['unlimited-memory', 'code-execution', 'conversation-recording', 'priority-support'];
+                features = ['unlimited-memory', 'conversation-recording'];
                 break;
             default:
                 throw new Error('Unknown license type');
@@ -321,7 +321,7 @@ export class LicenseService {
             licenseKey: 'AGM-DEV-' + Date.now(),
             machineId: machineFingerprint,
             active: true,
-            features: ['unlimited-memory', 'code-execution', 'conversation-recording', 'development-mode'],
+            features: ['unlimited-memory', 'conversation-recording', 'development-mode'],
             activatedAt: new Date().toISOString(),
             validatedAt: Date.now(),
             gracePeriodDays: 365,

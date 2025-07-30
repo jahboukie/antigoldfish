@@ -48,7 +48,7 @@ coverage/
 *.lcov
 
 # AntiGoldfishMode specific
-.codecontext/
+.antigoldfishmode/
 *.db
 *.db-journal
 LICENSING.md
