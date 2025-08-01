@@ -61,7 +61,6 @@ license-log.json
 *.license-key
 license-generator.js
 setup-license-manager.bat
-webhook-server.js
 WEBHOOK_SETUP.md
 .env.example
 
