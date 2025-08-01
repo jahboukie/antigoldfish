@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 // License generation
 function generateTrialKey() {
@@ -6,9 +7,15 @@ function generateTrialKey() {
     return `AGM-TRIAL-${part()}-${part()}-${part()}`;
 }
 
-// Placeholder for email setup (will add back later)
+// Email setup
 function createEmailTransporter() {
-    return null; // Disabled for now
+    return nodemailer.createTransporter({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER || 'antigoldfish.dev@gmail.com',
+            pass: process.env.EMAIL_PASS
+        }
+    });
 }
 
 // Email template
@@ -40,11 +47,28 @@ function generateTrialEmail(licenseKey, customerName = 'Developer') {
 </html>`;
 }
 
-// Send email (disabled for debugging)
+// Send email
 async function sendLicenseEmail(licenseKey, customerEmail, customerName) {
-    // TODO: Add email functionality back
-    console.log(`📧 Would send license ${licenseKey} to ${customerEmail}`);
-    return Promise.resolve();
+    console.log(`📧 Attempting to send license ${licenseKey} to ${customerEmail}`);
+    
+    try {
+        const transporter = createEmailTransporter();
+        
+        const mailOptions = {
+            from: 'AntiGoldfishMode <antigoldfish.dev@gmail.com>',
+            to: customerEmail,
+            subject: '🆓 Your AntiGoldfishMode Trial License - Start Now!',
+            html: generateTrialEmail(licenseKey, customerName)
+        };
+
+        const result = await transporter.sendMail(mailOptions);
+        console.log(`✅ Email sent successfully to ${customerEmail}:`, result.messageId);
+        return result;
+    } catch (error) {
+        console.error(`❌ Email failed for ${customerEmail}:`, error.message);
+        // Don't throw error - webhook should still return success
+        return null;
+    }
 }
 
 // Handle checkout
