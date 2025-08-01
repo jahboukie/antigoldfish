@@ -73,6 +73,13 @@ async function sendLicenseEmail(licenseKey, customerEmail, customerName) {
 
 // Handle checkout
 async function handleCheckout(session) {
+    console.log('Checkout session details:', {
+        id: session.id,
+        mode: session.mode,
+        payment_status: session.payment_status,
+        customer_email: session.customer_details?.email
+    });
+    
     const email = session.customer_details?.email;
     const name = session.customer_details?.name || 'Developer';
     
@@ -80,7 +87,37 @@ async function handleCheckout(session) {
         const licenseKey = generateTrialKey();
         console.log(`Generated license for ${email}: ${licenseKey}`);
         await sendLicenseEmail(licenseKey, email, name);
+    } else {
+        console.error('No customer email found in checkout session');
     }
+}
+
+// Handle subscription created (for trial subscriptions)
+async function handleSubscriptionCreated(subscription) {
+    console.log('Subscription created:', {
+        id: subscription.id,
+        customer: subscription.customer,
+        status: subscription.status,
+        trial_end: subscription.trial_end
+    });
+    
+    // For subscriptions, we need to get customer details from Stripe
+    // For now, log that we received the event
+    console.log('Subscription created - customer details may need separate API call');
+}
+
+// Handle invoice payment (for subscription billing)
+async function handleInvoicePayment(invoice) {
+    console.log('Invoice payment succeeded:', {
+        id: invoice.id,
+        customer: invoice.customer,
+        amount_paid: invoice.amount_paid,
+        subscription: invoice.subscription
+    });
+    
+    // This handles successful subscription payments
+    // Customer details may need separate API call
+    console.log('Invoice payment - customer details may need separate API call');
 }
 
 // Main handler
@@ -98,16 +135,33 @@ module.exports = async (req, res) => {
     if (req.method === 'POST') {
         try {
             const event = req.body;
-            console.log('Event:', event.type);
+            console.log('Event received:', event.type);
             
-            if (event.type === 'checkout.session.completed') {
-                await handleCheckout(event.data.object);
+            // Handle different subscription events
+            switch (event.type) {
+                case 'checkout.session.completed':
+                    console.log('Processing checkout.session.completed');
+                    await handleCheckout(event.data.object);
+                    break;
+                    
+                case 'customer.subscription.created':
+                    console.log('Processing customer.subscription.created');
+                    await handleSubscriptionCreated(event.data.object);
+                    break;
+                    
+                case 'invoice.payment_succeeded':
+                    console.log('Processing invoice.payment_succeeded');
+                    await handleInvoicePayment(event.data.object);
+                    break;
+                    
+                default:
+                    console.log(`Unhandled event type: ${event.type}`);
             }
             
-            return res.json({ received: true });
+            return res.json({ received: true, processed: event.type });
         } catch (error) {
-            console.error('Error:', error);
-            return res.status(500).json({ error: 'Failed' });
+            console.error('Webhook error:', error);
+            return res.status(500).json({ error: 'Failed', message: error.message });
         }
     }
     
