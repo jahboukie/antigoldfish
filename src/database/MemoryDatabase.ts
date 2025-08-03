@@ -319,6 +319,9 @@ export class MemoryDatabase {
         if (this.initialized) return;
 
         try {
+            // Check for better-sqlite3 compatibility issues
+            await this.checkSqliteCompatibility();
+
             // Ensure directory exists
             const dbDir = path.dirname(this.dbPath);
             if (!fs.existsSync(dbDir)) {
@@ -345,6 +348,63 @@ export class MemoryDatabase {
             this.initialized = true;
         } catch (error) {
             throw new Error(`Database initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Check better-sqlite3 compatibility and suggest fixes for common issues
+     */
+    private async checkSqliteCompatibility(): Promise<void> {
+        try {
+            // Try to create a test database to check if better-sqlite3 works
+            const testPath = path.join(os.tmpdir(), `agm-test-${Date.now()}.db`);
+            const testDb = new Database(testPath);
+            testDb.close();
+            fs.unlinkSync(testPath);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            
+            if (errorMessage.includes('invalid ELF header') || errorMessage.includes('wrong ELF class')) {
+                console.log('⚠️  better-sqlite3 compatibility issue detected');
+                console.log('🔧 This is common in WSL2/cross-platform environments');
+                console.log('💡 Attempting automatic rebuild...');
+                
+                try {
+                    // Try to rebuild better-sqlite3 for current environment
+                    const { spawn } = require('child_process');
+                    const rebuild = spawn('npm', ['rebuild', 'better-sqlite3'], { 
+                        stdio: 'inherit',
+                        shell: true 
+                    });
+                    
+                    await new Promise<boolean>((resolve, reject) => {
+                        rebuild.on('close', (code: number | null) => {
+                            if (code === 0) {
+                                console.log('✅ better-sqlite3 rebuilt successfully');
+                                resolve(true);
+                            } else {
+                                reject(new Error(`Rebuild failed with code ${code}`));
+                            }
+                        });
+                        rebuild.on('error', reject);
+                    });
+                    
+                    // Test again after rebuild
+                    const testPath2 = path.join(os.tmpdir(), `agm-test-rebuilt-${Date.now()}.db`);
+                    const testDb2 = new Database(testPath2);
+                    testDb2.close();
+                    fs.unlinkSync(testPath2);
+                    
+                } catch (rebuildError) {
+                    console.log('❌ Automatic rebuild failed');
+                    console.log('🔧 Manual fix required:');
+                    console.log('   Run: npm rebuild better-sqlite3');
+                    console.log('   Or: npm install --rebuild');
+                    throw new Error('better-sqlite3 requires rebuild for this environment');
+                }
+            } else {
+                throw error;
+            }
         }
     }
 

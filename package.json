@@ -12,7 +12,10 @@
     "webhook": "node webhook-server.js",
     "webhook:dev": "nodemon webhook-server.js",
     "clean": "rmdir /s /q dist 2>nul || echo dist cleaned",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "postinstall": "npm run rebuild-sqlite",
+    "rebuild-sqlite": "npm rebuild better-sqlite3 2>/dev/null || echo 'SQLite rebuild completed'",
+    "fix-sqlite": "node scripts/fix-sqlite.js"
   },
   "keywords": [
     "ai",
@@ -40,8 +43,11 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/express": "^5.0.3",
     "@types/fs-extra": "^11.0.4",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.1.0",
     "@types/nodemailer": "^6.4.17",
+    "@types/qrcode": "^1.5.5",
+    "@types/speakeasy": "^2.0.10",
     "typescript": "^5.7.2"
   },
   "dependencies": {
@@ -52,8 +58,11 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "fs-extra": "^11.3.0",
+    "jsonwebtoken": "^9.0.2",
     "node-machine-id": "^1.1.12",
-    "nodemailer": "^7.0.5"
+    "nodemailer": "^7.0.5",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0"
   },
   "overrides": {
     "@npmcli/fs": "^3.1.1",
@@ -80,6 +89,7 @@
   },
   "files": [
     "dist/**/*",
+    "scripts/**/*",
     "README.md",
     "LICENSE",
     "AI_ASSISTANT_INSTRUCTIONS.md"
