@@ -20,7 +20,7 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const version = "1.5.5";
+export const version = "1.5.6";
 
 export class CodeContextCLI {
     public memoryEngine: MemoryEngine;
