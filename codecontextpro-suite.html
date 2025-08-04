@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeContextPro - AI Memory Tools Suite</title>
+    <meta name="description" content="Choose your AI memory solution: AntiGoldfishMode for privacy-conscious developers or CodeContextPro for cloud convenience.">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 60px 0 40px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+        
+        .tools-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 60px 0;
+        }
+        
+        .tool-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+        }
+        
+        .antigoldfish-card::before {
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+        }
+        
+        .codecontextpro-card::before {
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+        }
+        
+        .tool-badge {
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        
+        .privacy-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        }
+        
+        .cloud-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .tool-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+        
+        .tool-tagline {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .feature-list {
+            list-style: none;
+            margin: 30px 0;
+        }
+        
+        .feature-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .pricing-section {
+            text-align: center;
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        
+        .price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .price-period {
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            color: white;
+            padding: 18px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .antigoldfish-cta {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+        }
+        
+        .codecontextpro-cta {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .comparison-table {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            margin: 60px 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .comparison-header h2 {
+            font-size: 2.5rem;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .comparison-row {
+            display: contents;
+        }
+        
+        .comparison-feature {
+            padding: 15px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+        
+        .comparison-cell {
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 2px;
+        }
+        
+        .feature-yes {
+            background: #d4edda;
+            color: #155724;
+            font-weight: bold;
+        }
+        
+        .feature-no {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .feature-partial {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .coming-soon {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 40px;
+            border-radius: 20px;
+            margin: 50px 0;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .tools-comparison {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .comparison-cell, .comparison-feature {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .tool-card {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🚀 CodeContextPro Tools Suite</h1>
+            <p class="subtitle">Choose Your AI Memory Solution</p>
+            <p style="font-size: 1.1rem; opacity: 0.8;">Privacy-first local storage or convenient cloud sync - we've got you covered</p>
+        </header>
+
+        <section class="tools-comparison">
+            <!-- AntiGoldfishMode Card -->
+            <div class="tool-card antigoldfish-card">
+                <div class="tool-badge privacy-badge">
+                    🔒 PRIVACY FIRST
+                </div>
+                
+                <h2 class="tool-title">🧠 AntiGoldfishMode</h2>
+                <p class="tool-tagline">Local-only persistent memory for privacy-conscious developers</p>
+                
+                <div class="pricing-section">
+                    <div class="price">$69<span class="price-period">/year</span></div>
+                    <p style="color: #28a745; font-weight: bold;">Early Adopter Price - Locked Forever!</p>
+                </div>
+                
+                <ul class="feature-list">
+                    <li><span class="feature-icon">🔒</span><strong>100% Local Storage</strong> - Your code never leaves your machine</li>
+                    <li><span class="feature-icon">🧠</span><strong>Unlimited Memory</strong> - Store infinite AI conversations</li>
+                    <li><span class="feature-icon">💾</span><strong>SQLite Database</strong> - Fast, encrypted local storage</li>
+                    <li><span class="feature-icon">⚡</span><strong>Instant Search</strong> - Full-text search with FTS5</li>
+                    <li><span class="feature-icon">🌐</span><strong>Works Offline</strong> - No internet required</li>
+                    <li><span class="feature-icon">🔐</span><strong>Machine-Bound License</strong> - Enterprise security</li>
+                    <li><span class="feature-icon">🎯</span><strong>1 Machine</strong> - Perfect for your main dev setup</li>
+                    <li><span class="feature-icon">🚀</span><strong>Future: Code Execution</strong> - Sandbox coming Q4 2025</li>
+                </ul>
+                
+                <div style="text-align: center;">
+                    <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">
+                        ✅ 7-day free trial • No credit card required
+                    </p>
+                    <a href="https://buy.stripe.com/4gMbJ11ok5Du7tkbdr4Ja0g" class="cta-button antigoldfish-cta">
+                        🚀 Start Free Trial - $69/year
+                    </a>
+                </div>
+            </div>
+
+            <!-- CodeContextPro Card -->
+            <div class="tool-card codecontextpro-card">
+                <div class="tool-badge cloud-badge">
+                    ☁️ CLOUD CONVENIENCE
+                </div>
+                
+                <h2 class="tool-title">🌟 CodeContextPro</h2>
+                <p class="tool-tagline">Cloud-based memory with team collaboration</p>
+                
+                <div class="pricing-section">
+                    <div class="price">$99<span class="price-period">/year</span></div>
+                    <p style="color: #667eea; font-weight: bold;">Coming Soon - Join Waitlist!</p>
+                </div>
+                
+                <ul class="feature-list">
+                    <li><span class="feature-icon">☁️</span><strong>Cloud Sync</strong> - Access memories anywhere</li>
+                    <li><span class="feature-icon">👥</span><strong>Team Sharing</strong> - Collaborate with your team</li>
+                    <li><span class="feature-icon">📱</span><strong>Multi-Device</strong> - Use on unlimited devices</li>
+                    <li><span class="feature-icon">🔄</span><strong>Real-time Sync</strong> - Instant updates across devices</li>
+                    <li><span class="feature-icon">📊</span><strong>Team Analytics</strong> - Track team AI usage</li>
+                    <li><span class="feature-icon">🔗</span><strong>API Access</strong> - Integrate with your tools</li>
+                    <li><span class="feature-icon">👨‍💼</span><strong>Admin Dashboard</strong> - Manage team permissions</li>
+                    <li><span class="feature-icon">📈</span><strong>Usage Insights</strong> - Optimize AI workflows</li>
+                </ul>
+                
+                <div style="text-align: center;">
+                    <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">
+                        🎯 14-day free trial when launched
+                    </p>
+                    <a href="mailto:hello@codecontextpro.com?subject=CodeContextPro%20Early%20Access&body=Hi%2C%0D%0A%0D%0AI'm%20interested%20in%20early%20access%20to%20CodeContextPro%20cloud%20solution.%0D%0A%0D%0AName%3A%20%0D%0AEmail%3A%20%0D%0ACompany%3A%20%0D%0ATeam%20Size%3A%20%0D%0A%0D%0AThanks!" class="cta-button codecontextpro-cta">
+                        📧 Join Early Access Waitlist
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Comparison Table -->
+        <section class="comparison-table">
+            <div class="comparison-header">
+                <h2>🔍 Detailed Feature Comparison</h2>
+                <p style="color: #666; font-size: 1.1rem;">Choose the right solution for your needs</p>
+            </div>
+            
+            <div class="comparison-grid">
+                <div class="comparison-row">
+                    <div class="comparison-feature"><strong>Feature</strong></div>
+                    <div class="comparison-cell" style="background: #f8f9fa; font-weight: bold;">AntiGoldfishMode</div>
+                    <div class="comparison-cell" style="background: #f8f9fa; font-weight: bold;">CodeContextPro</div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-feature">AI Memory Storage</div>
+                    <div class="comparison-cell feature-yes">✅ Unlimited</div>
+                    <div class="comparison-cell feature-yes">✅ Unlimited</div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-feature">Data Storage Location</div>
+                    <div class="comparison-cell feature-yes">🔒 Local Only</div>
+                    <div class="comparison-cell feature-partial">☁️ Cloud</div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-feature">Multi-Device Access</div>
+                    <div class="comparison-cell feature-no">❌ Single Machine</div>
+                    <div class="comparison-cell feature-yes">✅ Unlimited Devices</div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-feature">Team Collaboration</div>
+                    <div class="comparison-cell feature-no">❌ Individual Use</div>
+                    <div class="comparison-cell feature-yes">✅ Team Sharing</div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-feature">Offline Usage</div>
+                    <div class="comparison-cell feature-yes">✅ Fully Offline</div>
+                    <div class="comparison-cell feature-partial">⚡ Limited</div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-feature">Search Performance</div>
+                    <div class="comparison-cell feature-yes">🚀 Lightning Fast</div>
+                    <div class="comparison-cell feature-yes">🚀 Cloud-Optimized</div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-feature">API Access</div>
+                    <div class="comparison-cell feature-no">❌ CLI Only</div>
+                    <div class="comparison-cell feature-yes">✅ REST API</div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-feature">Code Execution</div>
+                    <div class="comparison-cell feature-partial">🔄 Coming Q4 2025</div>
+                    <div class="comparison-cell feature-partial">🔄 Planned</div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-feature">Privacy Level</div>
+                    <div class="comparison-cell feature-yes">🔒 Maximum</div>
+                    <div class="comparison-cell feature-partial">🛡️ Standard</div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-feature">Setup Complexity</div>
+                    <div class="comparison-cell feature-yes">⚡ npm install</div>
+                    <div class="comparison-cell feature-yes">🌐 Web-based</div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-feature">Pricing</div>
+                    <div class="comparison-cell feature-yes">💰 $69/year</div>
+                    <div class="comparison-cell feature-partial">💰 $99/year</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use Case Recommendations -->
+        <section style="background: white; border-radius: 20px; padding: 50px; margin: 60px 0; box-shadow: 0 20px 60px rgba(0,0,0,0.1);">
+            <h2 style="text-align: center; font-size: 2.5rem; color: #2d3748; margin-bottom: 40px;">
+                🎯 Which Tool Is Right For You?
+            </h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                <div style="padding: 30px; background: #f0f8f5; border-left: 5px solid #4ecdc4; border-radius: 10px;">
+                    <h3 style="color: #2d3748; margin-bottom: 20px; font-size: 1.5rem;">
+                        🔒 Choose AntiGoldfishMode If You:
+                    </h3>
+                    <ul style="list-style: none; color: #4a5568;">
+                        <li style="margin-bottom: 10px;">✅ Work with sensitive/proprietary code</li>
+                        <li style="margin-bottom: 10px;">✅ Need maximum privacy and security</li>
+                        <li style="margin-bottom: 10px;">✅ Work primarily on one machine</li>
+                        <li style="margin-bottom: 10px;">✅ Want the fastest possible performance</li>
+                        <li style="margin-bottom: 10px;">✅ Prefer local-only solutions</li>
+                        <li style="margin-bottom: 10px;">✅ Need offline functionality</li>
+                        <li style="margin-bottom: 10px;">✅ Want early adopter pricing</li>
+                    </ul>
+                </div>
+                
+                <div style="padding: 30px; background: #f0f4ff; border-left: 5px solid #667eea; border-radius: 10px;">
+                    <h3 style="color: #2d3748; margin-bottom: 20px; font-size: 1.5rem;">
+                        ☁️ Choose CodeContextPro If You:
+                    </h3>
+                    <ul style="list-style: none; color: #4a5568;">
+                        <li style="margin-bottom: 10px;">✅ Work across multiple devices</li>
+                        <li style="margin-bottom: 10px;">✅ Need team collaboration features</li>
+                        <li style="margin-bottom: 10px;">✅ Want cloud convenience and sync</li>
+                        <li style="margin-bottom: 10px;">✅ Need API access for integrations</li>
+                        <li style="margin-bottom: 10px;">✅ Want admin/management features</li>
+                        <li style="margin-bottom: 10px;">✅ Work with distributed teams</li>
+                        <li style="margin-bottom: 10px;">✅ Need usage analytics</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- CodeContextPro Coming Soon -->
+        <section class="coming-soon">
+            <h2 style="margin-bottom: 30px; font-size: 2.2rem; color: #2d3748;">
+                🚧 CodeContextPro Development Status
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin: 30px 0;">
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">✅</div>
+                    <h3 style="color: #28a745; margin-bottom: 10px;">Core Architecture</h3>
+                    <p style="color: #666;">Cloud infrastructure designed and scalable</p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">🔄</div>
+                    <h3 style="color: #ffc107; margin-bottom: 10px;">Team Features</h3>
+                    <p style="color: #666;">Collaboration tools in development</p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">⏳</div>
+                    <h3 style="color: #667eea; margin-bottom: 10px;">Beta Launch</h3>
+                    <p style="color: #666;">Q2 2025 - Join waitlist for early access</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <p style="font-size: 1.2rem; margin-bottom: 20px; color: #2d3748;">
+                    <strong>Want to be first to try CodeContextPro?</strong>
+                </p>
+                <a href="mailto:hello@codecontextpro.com?subject=CodeContextPro%20Beta%20Access&body=Hi%2C%0D%0A%0D%0AI'm%20interested%20in%20beta%20access%20to%20CodeContextPro.%0D%0A%0D%0AName%3A%20%0D%0AEmail%3A%20%0D%0ACompany%3A%20%0D%0ATeam%20Size%3A%20%0D%0AUse%20Case%3A%20%0D%0A%0D%0AThanks!" 
+                   style="display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.1rem;">
+                    📬 Join Beta Waitlist
+                </a>
+            </div>
+        </section>
+
+        <!-- Start Today Section -->
+        <section style="text-align: center; padding: 60px 40px; color: white;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 20px;">
+                🚀 Start Building AI Memory Today
+            </h2>
+            <p style="font-size: 1.2rem; opacity: 0.9; margin-bottom: 40px;">
+                Don't wait for your AI assistant to forget everything again
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 800px; margin: 0 auto;">
+                <div style="background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px);">
+                    <h3 style="margin-bottom: 15px;">🔒 Privacy First</h3>
+                    <p style="margin-bottom: 20px; opacity: 0.9;">Start building local AI memory right now</p>
+                    <a href="https://buy.stripe.com/4gMbJ11ok5Du7tkbdr4Ja0g" style="display: inline-block; background: #4ecdc4; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                        Start AntiGoldfishMode Free Trial
+                    </a>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px);">
+                    <h3 style="margin-bottom: 15px;">☁️ Cloud Convenience</h3>
+                    <p style="margin-bottom: 20px; opacity: 0.9;">Get notified when CodeContextPro launches</p>
+                    <a href="mailto:hello@codecontextpro.com?subject=CodeContextPro%20Launch%20Notification" style="display: inline-block; background: #667eea; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                        Join CodeContextPro Waitlist
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <footer style="text-align: center; padding: 40px 0; color: white; border-top: 1px solid rgba(255,255,255,0.2); margin-top: 40px;">
+            <p style="font-size: 0.9rem; opacity: 0.7; margin-bottom: 20px;">
+                Built for developers who are serious about AI-assisted coding
+            </p>
+            <div style="margin-bottom: 20px;">
+                <a href="mailto:hello@codecontextpro.com" style="color: #4ecdc4; text-decoration: none; margin-right: 30px;">Support</a>
+                <a href="privacy-policy.html" style="color: #4ecdc4; text-decoration: none; margin-right: 30px;">Privacy</a>
+                <a href="terms-of-service.html" style="color: #4ecdc4; text-decoration: none;">Terms</a>
+            </div>
+            <p style="font-size: 0.8rem; opacity: 0.5;">
+                © 2025 CodeContextPro. All rights reserved.
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

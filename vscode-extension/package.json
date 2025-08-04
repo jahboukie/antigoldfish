@@ -1,0 +1,214 @@
+{
+  "name": "antigoldfishmode-vscode",
+  "displayName": "AntiGoldfishMode",
+  "description": "AI Memory Engine for VSCode - Never lose context again",
+  "version": "1.0.0",
+  "publisher": "JeremyBrown",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning",
+    "Snippets"
+  ],
+  "keywords": [
+    "ai",
+    "memory",
+    "assistant",
+    "context",
+    "claude",
+    "chatgpt",
+    "copilot"
+  ],
+  "activationEvents": [
+    "onCommand:agm.remember",
+    "onCommand:agm.recall",
+    "onCommand:agm.status",
+    "onView:agm-memories"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "agm.remember",
+        "title": "🧠 Remember Selection",
+        "category": "AGM"
+      },
+      {
+        "command": "agm.rememberWithContext",
+        "title": "🧠 Remember with Context",
+        "category": "AGM"
+      },
+      {
+        "command": "agm.recall",
+        "title": "🔍 Recall Memories",
+        "category": "AGM"
+      },
+      {
+        "command": "agm.quickRecall",
+        "title": "⚡ Quick Recall",
+        "category": "AGM"
+      },
+      {
+        "command": "agm.status",
+        "title": "📊 Show Status",
+        "category": "AGM"
+      },
+      {
+        "command": "agm.init",
+        "title": "🚀 Initialize Project",
+        "category": "AGM"
+      },
+      {
+        "command": "agm.insertMemory",
+        "title": "📝 Insert Memory",
+        "category": "AGM"
+      },
+      {
+        "command": "agm.refreshMemories",
+        "title": "🔄 Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "agm.deleteMemory",
+        "title": "🗑️ Delete",
+        "icon": "$(trash)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "editorHasSelection",
+          "command": "agm.remember",
+          "group": "agm@1"
+        },
+        {
+          "when": "editorHasSelection",
+          "command": "agm.rememberWithContext",
+          "group": "agm@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "agm.quickRecall",
+          "when": "resourceExtname != ''",
+          "group": "navigation@1"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "agm.refreshMemories",
+          "when": "view == agm-memories",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "agm.insertMemory",
+          "when": "view == agm-memories && viewItem == memory",
+          "group": "inline@1"
+        },
+        {
+          "command": "agm.deleteMemory",
+          "when": "view == agm-memories && viewItem == memory",
+          "group": "inline@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "agm.refreshMemories",
+          "when": "false"
+        },
+        {
+          "command": "agm.deleteMemory",
+          "when": "false"
+        },
+        {
+          "command": "agm.insertMemory",
+          "when": "false"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "agm-memories",
+          "name": "🧠 AI Memories",
+          "when": "agm.isInitialized"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "agm-memories",
+        "contents": "No memories found.\n[🧠 Remember Something](command:agm.remember)\n[🚀 Initialize Project](command:agm.init)\nTo get started, initialize AntiGoldfishMode in your project or remember your first memory."
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "agm.remember",
+        "key": "ctrl+shift+m",
+        "mac": "cmd+shift+m",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "agm.recall",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r"
+      },
+      {
+        "command": "agm.quickRecall",
+        "key": "ctrl+shift+q",
+        "mac": "cmd+shift+q"
+      }
+    ],
+    "configuration": {
+      "title": "AntiGoldfishMode",
+      "properties": {
+        "agm.autoRemember": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically remember code snippets when copying"
+        },
+        "agm.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show memory count in status bar"
+        },
+        "agm.defaultContext": {
+          "type": "string",
+          "default": "vscode",
+          "description": "Default context for memories created in VSCode"
+        },
+        "agm.maxRecallResults": {
+          "type": "number",
+          "default": 10,
+          "description": "Maximum number of results to show in recall"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.74.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2"
+  },
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antigoldfishmode/vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/antigoldfishmode/vscode-extension/issues"
+  },
+  "homepage": "https://antigoldfish.dev"
+}

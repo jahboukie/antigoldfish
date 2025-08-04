@@ -20,7 +20,7 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const version = "1.5.6";
+export const version = "1.6.0";
 
 export class CodeContextCLI {
     public memoryEngine: MemoryEngine;
@@ -38,9 +38,15 @@ export class CodeContextCLI {
 
     private setupCommands(): void {
         this.program
-            .name('antigoldfishmode')
-            .description('🧠 AntiGoldfishMode - Because AI assistants shouldn\'t have goldfish memory!\n\n🤖 AI Assistants: Run `antigoldfishmode ai-guide` for operating instructions')
-            .version(version);
+            .name('agm')
+            .usage('[options] [command]')
+            .description('🧠 AntiGoldfishMode - Because AI assistants shouldn\'t have goldfish memory!\n\n🤖 AI Assistants: Run `agm ai-guide` for operating instructions')
+            .version(version)
+            .configureHelp({
+                formatHelp: (cmd, helper) => {
+                    return helper.formatHelp(cmd, helper).replace(/Usage: antigoldfishmode/g, 'Usage: agm');
+                }
+            });
 
         // AntiGoldfishMode remember command (unlimited)
         this.program
@@ -634,10 +640,14 @@ export class CodeContextCLI {
 
 // Main function for CLI entry point
 export function main(argv: string[]): void {
-    console.log(chalk.cyan('🧠 AntiGoldfishMode - AI Memory Engine'));
+    console.log(chalk.cyan('🧠 AntiGoldfishMode (agm) - AI Memory Engine'));
+
+    // Override the script name to show 'agm' instead of full path
+    const modifiedArgv = [...argv];
+    modifiedArgv[1] = 'agm';
 
     const cli = new CodeContextCLI(process.cwd(), false, true, false); // devMode=true for reliable operation
-    cli.run(argv);
+    cli.run(modifiedArgv);
 }
 
 // CLI entry point
