@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import { ConnectionPool } from '../engine/ConnectionPool';
 import { VectorEmbeddings } from '../engine/VectorEmbeddings';
+import { IVectorIndex } from '../engine/vector/IVectorIndex';
 
 export interface EnhancedMemory {
     id: number;
@@ -76,16 +77,18 @@ export interface DatabaseMetrics {
 export class EnhancedMemoryDatabase {
     private connectionPool: ConnectionPool;
     private vectorEmbeddings: VectorEmbeddings;
+    private vectorIndex?: IVectorIndex; // optional backend index (FAISS/LocalJS)
     private dbPath: string;
     private devMode: boolean;
     private queryCache = new Map<string, { result: any; timestamp: number }>();
     private queryStats = new Map<string, { count: number; totalTime: number }>();
 
-    constructor(dbPath: string, connectionPool: ConnectionPool, vectorEmbeddings: VectorEmbeddings, devMode: boolean = false) {
+    constructor(dbPath: string, connectionPool: ConnectionPool, vectorEmbeddings: VectorEmbeddings, devMode: boolean = false, vectorIndex?: IVectorIndex) {
         this.dbPath = dbPath;
         this.connectionPool = connectionPool;
         this.vectorEmbeddings = vectorEmbeddings;
         this.devMode = devMode;
+        this.vectorIndex = vectorIndex;
     }
 
     /**
@@ -368,7 +371,17 @@ export class EnhancedMemoryDatabase {
 
         // Add to vector index if embedding was generated
         if (embedding) {
-            await this.vectorEmbeddings.addToIndex(memoryId, content, { context, type, tags });
+            try {
+                if (this.vectorIndex) {
+                    const vec = new Float32Array(embedding);
+                    await this.vectorIndex.add(memoryId, vec, { context, type, tags, content });
+                } else {
+                    await this.vectorEmbeddings.addToIndex(memoryId, content, { context, type, tags });
+                }
+            } catch (e) {
+                // Non-fatal: continue even if vector backend not ready
+                if (this.devMode) console.warn('Vector index add failed:', e);
+            }
         }
 
         // Record performance
@@ -478,15 +491,18 @@ export class EnhancedMemoryDatabase {
     async executeBatch(operations: BatchOperation[]): Promise<void> {
         const startTime = Date.now();
 
+        // Collect IDs to remove from vector index outside of the DB transaction
+        const idsToRemove: number[] = [];
+
         await this.connectionPool.transaction((db) => {
             const insertStmt = db.prepare(`
-                INSERT INTO memories_v2 
+                INSERT INTO memories_v2
                 (content, content_hash, context, type, tags, metadata, embedding, sentiment, topics, importance)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `);
 
             const updateStmt = db.prepare(`
-                UPDATE memories_v2 
+                UPDATE memories_v2
                 SET content = ?, context = ?, type = ?, tags = ?, metadata = ?, updated_at = strftime('%s', 'now')
                 WHERE id = ?
             `);
@@ -524,11 +540,24 @@ export class EnhancedMemoryDatabase {
 
                     case 'delete':
                         deleteStmt.run(operation.data.id);
-                        this.vectorEmbeddings.removeFromIndex(operation.data.id);
+                        idsToRemove.push(operation.data.id);
                         break;
                 }
             }
         });
+
+        // Process vector index removals outside of the transaction
+        if (idsToRemove.length > 0) {
+            for (const id of idsToRemove) {
+                try {
+                    if (this.vectorIndex) {
+                        await this.vectorIndex.remove(id);
+                    } else {
+                        this.vectorEmbeddings.removeFromIndex(id);
+                    }
+                } catch {}
+            }
+        }
 
         this.recordQueryPerformance('batch_operation', { count: operations.length }, Date.now() - startTime, operations.length);
         console.log(`✅ Executed batch of ${operations.length} operations`);

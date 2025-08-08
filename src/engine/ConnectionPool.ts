@@ -1,7 +1,7 @@
 /**
  * High-Performance Connection Pool for MemoryEngine 2.0
  * Provides persistent database connections with intelligent lifecycle management
- * 
+ *
  * Features:
  * - Connection reuse and pooling
  * - Automatic cleanup and health checks
@@ -11,6 +11,7 @@
 
 import Database from 'better-sqlite3';
 import * as path from 'path';
+import * as fs from 'fs';
 
 export interface ConnectionPoolOptions {
     maxConnections: number;
@@ -30,6 +31,16 @@ export class ConnectionPool {
     private pool: Database.Database[] = [];
     private activeConnections = new Set<Database.Database>();
     private dbPath: string;
+    // Optional sqlite-vss extension path for FAISS
+    private vssLibPath?: string;
+
+    /**
+     * Provide optional path to sqlite-vss library. If set, pool will attempt to load it on new connections.
+     */
+    setVectorExtensionPath(libPath: string): void {
+        this.vssLibPath = libPath;
+    }
+
     private options: ConnectionPoolOptions;
     private metrics: ConnectionMetrics;
     private healthCheckTimer?: NodeJS.Timeout;
@@ -119,6 +130,17 @@ export class ConnectionPool {
             // Enable WAL mode for better concurrency
             if (this.options.enableWAL) {
                 db.pragma('journal_mode = WAL');
+            }
+
+            // Attempt to load sqlite-vss vector extension if path provided
+            if (this.vssLibPath && fs.existsSync(this.vssLibPath)) {
+                try {
+                    db.pragma('enable_load_extension = 1');
+                    db.loadExtension(this.vssLibPath);
+                    console.log(`✅ Loaded sqlite-vss extension: ${this.vssLibPath}`);
+                } catch (e) {
+                    console.warn('⚠️ Failed to load sqlite-vss extension:', e);
+                }
             }
 
             // Optimize SQLite settings
@@ -211,14 +233,14 @@ export class ConnectionPool {
      */
     private updateMetrics(startTime: number, wasPoolHit: boolean): void {
         const connectionTime = Date.now() - startTime;
-        
+
         // Update hit rate
         const totalRequests = this.metrics.hitRate * 100 + 1;
         const hits = wasPoolHit ? this.metrics.hitRate * 100 + 1 : this.metrics.hitRate * 100;
         this.metrics.hitRate = hits / totalRequests;
 
         // Update average connection time
-        this.metrics.avgConnectionTime = 
+        this.metrics.avgConnectionTime =
             (this.metrics.avgConnectionTime + connectionTime) / 2;
     }
 

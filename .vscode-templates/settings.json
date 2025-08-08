@@ -1,0 +1,71 @@
+{
+    // AntiGoldfishMode (AGM) Configuration
+    "agm.autoSave": true,
+    "agm.defaultContext": "${workspaceFolderBasename}",
+    "agm.showStatusInTerminal": true,
+    
+    // Terminal integration for AGM
+    "terminal.integrated.shellIntegration.enabled": true,
+    "terminal.integrated.commandsToSkipShell": [
+        "agm.remember",
+        "agm.recall"
+    ],
+    
+    // Custom task shortcuts in command palette
+    "workbench.action.tasks.runTask": true,
+    
+    // File associations for AGM memory files
+    "files.associations": {
+        "*.agm": "json",
+        ".antigoldfishmode/**": "json"
+    },
+    
+    // Exclude AGM internal files from search
+    "search.exclude": {
+        ".antigoldfishmode/": true,
+        "**/.antigoldfishmode": true
+    },
+    
+    // Hide AGM internal files from explorer (optional)
+    "files.exclude": {
+        "**/.antigoldfishmode": false
+    },
+    
+    // AGM-specific editor settings
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": true,
+        "strings": true
+    },
+    
+    // Terminal prompt integration
+    "terminal.integrated.env.windows": {
+        "AGM_VSCODE": "true"
+    },
+    "terminal.integrated.env.osx": {
+        "AGM_VSCODE": "true"
+    },
+    "terminal.integrated.env.linux": {
+        "AGM_VSCODE": "true"
+    },
+    
+    // Recommended extensions that work well with AGM
+    "extensions.recommendations": [
+        "ms-vscode.vscode-json",
+        "ms-vscode.powershell",
+        "ms-vscode.terminal"
+    ],
+    
+    // Custom colors for AGM-related files
+    "workbench.colorCustomizations": {
+        "titleBar.activeBackground": "#667eea20",
+        "titleBar.activeForeground": "#667eea"
+    },
+    
+    // AGM memory file icon theme
+    "workbench.iconTheme": "vs-seti",
+    
+    // IntelliSense settings for better AGM command completion
+    "typescript.suggest.includeAutomaticOptionalChainCompletions": true,
+    "javascript.suggest.includeAutomaticOptionalChainCompletions": true
+}

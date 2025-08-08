@@ -1,0 +1,18 @@
+{
+  "status": "active",
+  "tier": "developer",
+  "userId": "developer-unlimited",
+  "expiresAt": null,
+  "usage": {
+    "executionsThisMonth": 0,
+    "filesTracked": 0,
+    "lastResetDate": "2025-08-04T20:33:05.839Z",
+    "totalExecutions": 0
+  },
+  "limits": {
+    "maxExecutionsPerMonth": 999999,
+    "maxFilesTracked": 999999,
+    "advancedPatternRecognition": true,
+    "unlimitedMemory": true
+  }
+}

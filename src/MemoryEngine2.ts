@@ -1,7 +1,7 @@
 /**
  * MemoryEngine 2.0 - Next-Generation AI Memory System
  * High-performance, AI-powered memory engine with semantic search and intelligent caching
- * 
+ *
  * Features:
  * - Persistent connection pooling (60-80% performance boost)
  * - Vector semantic search with local embeddings
@@ -20,6 +20,9 @@ import { MemoryCache } from './engine/MemoryCache';
 import { VectorEmbeddings } from './engine/VectorEmbeddings';
 import { HybridSearchEngine, HybridSearchOptions, HybridSearchResult } from './engine/HybridSearchEngine';
 import { EnhancedMemoryDatabase, EnhancedMemory, EnhancedSearchOptions, DatabaseMetrics } from './database/EnhancedMemoryDatabase';
+import { IVectorIndex } from './engine/vector/IVectorIndex';
+import { LocalJSIndex } from './engine/vector/LocalJSIndex';
+import { FaissSqliteIndex } from './engine/vector/FaissSqliteIndex';
 
 export interface MemoryEngine2Options {
     enableVectorSearch?: boolean;
@@ -31,6 +34,8 @@ export interface MemoryEngine2Options {
     secureMode?: boolean;
     devMode?: boolean;
     performanceMonitoring?: boolean;
+    vectorBackend?: 'auto' | 'faiss' | 'local';
+    vectorLibPath?: string; // optional path to sqlite-vss extension
 }
 
 export interface MemoryEngine2Stats {
@@ -63,14 +68,15 @@ export class MemoryEngine2 {
     private projectPath: string;
     private dbPath: string;
     private options: MemoryEngine2Options;
-    
+
     // Core components
     private connectionPool!: ConnectionPool;
     private cache!: MemoryCache;
     private vectorEmbeddings!: VectorEmbeddings;
+    private vectorIndex!: IVectorIndex; // injected backend (local-js default)
     private database!: EnhancedMemoryDatabase;
     private hybridSearch!: HybridSearchEngine;
-    
+
     // State management
     private initialized = false;
     private startTime = Date.now();
@@ -84,7 +90,7 @@ export class MemoryEngine2 {
     constructor(projectPath: string, options: MemoryEngine2Options = {}) {
         this.projectPath = projectPath;
         this.dbPath = path.join(projectPath, '.antigoldfishmode', 'memory_v2.db');
-        
+
         this.options = {
             enableVectorSearch: true,
             enableCaching: true,
@@ -95,6 +101,7 @@ export class MemoryEngine2 {
             secureMode: false,
             devMode: false,
             performanceMonitoring: true,
+            vectorBackend: 'auto',
             ...options
         };
 
@@ -104,7 +111,7 @@ export class MemoryEngine2 {
     /**
      * Initialize all engine components
      */
-    private initializeComponents(): void {
+    private async initializeComponents(): Promise<void> {
         // Initialize connection pool with optimized settings
         this.connectionPool = new ConnectionPool(this.dbPath, {
             maxConnections: this.options.connectionPoolSize!,
@@ -112,6 +119,11 @@ export class MemoryEngine2 {
             healthCheckInterval: 60000,
             enableWAL: true
         });
+
+        // If provided, pass sqlite-vss lib path to pool so new connections attempt to load it
+        if (this.options.vectorLibPath) {
+            this.connectionPool.setVectorExtensionPath?.(this.options.vectorLibPath);
+        }
 
         // Initialize intelligent cache
         this.cache = new MemoryCache({
@@ -124,12 +136,16 @@ export class MemoryEngine2 {
         // Initialize vector embeddings for semantic search
         this.vectorEmbeddings = new VectorEmbeddings(this.options.embeddingDimensions!);
 
-        // Initialize enhanced database
+        // Choose vector backend
+        this.vectorIndex = await this.initializeVectorBackend();
+
+        // Initialize enhanced database with vector index
         this.database = new EnhancedMemoryDatabase(
             this.dbPath,
             this.connectionPool,
             this.vectorEmbeddings,
-            this.options.devMode!
+            this.options.devMode!,
+            this.vectorIndex
         );
 
         // Initialize hybrid search engine
@@ -184,7 +200,7 @@ export class MemoryEngine2 {
             generateEmbedding?: boolean;
         } = {}
     ): Promise<number> {
-        
+
         await this.ensureInitialized();
         const startTime = Date.now();
 
@@ -228,7 +244,7 @@ export class MemoryEngine2 {
         query: string,
         options: HybridSearchOptions = {}
     ): Promise<{ results: HybridSearchResult[]; metrics?: any }> {
-        
+
         await this.ensureInitialized();
         const startTime = Date.now();
 
@@ -255,7 +271,7 @@ export class MemoryEngine2 {
             // Record performance
             const queryTime = Date.now() - startTime;
             this.recordPerformance('search', queryTime);
-            
+
             console.log(`🔍 Search completed: "${query}" → ${searchResult.results.length} results in ${queryTime}ms`);
 
             return {
@@ -277,7 +293,7 @@ export class MemoryEngine2 {
         limit: number = 10,
         threshold: number = 0.3
     ): Promise<HybridSearchResult[]> {
-        
+
         await this.ensureInitialized();
 
         if (!this.options.enableVectorSearch) {
@@ -288,7 +304,7 @@ export class MemoryEngine2 {
 
         try {
             const similarityResults = await this.vectorEmbeddings.findSimilar(query, limit, threshold);
-            
+
             // Convert to enhanced results
             const results: HybridSearchResult[] = similarityResults.map(result => ({
                 id: result.id,
@@ -322,24 +338,24 @@ export class MemoryEngine2 {
         try {
             // Get database metrics
             const dbMetrics = await this.database.getMetrics();
-            
+
             // Get cache metrics
             const cacheMetrics = this.cache.getMetrics();
-            
+
             // Get connection pool metrics
             const poolMetrics = this.connectionPool.getMetrics();
-            
+
             // Get vector index stats
             const vectorStats = this.vectorEmbeddings.getIndexStats();
-            
+
             // Get hybrid search stats
             const searchStats = this.hybridSearch.getSearchStats();
 
             return {
                 performance: {
                     totalQueries: this.performanceMetrics.totalQueries,
-                    avgQueryTime: this.performanceMetrics.totalQueries > 0 
-                        ? this.performanceMetrics.totalQueryTime / this.performanceMetrics.totalQueries 
+                    avgQueryTime: this.performanceMetrics.totalQueries > 0
+                        ? this.performanceMetrics.totalQueryTime / this.performanceMetrics.totalQueries
                         : 0,
                     cacheHitRate: cacheMetrics.hitRate,
                     connectionPoolEfficiency: poolMetrics.hitRate
@@ -401,7 +417,7 @@ export class MemoryEngine2 {
         performanceTrends: any;
         recommendations: string[];
     }> {
-        
+
         await this.ensureInitialized();
 
         try {
@@ -595,7 +611,7 @@ export class MemoryEngine2 {
         if (!this.options.enableVectorSearch) return;
 
         const indexPath = path.join(this.projectPath, '.antigoldfishmode', 'vector_index.json');
-        
+
         if (fs.existsSync(indexPath)) {
             try {
                 const indexData = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
@@ -611,7 +627,7 @@ export class MemoryEngine2 {
         if (!this.options.enableVectorSearch) return;
 
         const indexPath = path.join(this.projectPath, '.antigoldfishmode', 'vector_index.json');
-        
+
         try {
             const indexData = this.vectorEmbeddings.exportIndex();
             fs.writeFileSync(indexPath, JSON.stringify(indexData, null, 2));
@@ -641,5 +657,35 @@ export class MemoryEngine2 {
         }
 
         return recommendations;
+    }
+
+
+    private async initializeVectorBackend(): Promise<IVectorIndex> {
+        const dims = this.options.embeddingDimensions!;
+        const mode = this.options.vectorBackend || 'auto';
+
+        if (mode === 'faiss' || mode === 'auto') {
+            try {
+                const faiss = new FaissSqliteIndex(this.connectionPool, dims);
+                await faiss.init();
+                const stats = await faiss.stats();
+                if (!stats.backend.includes('not-ready')) {
+                    console.log('🧠 Vector backend: FAISS/sqlite-vss');
+                    return faiss;
+                }
+            } catch (e) {
+                if (this.options.devMode) console.warn('FAISS backend init failed; falling back to local-js:', e);
+            }
+        }
+
+        console.log('🧠 Vector backend: local-js');
+        const local = new LocalJSIndex(this.vectorEmbeddings);
+        await local.init();
+        return local;
+    }
+
+    async getVectorBackendInfo(): Promise<{ backend: string; dimensions: number; count: number }> {
+        const s = await this.vectorIndex.stats();
+        return { backend: s.backend, dimensions: s.dimensions, count: s.count };
     }
 }
