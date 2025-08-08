@@ -790,6 +790,8 @@ export class MemoryDatabase {
             this.ensureVectorTable();
 
             // Stage 2: try sqlite-vss fast path when available
+
+
             const vss = (this as any)._vss as (undefined | { ensureTable: (d:number)=>void; upsert: (id:number, vec: Float32Array)=>void; isAvailable: ()=>boolean });
             if (vss && vss.isAvailable()) {
                 try {
@@ -833,6 +835,17 @@ export class MemoryDatabase {
             return map;
         }
 
+        /**
+         * KNN query using sqlite-vss when available. Returns sorted ids and distances.
+         */
+        async knnSearch(vec: Float32Array, topk: number): Promise<Array<{ id: number; distance: number }>> {
+            if (!this.db) throw new Error('Database not initialized');
+            const vss = (this as any)._vss as (undefined | { isAvailable: () => boolean; queryNearest: (vec: Float32Array, topk:number)=>Array<{id:number;distance:number}> });
+            if (!vss || !vss.isAvailable()) return [];
+            try { return vss.queryNearest(vec, topk) || []; } catch { return []; }
+        }
+
+
 
 
     /**
@@ -842,6 +855,7 @@ export class MemoryDatabase {
         if (!this.db) {
             throw new Error('Database not initialized');
         }
+
 
         try {
             const sql = 'SELECT * FROM memories WHERE id = ?';
