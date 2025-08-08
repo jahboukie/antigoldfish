@@ -187,6 +187,9 @@ export class CodeContextCLI {
             .option('-k, --topk <k>', 'Top K results', '20')
             .option('-n, --preview <lines>', 'Show first N lines of each result')
             .option('-p, --filter-path <globs...>', 'Only show results whose metadata.file matches any of the provided globs')
+            .option('--filter-symbol <types...>', 'Filter by symbol type(s): function|class|struct|file')
+            .option('--filter-language <langs...>', 'Filter by language(s): typescript|javascript|python|go')
+
             .option('--hybrid', 'Use hybrid FTS+vector fusion (Stage 1)')
             .option('--rerank <N>', 'Rerank top N FTS results with vector cosine (default 200)')
             .action(async (query: string, opts: any) => { await this.handleSearchCode(query, opts); });
@@ -867,6 +870,23 @@ export class CodeContextCLI {
                     return meta.file ? pathMatches(filterPath, meta.file) : false;
                 });
             }
+            // Optional filters: symbol and language
+            const filterSymbols: string[] | undefined = opts.filterSymbol || undefined;
+            const filterLangs: string[] | undefined = opts.filterLanguage || undefined;
+            if ((filterSymbols && filterSymbols.length) || (filterLangs && filterLangs.length)) {
+                const norm = (s: string) => String(s || '').toLowerCase();
+                const wantedSyms = new Set((filterSymbols||[]).map(norm));
+                const wantedLangs = new Set((filterLangs||[]).map(norm));
+                results = results.filter(r => {
+                    let meta: any = {}; try { meta = JSON.parse((r as any).metadata || '{}'); } catch {}
+                    const tags: string[] = Array.isArray(meta.tags) ? meta.tags.map(norm) : [];
+                    const lang: string = meta.language ? norm(meta.language) : '';
+                    const symOk = wantedSyms.size ? tags.some(t => wantedSyms.has(t) || (t === 'symbol' && wantedSyms.has(meta.symbolType?.toLowerCase?.()))) : true;
+                    const langOk = wantedLangs.size ? (lang ? wantedLangs.has(lang) : false) : true;
+                    return symOk && langOk;
+                });
+            }
+
 
             if (tracer.flags.json) {
                 console.log(JSON.stringify({ count: results.length, results }, null, 2));
@@ -900,8 +920,8 @@ export class CodeContextCLI {
             const resultDigest = crypto.createHash('sha256').update(JSON.stringify(idList)).digest('hex');
 
             const backend = 'fallback';
-            const receipt = tracer.writeReceipt('search-code', { query, topk, preview, filterPath, hybrid: !!opts.hybrid, rerankN }, { count: results.length }, true, undefined, { resultSummary: { ids: idList.slice(0, 10) }, digests: { resultDigest }, hybrid: opts.hybrid ? { backend, fusionWeights: { bm25: 0.5, cosine: 0.5 }, rerankN } : undefined });
-            tracer.appendJournal({ cmd: 'search-code', args: { query, topk, preview, filterPath, hybrid: !!opts.hybrid, rerankN }, receipt });
+            const receipt = tracer.writeReceipt('search-code', { query, topk, preview, filterPath, hybrid: !!opts.hybrid, rerankN, filterSymbols, filterLangs }, { count: results.length }, true, undefined, { resultSummary: { ids: idList.slice(0, 10) }, digests: { resultDigest }, hybrid: opts.hybrid ? { backend, fusionWeights: { bm25: 0.5, cosine: 0.5 }, rerankN } : undefined });
+            tracer.appendJournal({ cmd: 'search-code', args: { query, topk, preview, filterPath, hybrid: !!opts.hybrid, rerankN, filterSymbols, filterLangs }, receipt });
         } catch (error) {
             const receipt = tracer.writeReceipt('search-code', { query, topk: opts.topk }, {}, false, (error as Error).message);
             tracer.appendJournal({ cmd: 'search-code', error: (error as Error).message, receipt });
