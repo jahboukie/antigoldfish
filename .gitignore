@@ -89,3 +89,9 @@ temp/
 # Windows reserved name artifact safeguards
 nul
 NUL
+
+# Security demo/admin files (not part of CLI)
+security/
+admin-dashboard.js
+security-cli.js
+security/**
