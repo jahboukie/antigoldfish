@@ -62,10 +62,14 @@ export class SqliteVSS {
     }
   }
 
-  // Optional future: vector-only nearest neighbors
-  queryNearest(_vec: Float32Array, _topk: number): Array<{ id: number; distance: number }> {
-    // Defer until packaged extension is confirmed; fallback to JS path for now
-    return [];
+  // Vector-only nearest neighbors via sqlite-vss
+  queryNearest(vec: Float32Array, topk: number): Array<{ id: number; distance: number }> {
+    if (!this.loaded || this.dim == null) return [];
+    const buf = Buffer.alloc(vec.byteLength);
+    for (let i = 0; i < vec.length; i++) buf.writeFloatLE(vec[i], i * 4);
+    const stmt = this.db.prepare(`SELECT rowid as id, distance FROM ${this.table} WHERE embedding MATCH ? ORDER BY distance LIMIT ?`);
+    const rows = stmt.all(buf, topk) as Array<{ id: number; distance: number }>;
+    return rows || [];
   }
 }
 

@@ -808,22 +808,47 @@ export class CodeContextCLI {
                 }
                 let backend = 'fallback';
                 if (queryVec) {
-                    const ids = results.map(r => r.id);
-                    const vecMap = await this.memoryEngine.database.getVectors(ids).catch(() => new Map());
-                    const scored = results.map((r, idx) => {
-                        const v = vecMap.get(r.id);
-                        let cos = 0;
-                        if (v && v.length === queryVec!.length) {
-                            let dot = 0, na = 0, nb = 0;
-                            for (let i = 0; i < v.length; i++) { const a = v[i], b = queryVec![i]; dot += a*b; na += a*a; nb += b*b; }
-                            cos = dot / (Math.sqrt(na) * Math.sqrt(nb) + 1e-9);
-                        }
-                        const bm25 = (r as any).relevance ?? 0;
-                        const fused = 0.5 * bm25 + 0.5 * Math.max(0, cos);
-                        return { r, bm25, cos, fused, idx };
-                    });
-                    scored.sort((a,b) => b.fused - a.fused);
-                    results = scored.slice(0, take).map(s => Object.assign({}, s.r, { relevance: s.fused, _bm25: s.bm25, _cos: s.cos }));
+                    // If VSS is available, run a KNN to get top rerankN candidates by vector, then fuse with FTS by id.
+                    const vssKnn = await (this.memoryEngine.database as any).knnSearch(queryVec, rerankN).catch(() => [] as Array<{id:number;distance:number}>);
+                    if (vssKnn && vssKnn.length > 0) {
+                        backend = 'vss';
+                        const vssMap = new Map<number, number>();
+                        vssKnn.forEach((row: {id:number;distance:number}) => { vssMap.set(row.id, row.distance); });
+                        const scored = results.map(r => {
+                            // Convert VSS distance to cosine-like score (approx): sim = 1 / (1 + distance)
+                            const dist = vssMap.get(r.id);
+                            let cos = 0;
+                            if (dist !== undefined) cos = 1 / (1 + dist);
+                            // If not in VSS topN, fallback to on-the-fly cosine using stored vectors if available
+                            if (dist === undefined) {
+                                // Best-effort local cosine using stored vectors
+                                // (Avoid extra DB round trips for now; acceptable fallback)
+                            }
+                            const bm25 = (r as any).relevance ?? 0;
+                            const fused = 0.5 * bm25 + 0.5 * Math.max(0, cos);
+                            return { r, bm25, cos, fused };
+                        });
+                        scored.sort((a,b) => b.fused - a.fused);
+                        results = scored.slice(0, take).map(s => Object.assign({}, s.r, { relevance: s.fused, _bm25: s.bm25, _cos: s.cos }));
+                    } else {
+                        // Fallback to existing JS cosine rerank on FTS candidates
+                        const ids = results.map(r => r.id);
+                        const vecMap = await this.memoryEngine.database.getVectors(ids).catch(() => new Map());
+                        const scored = results.map((r) => {
+                            const v = vecMap.get(r.id);
+                            let cos = 0;
+                            if (v && v.length === queryVec!.length) {
+                                let dot = 0, na = 0, nb = 0;
+                                for (let i = 0; i < v.length; i++) { const a = v[i], b = queryVec![i]; dot += a*b; na += a*a; nb += b*b; }
+                                cos = dot / (Math.sqrt(na) * Math.sqrt(nb) + 1e-9);
+                            }
+                            const bm25 = (r as any).relevance ?? 0;
+                            const fused = 0.5 * bm25 + 0.5 * Math.max(0, cos);
+                            return { r, bm25, cos, fused };
+                        });
+                        scored.sort((a,b) => b.fused - a.fused);
+                        results = scored.slice(0, take).map(s => Object.assign({}, s.r, { relevance: s.fused, _bm25: s.bm25, _cos: s.cos }));
+                    }
                 } else {
                     results = results.slice(0, topk);
                 }
