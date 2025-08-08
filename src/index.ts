@@ -776,24 +776,26 @@ export class CodeContextCLI {
             const filterPath: string[] | undefined = opts.filterPath || opts.filter || opts.p;
             tracer.plan('search-code', { query, topk, preview, filterPath, explain: tracer.flags.explain });
             tracer.mirror(`agm search-code ${JSON.stringify(query)} -k ${topk}${preview?` --preview ${preview}`:''}${filterPath?` --filter-path ${filterPath.join(' ')}`:''}${tracer.flags.explain?' --explain':''}`);
+            const rerankN = parseInt(opts.rerank || '200', 10) || 200;
             if (tracer.flags.explain) {
-                console.log(chalk.gray('Explanation: FTS search across code-type memories; hybrid mode re-ranks top N results with vector cosine. Optional --filter-path limits results by file globs.'));
+                const backend = 'fallback'; // vss query path not yet wired
+                const fusion = 'score = 0.5 * BM25 + 0.5 * cosine';
+                console.log(chalk.gray(`Explanation: FTS search across code-type memories;${opts.hybrid?` hybrid mode re-ranks top ${rerankN} results with vector cosine using backend=${backend} and fusion ${fusion}.`:''} Optional --filter-path limits results by file globs.`));
             }
 
             if (tracer.flags.dryRun) {
                 console.log(chalk.yellow('DRY-RUN: Skipping database search'));
-                const receipt = tracer.writeReceipt('search-code', { query, topk, preview, dryRun: true }, { count: 0 }, true);
-                tracer.appendJournal({ cmd: 'search-code', args: { query, topk, preview, dryRun: true }, receipt });
+                const receipt = tracer.writeReceipt('search-code', { query, topk, preview, dryRun: true, hybrid: !!opts.hybrid, rerankN }, { count: 0 }, true, undefined, { hybrid: { backend: 'fallback', fusionWeights: { bm25: 0.5, cosine: 0.5 }, rerankN } });
+                tracer.appendJournal({ cmd: 'search-code', args: { query, topk, preview, dryRun: true, hybrid: !!opts.hybrid, rerankN }, receipt });
                 await this.cleanup();
                 return;
             }
 
             await this.memoryEngine.initialize();
 
-            let results = await this.memoryEngine.database.searchMemories(query, { limit: opts.hybrid ? (parseInt(opts.rerank || '200', 10) || 200) : topk, type: 'code' });
+            let results = await this.memoryEngine.database.searchMemories(query, { limit: opts.hybrid ? rerankN : topk, type: 'code' });
 
             if (opts.hybrid) {
-                const rerankN = parseInt(opts.rerank || '200', 10) || 200;
                 const take = Math.min(topk, results.length);
                 const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider');
                 const provider = EmbeddingProvider.create(process.cwd());
@@ -804,6 +806,7 @@ export class CodeContextCLI {
                 } catch (e) {
                     if (tracer.flags.trace) console.log('Hybrid mode: embedding init failed, falling back to FTS only. Error:', String(e));
                 }
+                let backend = 'fallback';
                 if (queryVec) {
                     const ids = results.map(r => r.id);
                     const vecMap = await this.memoryEngine.database.getVectors(ids).catch(() => new Map());
@@ -823,6 +826,10 @@ export class CodeContextCLI {
                     results = scored.slice(0, take).map(s => Object.assign({}, s.r, { relevance: s.fused, _bm25: s.bm25, _cos: s.cos }));
                 } else {
                     results = results.slice(0, topk);
+                }
+                // Print explain line when requested
+                if (tracer.flags.explain) {
+                    console.log(chalk.gray(`Hybrid details: backend=${backend}, fusionWeights={bm25:0.5,cosine:0.5}, rerankN=${rerankN}`));
                 }
             }
 
@@ -867,8 +874,9 @@ export class CodeContextCLI {
             });
             const resultDigest = crypto.createHash('sha256').update(JSON.stringify(idList)).digest('hex');
 
-            const receipt = tracer.writeReceipt('search-code', { query, topk, preview, filterPath }, { count: results.length }, true, undefined, { resultSummary: { ids: idList.slice(0, 10) }, digests: { resultDigest } });
-            tracer.appendJournal({ cmd: 'search-code', args: { query, topk, preview, filterPath }, receipt });
+            const backend = 'fallback';
+            const receipt = tracer.writeReceipt('search-code', { query, topk, preview, filterPath, hybrid: !!opts.hybrid, rerankN }, { count: results.length }, true, undefined, { resultSummary: { ids: idList.slice(0, 10) }, digests: { resultDigest }, hybrid: opts.hybrid ? { backend, fusionWeights: { bm25: 0.5, cosine: 0.5 }, rerankN } : undefined });
+            tracer.appendJournal({ cmd: 'search-code', args: { query, topk, preview, filterPath, hybrid: !!opts.hybrid, rerankN }, receipt });
         } catch (error) {
             const receipt = tracer.writeReceipt('search-code', { query, topk: opts.topk }, {}, false, (error as Error).message);
             tracer.appendJournal({ cmd: 'search-code', error: (error as Error).message, receipt });
