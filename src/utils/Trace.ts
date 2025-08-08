@@ -78,7 +78,7 @@ export class Tracer {
     }
   }
 
-  writeReceipt(command: string, params: any, results: any, success: boolean, error?: string, extra?: { resultSummary?: any; exitCode?: number; digests?: Record<string,string> }): string {
+  writeReceipt(command: string, params: any, results: any, success: boolean, error?: string, extra?: { resultSummary?: any; exitCode?: number; digests?: Record<string,string>; hybrid?: { backend: string; fusionWeights: { bm25: number; cosine: number }; rerankN: number } }): string {
     const id = `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
     const argsSha256 = crypto.createHash('sha256').update(JSON.stringify({ argv: this.argv, params })).digest('hex');
     const receipt: ReceiptV1 = {
