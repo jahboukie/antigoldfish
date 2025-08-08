@@ -78,6 +78,31 @@ antigoldfishmode recall "user preferences" --limit 5
 antigoldfishmode status
 ```
 
+
+## 🔍 Transparency & Replay (Glassbox)
+
+- Plan & Mirror: see exactly what will run (trace/explain)
+- Dry‑Run: safe by default for replay; supported by index/search
+- Receipts v1: standardized, machine‑readable audit records
+- Journal: append‑only command log
+- Integrity Digests: fileListDigest (index), resultDigest (search), batch digest (replay)
+- Tools: `antigoldfishmode receipt-show --last`
+
+Examples
+```bash
+# Index (trace + json)
+antigoldfishmode index-code --path . --max-chunk 200 --trace --json
+
+# Search (preview + filter + json)
+antigoldfishmode search-code "SymbolName" -k 10 --preview 3 --filter-path src/**/*.ts --trace --json
+
+# Replay last (safe dry‑run)
+antigoldfishmode replay --last --trace
+
+# Inspect last receipt
+antigoldfishmode receipt-show --last
+```
+
 ## 🏗 **How It Works**
 
 - **Local Storage**: All data stays on your machine in `.antigoldfishmode/`

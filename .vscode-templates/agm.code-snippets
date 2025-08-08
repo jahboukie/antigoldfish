@@ -1,0 +1,121 @@
+{
+    "AGM Remember Command": {
+        "prefix": "agm-remember",
+        "body": [
+            "agm remember \"$1\" --context \"$2\" --type \"$3\""
+        ],
+        "description": "AGM remember command with context and type"
+    },
+    "AGM Recall Command": {
+        "prefix": "agm-recall",
+        "body": [
+            "agm recall \"$1\" --limit $2"
+        ],
+        "description": "AGM recall command with limit"
+    },
+    "AGM Status Command": {
+        "prefix": "agm-status",
+        "body": [
+            "agm status"
+        ],
+        "description": "AGM status command"
+    },
+    "AGM Init Command": {
+        "prefix": "agm-init",
+        "body": [
+            "agm init --force"
+        ],
+        "description": "AGM initialize project command"
+    },
+    "AGM Activate License": {
+        "prefix": "agm-activate",
+        "body": [
+            "agm activate $1"
+        ],
+        "description": "AGM activate license command"
+    },
+    "AGM Terminal Script": {
+        "prefix": "agm-script",
+        "body": [
+            "#!/bin/bash",
+            "# AGM Memory Script",
+            "",
+            "# Remember important project info",
+            "agm remember \"$1\" --context \"${workspaceFolderBasename}\" --type \"script\"",
+            "",
+            "# Search for related memories",
+            "agm recall \"$2\" --limit 10"
+        ],
+        "description": "AGM bash script template"
+    },
+    "AGM Package.json Scripts": {
+        "prefix": "agm-package-scripts",
+        "body": [
+            "\"scripts\": {",
+            "  \"agm:init\": \"agm init --force\",",
+            "  \"agm:status\": \"agm status\",",
+            "  \"agm:remember\": \"agm remember \\\"$1\\\" --context \\\"${workspaceFolderBasename}\\\"\",",
+            "  \"agm:recall\": \"agm recall \\\"$2\\\" --limit 10\"",
+            "}"
+        ],
+        "description": "AGM npm scripts for package.json"
+    },
+    "AGM Comment Block": {
+        "prefix": "agm-comment",
+        "body": [
+            "/**",
+            " * 🧠 AGM: $1",
+            " * Context: $2",
+            " * Purpose: $3",
+            " * Commands: agm recall \"$4\"",
+            " */"
+        ],
+        "description": "AGM comment block for documenting code"
+    },
+    "AGM README Section": {
+        "prefix": "agm-readme",
+        "body": [
+            "## 🧠 AI Memory (AGM)",
+            "",
+            "This project uses AntiGoldfishMode for persistent AI memory.",
+            "",
+            "### Quick Commands:",
+            "```bash",
+            "agm init                    # Initialize AGM in project",
+            "agm remember \"info\"        # Store information",
+            "agm recall \"query\"         # Search memories",
+            "agm status                  # Check system status",
+            "```",
+            "",
+            "### VSCode Integration:",
+            "- `Ctrl+Shift+M` - Remember selected text",
+            "- `Ctrl+Shift+R` - Quick recall",
+            "- `F1` → Type 'AGM' for all commands",
+            "",
+            "Learn more: https://antigoldfish.dev"
+        ],
+        "description": "AGM README section template"
+    },
+    "AGM Environment Variables": {
+        "prefix": "agm-env",
+        "body": [
+            "# AntiGoldfishMode Configuration",
+            "AGM_CONTEXT=\"$1\"",
+            "AGM_AUTO_REMEMBER=true",
+            "AGM_DEFAULT_TYPE=\"$2\""
+        ],
+        "description": "AGM environment variables template"
+    },
+    "AGM Docker Integration": {
+        "prefix": "agm-docker",
+        "body": [
+            "# AGM Docker Integration",
+            "RUN npm install -g antigoldfishmode",
+            "ENV AGM_CONTEXT=\"$1\"",
+            "RUN agm init --force",
+            "# Remember container purpose",
+            "RUN agm remember \"$2\" --context \"docker\" --type \"container\""
+        ],
+        "description": "AGM Docker integration snippet"
+    }
+}

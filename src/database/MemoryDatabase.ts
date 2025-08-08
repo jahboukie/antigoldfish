@@ -1,20 +1,20 @@
 /**
  * CodeContextPro-MES Memory Database
  * SQLite3-based persistent memory storage with security-first design
- * 
+ *
  * Copyright (c) 2025 CodeContext Team. All rights reserved.
- * 
+ *
  * PROPRIETARY SOFTWARE - NOT LICENSED UNDER MIT
  * This file contains proprietary intellectual property of CodeContext Team
  * and is not licensed under the MIT License applicable to the CLI tool.
- * 
+ *
  * The algorithms, encryption methods, key derivation, and memory storage
  * techniques contained herein are trade secrets and proprietary technology.
- * 
- * Unauthorized copying, redistribution, reverse engineering, or modification 
- * of this file, via any medium, is strictly prohibited without express 
+ *
+ * Unauthorized copying, redistribution, reverse engineering, or modification
+ * of this file, via any medium, is strictly prohibited without express
  * written permission from CodeContext Team.
- * 
+ *
  * Phase 1 Sprint 1.3: Real Database Implementation
  * Compatible with SQLite3 3.44.2 on Node.js 22+ Windows x64
  */
@@ -60,6 +60,7 @@ export interface SearchResult {
     type: string;
     context: string;
     tags: string[];
+    metadata?: string; // JSON string stored in DB, may contain file/line info
 }
 
 export interface Message {
@@ -146,10 +147,10 @@ export class MemoryDatabase {
         const timestamp = Date.now().toString();
         const baseSalt = `codecontext-memory-salt-${timestamp.slice(-4)}`;
         const salt = crypto.createHash('sha256').update(baseSalt).digest();
-        
+
         // Derive encryption key using PBKDF2 with higher iterations
         this.encryptionKey = crypto.pbkdf2Sync(machineId, salt, 200000, 32, 'sha256');
-        
+
         console.log('🔐 Generated secure machine-specific encryption key');
         return this.encryptionKey;
     }
@@ -231,20 +232,20 @@ export class MemoryDatabase {
 
             // Read database file
             const dbData = fs.readFileSync(this.dbPath);
-            
+
             // Generate encryption key and IV
             const key = this.generateEncryptionKey();
             const iv = crypto.randomBytes(16);
-            
-            // Encrypt using AES-256-CTR for Node.js compatibility  
+
+            // Encrypt using AES-256-CTR for Node.js compatibility
             const cipher = crypto.createCipheriv('aes-256-ctr', key, iv);
-            
+
             let encrypted = cipher.update(dbData);
             encrypted = Buffer.concat([encrypted, cipher.final()]);
-            
+
             // Calculate integrity hash
             const integrityHash = this.calculateIntegrityHash(dbData);
-            
+
             // Create encrypted file structure
             const encryptedFile: EncryptedDatabaseFile = {
                 encrypted: encrypted.toString('base64'),
@@ -254,15 +255,15 @@ export class MemoryDatabase {
                 algorithm: 'aes-256-ctr',
                 keyDerivation: 'pbkdf2-sha256-200000'
             };
-            
+
             // Write encrypted file
             fs.writeFileSync(this.encryptedDbPath, JSON.stringify(encryptedFile, null, 2));
-            
+
             // Remove unencrypted database
             fs.unlinkSync(this.dbPath);
-            
+
             console.log('🔒 Database encrypted and secured');
-            
+
         } catch (error) {
             console.error('❌ Database encryption failed:', error);
             throw new Error('Failed to encrypt database');
@@ -283,28 +284,28 @@ export class MemoryDatabase {
 
             // Read encrypted file
             const encryptedData = JSON.parse(fs.readFileSync(this.encryptedDbPath, 'utf8')) as EncryptedDatabaseFile;
-            
+
             // Generate encryption key
             const key = this.generateEncryptionKey();
-            
+
             // Decrypt using AES-256-CTR for compatibility
             const iv = Buffer.from(encryptedData.iv, 'base64');
             const decipher = crypto.createDecipheriv('aes-256-ctr', key, iv);
-            
+
             let decrypted = decipher.update(Buffer.from(encryptedData.encrypted, 'base64'));
             decrypted = Buffer.concat([decrypted, decipher.final()]);
-            
+
             // Verify integrity
             const calculatedHash = this.calculateIntegrityHash(decrypted);
             if (calculatedHash !== encryptedData.integrityHash) {
                 throw new Error('Database integrity check failed - possible tampering detected');
             }
-            
+
             // Write decrypted database to temp location
             fs.writeFileSync(this.dbPath, decrypted);
-            
+
             console.log('🔓 Database decrypted and integrity verified');
-            
+
         } catch (error) {
             console.error('❌ Database decryption failed:', error);
             throw new Error('Failed to decrypt database - possible corruption or tampering');
@@ -338,6 +339,16 @@ export class MemoryDatabase {
             // Create database connection (synchronous with better-sqlite3)
             this.db = new Database(this.dbPath);
 
+
+            // Try to load sqlite-vss extension if present (Stage 2)
+            const { SqliteVSS } = await import('../engine/vector/SqliteVSS');
+            const vss = SqliteVSS.tryLoad(this.db, process.cwd(), 'memories_vss');
+            if (vss.isAvailable()) {
+                // Ensure VSS table exists with expected dimension lazily later
+                // Store handle for later use via closure on this.db methods
+                (this as any)._vss = vss;
+            }
+
             // Enable foreign key constraints
             this.db.pragma('foreign_keys = ON');
 
@@ -363,20 +374,20 @@ export class MemoryDatabase {
             fs.unlinkSync(testPath);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            
+
             if (errorMessage.includes('invalid ELF header') || errorMessage.includes('wrong ELF class')) {
                 console.log('⚠️  better-sqlite3 compatibility issue detected');
                 console.log('🔧 This is common in WSL2/cross-platform environments');
                 console.log('💡 Attempting automatic rebuild...');
-                
+
                 try {
                     // Try to rebuild better-sqlite3 for current environment
                     const { spawn } = require('child_process');
-                    const rebuild = spawn('npm', ['rebuild', 'better-sqlite3'], { 
+                    const rebuild = spawn('npm', ['rebuild', 'better-sqlite3'], {
                         stdio: 'inherit',
-                        shell: true 
+                        shell: true
                     });
-                    
+
                     await new Promise<boolean>((resolve, reject) => {
                         rebuild.on('close', (code: number | null) => {
                             if (code === 0) {
@@ -388,13 +399,13 @@ export class MemoryDatabase {
                         });
                         rebuild.on('error', reject);
                     });
-                    
+
                     // Test again after rebuild
                     const testPath2 = path.join(os.tmpdir(), `agm-test-rebuilt-${Date.now()}.db`);
                     const testDb2 = new Database(testPath2);
                     testDb2.close();
                     fs.unlinkSync(testPath2);
-                    
+
                 } catch (rebuildError) {
                     console.log('❌ Automatic rebuild failed');
                     console.log('🔧 Manual fix required:');
@@ -446,6 +457,17 @@ export class MemoryDatabase {
                 await this.migrateConversationTable();
             } else {
                 console.log('✅ Database schema is up to date');
+
+                // Ensure vector table exists for Stage 1 hybrid search
+                this.db.exec(`
+                    CREATE TABLE IF NOT EXISTS memory_vectors (
+                        id INTEGER PRIMARY KEY,
+                        dim INTEGER NOT NULL,
+                        vector BLOB NOT NULL,
+                        FOREIGN KEY (id) REFERENCES memories(id) ON DELETE CASCADE
+                    );
+                `);
+
             }
         } catch (error) {
             console.log('🔄 Database migration needed, recreating conversation tables...');
@@ -561,6 +583,15 @@ export class MemoryDatabase {
                 tags,
                 content='memories',
                 content_rowid='id'
+            );
+
+
+            -- Optional vector table for local embeddings (Stage 1)
+            CREATE TABLE IF NOT EXISTS memory_vectors (
+                id INTEGER PRIMARY KEY,
+                dim INTEGER NOT NULL,
+                vector BLOB NOT NULL,
+                FOREIGN KEY (id) REFERENCES memories(id) ON DELETE CASCADE
             );
 
             -- Triggers to maintain FTS index
@@ -691,12 +722,13 @@ export class MemoryDatabase {
         const sanitizedQuery = this.sanitizeFTSQuery(query);
 
         let sql = `
-            SELECT 
+            SELECT
                 m.id,
                 m.content,
                 m.type,
                 m.context,
                 m.tags,
+                m.metadata,
                 m.created_at as timestamp,
                 rank
             FROM memories_fts fts
@@ -732,7 +764,9 @@ export class MemoryDatabase {
                 timestamp: row.timestamp,
                 type: row.type,
                 context: row.context,
-                tags: JSON.parse(row.tags || '[]')
+                tags: JSON.parse(row.tags || '[]'),
+                // carry metadata for CLI formatting (not on the interface yet)
+                ...(row.metadata ? { metadata: row.metadata } : {})
             }));
 
             // Filter by minimum relevance
@@ -740,12 +774,66 @@ export class MemoryDatabase {
 
             console.log(`✅ Search completed: "${query}" - Found ${filteredResults.length} results`);
             return filteredResults;
-
         } catch (err) {
             console.error('❌ Search failed:', err);
             throw err;
         }
-    }
+        }
+
+
+
+        /**
+         * Store/update vector embedding for a memory (Stage 1)
+         */
+        async upsertVector(id: number, vec: Float32Array, dim: number): Promise<void> {
+            if (!this.db) throw new Error('Database not initialized');
+            this.ensureVectorTable();
+
+            // Stage 2: try sqlite-vss fast path when available
+            const vss = (this as any)._vss as (undefined | { ensureTable: (d:number)=>void; upsert: (id:number, vec: Float32Array)=>void; isAvailable: ()=>boolean });
+            if (vss && vss.isAvailable()) {
+                try {
+                    vss.ensureTable(dim);
+                    vss.upsert(id, vec);
+                    return;
+                } catch {}
+            }
+
+            // Fallback: store in memory_vectors
+            const buf = Buffer.alloc(vec.byteLength);
+            for (let i = 0; i < vec.length; i++) buf.writeFloatLE(vec[i], i * 4);
+            const stmt = this.db.prepare(`
+                INSERT INTO memory_vectors (id, dim, vector)
+                VALUES (?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET dim=excluded.dim, vector=excluded.vector
+            `);
+            stmt.run(id, dim, buf);
+        }
+
+        /**
+         * Fetch vectors for a list of ids
+         */
+        async getVectors(ids: number[]): Promise<Map<number, Float32Array>> {
+            if (!this.db) throw new Error('Database not initialized');
+            this.ensureVectorTable();
+            if (ids.length === 0) return new Map();
+            const placeholders = ids.map(() => '?').join(',');
+            const stmt = this.db.prepare(`SELECT id, dim, vector FROM memory_vectors WHERE id IN (${placeholders})`);
+            const rows = stmt.all(...ids) as Array<{ id: number; dim: number; vector: Buffer }>;
+            const map = new Map<number, Float32Array>();
+            for (const r of rows) {
+                const buf = r.vector as Buffer;
+                // Copy buffer into a new Float32Array safely
+                const f32 = new Float32Array(buf.byteLength / 4);
+                for (let i = 0; i < f32.length; i++) {
+                    f32[i] = buf.readFloatLE(i * 4);
+                }
+                map.set(r.id, f32);
+            }
+            return map;
+        }
+
+
 
     /**
      * Get memory by ID
@@ -1092,6 +1180,22 @@ export class MemoryDatabase {
         }
         return Math.abs(hash).toString(36);
     }
+
+    private ensureVectorTable(): void {
+        if (!this.db) throw new Error('Database not initialized');
+        const exists = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get('memory_vectors');
+        if (!exists) {
+            this.db.exec(`
+                CREATE TABLE IF NOT EXISTS memory_vectors (
+                    id INTEGER PRIMARY KEY,
+                    dim INTEGER NOT NULL,
+                    vector BLOB NOT NULL,
+                    FOREIGN KEY (id) REFERENCES memories(id) ON DELETE CASCADE
+                );
+            `);
+        }
+    }
+
 
     /**
      * Sanitize FTS5 query to prevent injection

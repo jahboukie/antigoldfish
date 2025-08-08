@@ -79,3 +79,13 @@ verify-*.js
 # Temporary files
 tmp/
 temp/
+
+# CodeContext Pro
+.codecontext/memory.db
+.codecontext/logs/
+.codecontext/sandbox/
+
+
+# Windows reserved name artifact safeguards
+nul
+NUL

@@ -1,0 +1,66 @@
+[
+    {
+        "key": "ctrl+shift+m",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🧠 AGM: Remember Selection",
+        "when": "editorTextFocus && editorHasSelection"
+    },
+    {
+        "key": "ctrl+shift+r",
+        "command": "workbench.action.tasks.runTask", 
+        "args": "🔍 AGM: Quick Recall",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+shift+alt+m",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🧠 AGM: Remember Current File Context",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+shift+alt+r",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🔍 AGM: Search Project Memories",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+shift+alt+s",
+        "command": "workbench.action.tasks.runTask",
+        "args": "📊 AGM: Show Status",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "f1",
+        "command": "workbench.action.showCommands",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+shift+alt+i",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🚀 AGM: Initialize Project"
+    },
+    // Quick access to AGM commands via command palette
+    {
+        "key": "ctrl+shift+p",
+        "command": "workbench.action.showCommands",
+        "when": "!inQuickOpen"
+    },
+    // Terminal shortcuts for AGM
+    {
+        "key": "ctrl+shift+`",
+        "command": "workbench.action.terminal.new"
+    },
+    // AGM-specific shortcuts for selected text
+    {
+        "key": "alt+m",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🧠 AGM: Remember Selection", 
+        "when": "editorHasSelection"
+    },
+    {
+        "key": "alt+r",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🔍 AGM: Quick Recall",
+        "when": "editorTextFocus"
+    }
+]

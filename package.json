@@ -32,6 +32,13 @@
   ],
   "author": "AntiGoldfishMode Team",
   "license": "MIT",
+  "files": [
+    "dist/**/*",
+    "scripts/**/*",
+    "README.md",
+    "LICENSE",
+    "AI_ASSISTANT_INSTRUCTIONS.md"
+  ],
   "homepage": "https://github.com/antigoldfishmode/antigoldfishmode",
   "repository": {
     "type": "git",
@@ -52,6 +59,7 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
+    "@xenova/transformers": "^2.17.2",
     "axios": "^1.11.0",
     "better-sqlite3": "^11.10.0",
     "chalk": "^5.3.0",
@@ -87,12 +95,5 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
-  },
-  "files": [
-    "dist/**/*",
-    "scripts/**/*",
-    "README.md",
-    "LICENSE",
-    "AI_ASSISTANT_INSTRUCTIONS.md"
-  ]
+  }
 }

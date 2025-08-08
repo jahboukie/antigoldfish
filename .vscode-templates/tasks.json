@@ -1,0 +1,149 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "🧠 AGM: Remember Selection",
+            "type": "shell",
+            "command": "agm",
+            "args": [
+                "remember",
+                "${input:memoryContent}",
+                "--context",
+                "${input:memoryContext}"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔍 AGM: Quick Recall",
+            "type": "shell",
+            "command": "agm",
+            "args": [
+                "recall",
+                "${input:searchQuery}",
+                "--limit",
+                "10"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📊 AGM: Show Status",
+            "type": "shell",
+            "command": "agm",
+            "args": ["status"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🚀 AGM: Initialize Project",
+            "type": "shell",
+            "command": "agm",
+            "args": ["init", "--force"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🧠 AGM: Remember Current File Context",
+            "type": "shell",
+            "command": "agm",
+            "args": [
+                "remember",
+                "File: ${fileBasename} - ${input:fileDescription}",
+                "--context",
+                "${workspaceFolderBasename}",
+                "--type",
+                "file-context"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔍 AGM: Search Project Memories",
+            "type": "shell",
+            "command": "agm",
+            "args": [
+                "recall",
+                "${input:searchQuery}",
+                "--limit",
+                "20"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "memoryContent",
+            "description": "What would you like to remember?",
+            "default": "${selectedText}",
+            "type": "promptString"
+        },
+        {
+            "id": "memoryContext",
+            "description": "Context for this memory",
+            "default": "${workspaceFolderBasename}",
+            "type": "promptString"
+        },
+        {
+            "id": "searchQuery",
+            "description": "Search your memories",
+            "default": "${selectedText}",
+            "type": "promptString"
+        },
+        {
+            "id": "fileDescription", 
+            "description": "Describe this file's purpose",
+            "default": "Important file context",
+            "type": "promptString"
+        }
+    ]
+}
