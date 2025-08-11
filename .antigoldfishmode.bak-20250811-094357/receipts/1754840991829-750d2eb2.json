@@ -1,0 +1,21 @@
+{
+  "schema": "v1",
+  "version": "1.6.0",
+  "id": "1754840991829-750d2eb2",
+  "command": "status",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\dist\\cli.js",
+    "status"
+  ],
+  "cwd": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+  "startTime": "2025-08-10T15:49:51.451Z",
+  "endTime": "2025-08-10T15:49:51.831Z",
+  "params": {},
+  "results": {},
+  "success": false,
+  "error": "Database initialization failed: Failed to decrypt database - possible corruption or tampering",
+  "digests": {
+    "argsSha256": "3f02e574fac816470f4b19eb4d06bedff54151ac5762dd54ac01a5947b25bbf5"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "v1",
+  "version": "1.6.0",
+  "id": "1754869986519-9b92973b",
+  "command": "export-context",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\dist\\cli.js",
+    "export-context",
+    "--out",
+    ".antigoldfishmode/export/ctx-signed.agmctx",
+    "--type",
+    "code",
+    "--sign",
+    "--explain",
+    "--json"
+  ],
+  "cwd": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+  "startTime": "2025-08-10T23:53:05.760Z",
+  "endTime": "2025-08-10T23:53:06.520Z",
+  "params": {
+    "outPath": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\.antigoldfishmode\\export\\ctx-signed.agmctx",
+    "type": "code",
+    "sign": true
+  },
+  "results": {
+    "outPath": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\.antigoldfishmode\\export\\ctx-signed.agmctx",
+    "type": "code",
+    "count": 25,
+    "signed": true,
+    "vectors": {
+      "dim": 384,
+      "count": 25,
+      "backend": "local-js"
+    }
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "096883e98b23cc4ad1e49561f9b4294589c99c8eee88c8526bf1ee8dd2c58bda"
+  }
+}

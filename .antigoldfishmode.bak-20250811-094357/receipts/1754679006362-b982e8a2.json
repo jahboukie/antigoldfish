@@ -1,0 +1,36 @@
+{
+  "schema": "v1",
+  "version": "1.6.0",
+  "id": "1754679006362-b982e8a2",
+  "command": "search-code",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\dist\\cli.js",
+    "search-code",
+    "MemoryCache",
+    "-k",
+    "5",
+    "--preview",
+    "2",
+    "--filter-path",
+    "engine/*.ts",
+    "--trace",
+    "--dry-run"
+  ],
+  "cwd": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+  "startTime": "2025-08-08T18:50:06.357Z",
+  "endTime": "2025-08-08T18:50:06.364Z",
+  "params": {
+    "query": "MemoryCache",
+    "topk": 5,
+    "preview": 2,
+    "dryRun": true
+  },
+  "results": {
+    "count": 0
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "be60d5501a1a6d3af2b8bb2883c383db574f88c42e3b4f6fbf67a4c08b5497c2"
+  }
+}

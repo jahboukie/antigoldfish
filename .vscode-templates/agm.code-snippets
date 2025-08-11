@@ -27,13 +27,6 @@
         ],
         "description": "AGM initialize project command"
     },
-    "AGM Activate License": {
-        "prefix": "agm-activate",
-        "body": [
-            "agm activate $1"
-        ],
-        "description": "AGM activate license command"
-    },
     "AGM Terminal Script": {
         "prefix": "agm-script",
         "body": [
@@ -106,16 +99,18 @@
         ],
         "description": "AGM environment variables template"
     },
-    "AGM Docker Integration": {
-        "prefix": "agm-docker",
+    "AGM Index Code": {
+        "prefix": "agm-index",
         "body": [
-            "# AGM Docker Integration",
-            "RUN npm install -g antigoldfishmode",
-            "ENV AGM_CONTEXT=\"$1\"",
-            "RUN agm init --force",
-            "# Remember container purpose",
-            "RUN agm remember \"$2\" --context \"docker\" --type \"container\""
+            "agm index-code --path src --symbols"
         ],
-        "description": "AGM Docker integration snippet"
+        "description": "Index project source with symbol-aware chunking"
+    },
+    "AGM Search Code": {
+        "prefix": "agm-search",
+        "body": [
+            "agm search-code \"$1\" --preview 5 --hybrid"
+        ],
+        "description": "Search indexed code"
     }
 }

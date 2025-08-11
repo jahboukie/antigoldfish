@@ -1,0 +1,23 @@
+{
+  "schema": "v1",
+  "version": "1.6.0",
+  "id": "1754777451373-ef459c80",
+  "command": "vector-status",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\dist\\cli.js",
+    "vector-status"
+  ],
+  "cwd": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+  "startTime": "2025-08-09T22:10:51.359Z",
+  "endTime": "2025-08-09T22:10:51.375Z",
+  "params": {},
+  "results": {
+    "backend": "local-js",
+    "note": "Advanced vector backend not enabled in this build."
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "179e2484e31cb9e436ac3ce01e364244bfc30305d7631a90c25443be0aff502d"
+  }
+}

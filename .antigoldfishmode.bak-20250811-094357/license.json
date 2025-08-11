@@ -1,0 +1,14 @@
+{
+  "licenseKey": "AGM-TRIAL-test123",
+  "machineId": "7df2e01609582aeaaf158fef9ae1f95de0a17310a4428dc0db090fb8a88dc8da",
+  "active": true,
+  "features": [
+    "unlimited-memory",
+    "conversation-recording"
+  ],
+  "activatedAt": "2025-08-03T23:14:31.893Z",
+  "validatedAt": 1754262871893,
+  "gracePeriodDays": 7,
+  "licenseType": "trial",
+  "expiresAt": "2025-08-10T23:14:31.892Z"
+}

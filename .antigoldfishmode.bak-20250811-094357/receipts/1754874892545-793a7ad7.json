@@ -1,0 +1,28 @@
+{
+  "schema": "v1",
+  "version": "1.6.0",
+  "id": "1754874892545-793a7ad7",
+  "command": "digest-cache",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\dist\\cli.js",
+    "digest-cache",
+    "--list",
+    "--limit",
+    "3"
+  ],
+  "cwd": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+  "startTime": "2025-08-11T01:14:52.001Z",
+  "endTime": "2025-08-11T01:14:52.546Z",
+  "params": {
+    "action": "list",
+    "limit": 3
+  },
+  "results": {
+    "shown": 0
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "a13735afb2d8d5934cd2c5c9919837bc649bc413cf6edd27e32c82fa0106d3d8"
+  }
+}

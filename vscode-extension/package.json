@@ -185,6 +185,16 @@
           "type": "number",
           "default": 10,
           "description": "Maximum number of results to show in recall"
+        },
+        "agm.showOfflineIndicator": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show an offline (no egress) indicator in the status bar based on 'agm prove-offline'"
+        },
+        "agm.offlinePollInterval": {
+          "type": "number",
+          "default": 60,
+          "description": "Seconds between status bar refresh polling for offline proof and memory count"
         }
       }
     }

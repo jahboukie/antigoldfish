@@ -32,17 +32,7 @@ When you run `agm init`, these files are automatically created in your project's
 
 ### 📝 `agm.code-snippets` - Code Snippets
 Type these prefixes and press Tab for instant AGM commands:
-- `agm-remember` - AGM remember command with context
-- `agm-recall` - AGM recall command with limit
-- `agm-status` - AGM status command
-- `agm-init` - AGM initialize project command
-- `agm-script` - AGM bash script template
-- `agm-package-scripts` - AGM npm scripts for package.json
-- `agm-comment` - AGM comment block for documentation
-- `agm-readme` - AGM README section template
-- `agm-env` - AGM environment variables
-- `agm-docker` - AGM Docker integration
-
+ 
 ## 🎯 How to Use
 
 ### 1. Initialize AGM in Your Project

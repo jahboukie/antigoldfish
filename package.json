@@ -1,22 +1,24 @@
 {
   "name": "antigoldfishmode",
   "version": "1.6.0",
-  "description": "🧠 AI Memory Engine - Built by AI, for AI. Persistent memory for AI coding assistants. Code execution coming in v2.0.",
+  "description": "🧠 AI Memory Engine - Built by AI, for AI. Persistent, local-only memory for AI coding assistants.",
   "main": "dist/index.js",
   "bin": {
     "agm": "dist/cli.js",
     "antigoldfishmode": "dist/cli.js"
   },
   "scripts": {
-    "build": "tsc",
+  "build": "tsc",
+  "build:watch": "tsc -w",
+  "typecheck": "tsc --noEmit",
     "start": "node dist/cli.js",
-    "webhook": "node webhook-server.js",
-    "webhook:dev": "nodemon webhook-server.js",
     "clean": "rmdir /s /q dist 2>nul || echo dist cleaned",
-    "prepublishOnly": "npm run clean && npm run build",
-    "postinstall": "npm run rebuild-sqlite",
-    "rebuild-sqlite": "npm rebuild better-sqlite3 2>/dev/null || echo 'SQLite rebuild completed'",
-    "fix-sqlite": "node scripts/fix-sqlite.js"
+  "prepublishOnly": "npm run clean && npm run build",
+  "postinstall": "node scripts/fix-sqlite.js",
+  "rebuild-sqlite": "node scripts/fix-sqlite.js",
+  "fix-sqlite": "node scripts/fix-sqlite.js",
+  "smoke": "node scripts/smoke.js",
+  "test": "npm run build && node --test .\\tests\\*.mjs"
   },
   "keywords": [
     "ai",
@@ -24,8 +26,7 @@
     "coding-assistant",
     "developer-tools",
     "ai-assistant",
-    "persistent-memory",
-    "code-execution",
+  "persistent-memory",
     "claude",
     "chatgpt",
     "copilot"
@@ -49,29 +50,19 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
-    "@types/express": "^5.0.3",
     "@types/fs-extra": "^11.0.4",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.1.0",
-    "@types/nodemailer": "^6.4.17",
-    "@types/qrcode": "^1.5.5",
-    "@types/speakeasy": "^2.0.10",
     "typescript": "^5.7.2"
   },
   "dependencies": {
     "@xenova/transformers": "^2.17.2",
-    "axios": "^1.11.0",
     "better-sqlite3": "^11.10.0",
     "chalk": "^5.3.0",
     "commander": "^14.0.0",
-    "dotenv": "^17.2.1",
-    "express": "^5.1.0",
+  "dotenv": "^17.2.1",
     "fs-extra": "^11.3.0",
-    "jsonwebtoken": "^9.0.2",
-    "node-machine-id": "^1.1.12",
-    "nodemailer": "^7.0.5",
-    "qrcode": "^1.5.4",
-    "speakeasy": "^2.0.0"
+  "minimatch": "^10.0.3",
+    "chokidar": "^3.6.0"
   },
   "overrides": {
     "@npmcli/fs": "^3.1.1",

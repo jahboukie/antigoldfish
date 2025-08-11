@@ -1,23 +1,10 @@
 {
-  "version": "0.2.0",
-  "mode": "memory-execution",
+  "version": "0.2.1",
+  "mode": "memory-only",
   "projectId": "7b35c9e0f4aa42eb",
   "projectName": "antigoldfishmode",
   "createdAt": "2025-08-04T20:31:34.486Z",
   "features": {
-    "memory": true,
-    "execution": true,
-    "intelligence": false
-  },
-  "executionEngine": {
-    "port": 3001,
-    "sandboxDir": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\.codecontext\\sandbox",
-    "supportedLanguages": [
-      "javascript",
-      "typescript",
-      "python",
-      "go",
-      "rust"
-    ]
+    "memory": true
   }
 }

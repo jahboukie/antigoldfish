@@ -1,0 +1,42 @@
+{
+  "schema": "v1",
+  "version": "1.6.0",
+  "id": "1754875793154-2eb0a954",
+  "command": "health",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\dist\\cli.js",
+    "health",
+    "--since",
+    "7",
+    "--json"
+  ],
+  "cwd": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+  "startTime": "2025-08-11T01:29:52.735Z",
+  "endTime": "2025-08-11T01:29:53.156Z",
+  "params": {
+    "sinceDays": 7
+  },
+  "results": {
+    "projectPath": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+    "dbPath": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\.antigoldfishmode\\memory.db",
+    "memories": 31,
+    "dbSizeMB": 0.24,
+    "vectors": {
+      "backend": "local-js",
+      "dimensions": 384,
+      "count": 31,
+      "note": "Advanced vector backend not enabled; using local-js fallback"
+    },
+    "digestEntries": 14,
+    "sinceDays": 7,
+    "deltas": {
+      "memories": 31,
+      "vectors": 31
+    }
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "1fa496bd49718e345d7f6ad6ee96bfb7ecc40a388d0f6a69f082c26bea243124"
+  }
+}

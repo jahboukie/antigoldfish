@@ -1,0 +1,32 @@
+{
+  "schema": "v1",
+  "version": "1.6.0",
+  "id": "1754874911583-a4cf3e7f",
+  "command": "reindex-folder",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\dist\\cli.js",
+    "reindex-folder",
+    "src",
+    "--symbols",
+    "--max-chunk",
+    "100"
+  ],
+  "cwd": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+  "startTime": "2025-08-11T01:15:01.650Z",
+  "endTime": "2025-08-11T01:15:11.585Z",
+  "params": {
+    "folder": "src",
+    "symbols": true,
+    "maxChunk": 100
+  },
+  "results": {
+    "files": 14,
+    "added": 25,
+    "errors": 0
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "e4502dc92f15311ebe6d5fa085933f26cc9578142c0516d3e5e413873b11b5a9"
+  }
+}

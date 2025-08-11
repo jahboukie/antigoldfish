@@ -1,0 +1,39 @@
+{
+  "schema": "v1",
+  "version": "1.6.0",
+  "id": "1754777402021-8a423063",
+  "command": "index-code",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\dist\\cli.js",
+    "index-code",
+    "--path",
+    "vscode-extension/src",
+    "--symbols",
+    "--max-chunk",
+    "200",
+    "--trace"
+  ],
+  "cwd": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+  "startTime": "2025-08-09T22:10:01.373Z",
+  "endTime": "2025-08-09T22:10:02.022Z",
+  "params": {
+    "root": "vscode-extension/src",
+    "maxChunk": 200,
+    "dryRun": false
+  },
+  "resultSummary": {
+    "saved": 0
+  },
+  "results": {
+    "saved": 0,
+    "root": "vscode-extension/src",
+    "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "fileCount": 0
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "b039b5261306cb4914ecec7b461d90d5a0188a2c3d0f2e68c395d05d2e197195",
+    "fileListDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  }
+}

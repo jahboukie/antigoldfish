@@ -36,7 +36,7 @@ class MemoryProvider implements vscode.TreeDataProvider<Memory> {
         return item;
     }
 
-    getChildren(element?: Memory): Thenable<Memory[]> {
+    getChildren(element?: Memory): Promise<Memory[]> {
         if (!element) {
             return Promise.resolve(this.memories);
         }
@@ -97,13 +97,23 @@ export function activate(context: vscode.ExtensionContext) {
     // Register tree data provider
     vscode.window.registerTreeDataProvider('agm-memories', memoryProvider);
 
-    // Status bar item
+    // Status bar item (memory count + offline indicator)
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     statusBarItem.command = 'agm.status';
-    updateStatusBar();
-    statusBarItem.show();
-
     context.subscriptions.push(statusBarItem);
+    let pollTimer: NodeJS.Timeout | undefined;
+    const refreshFromConfig = () => {
+        const cfg = vscode.workspace.getConfiguration('agm');
+        const show = cfg.get('showStatusBar', true) as boolean;
+        if (show) { statusBarItem.show(); } else { statusBarItem.hide(); }
+        const intervalMs = Math.max(5, Number(cfg.get('offlinePollInterval', 60))) * 1000;
+        if (pollTimer) { clearInterval(pollTimer); }
+        // Initial paint
+        updateStatusBar().catch(() => {});
+        pollTimer = setInterval(() => { updateStatusBar().catch(() => {}); }, intervalMs);
+        context.subscriptions.push({ dispose: () => pollTimer && clearInterval(pollTimer!) });
+    };
+    refreshFromConfig();
 
     // Register commands
     const commands = [
@@ -120,23 +130,59 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(...commands);
 
-    // Auto-remember on copy (if enabled)
+    // Auto-remember on copy (if enabled) via lightweight polling
     const config = vscode.workspace.getConfiguration('agm');
     if (config.get('autoRemember')) {
-        vscode.env.clipboard.onDidChange(() => {
-            // Auto-remember clipboard content if it's code
-            autoRememberClipboard();
-        });
+        let lastClip = '';
+        const clipTimer = setInterval(async () => {
+            try {
+                const cur = await vscode.env.clipboard.readText();
+                if (cur && cur !== lastClip) {
+                    lastClip = cur;
+                    await autoRememberClipboard();
+                }
+            } catch {}
+        }, 2000);
+        context.subscriptions.push({ dispose: () => clearInterval(clipTimer) });
     }
 
     async function updateStatusBar() {
         try {
-            const { stdout } = await execAsync('agm status');
-            const memoryMatch = stdout.match(/Total memories: (\d+)/);
-            const memoryCount = memoryMatch ? memoryMatch[1] : '0';
-            statusBarItem.text = `🧠 ${memoryCount} memories`;
-        } catch (error) {
+            const cfg = vscode.workspace.getConfiguration('agm');
+            const showOffline = cfg.get('showOfflineIndicator', true) as boolean;
+            // Get memory count
+            let memoryText = '';
+            try {
+                const { stdout } = await execAsync('agm status');
+                const memoryMatch = stdout.match(/Total memories: (\d+)/);
+                const memoryCount = memoryMatch ? memoryMatch[1] : '0';
+                memoryText = `🧠 ${memoryCount}`;
+            } catch {
+                memoryText = '🧠';
+            }
+            // Get offline proof
+            let offlineText = '';
+            let tooltip = 'AGM';
+            if (showOffline) {
+                try {
+                    const { stdout: j } = await execAsync('agm prove-offline --json');
+                    const obj = JSON.parse(j);
+                    const proof = obj?.offlineProof || {};
+                    const egress = String(proof.policyNetworkEgress || 'unknown');
+                    const guard = proof.networkGuardActive ? 'active' : 'inactive';
+                    const proxies = proof.proxiesPresent ? 'proxies: present' : 'proxies: none';
+                    const locked = egress === 'blocked';
+                    offlineText = locked ? '🔒' : '🌐';
+                    tooltip = `AGM • ${locked ? 'offline (no egress)' : 'egress allowed'} • guard=${guard} • ${proxies}`;
+                } catch {
+                    offlineText = '';
+                }
+            }
+            statusBarItem.text = `${memoryText}${offlineText ? ' ' + offlineText : ''}`;
+            statusBarItem.tooltip = tooltip;
+        } catch {
             statusBarItem.text = '🧠 AGM';
+            statusBarItem.tooltip = 'AGM';
         }
     }
 
@@ -286,7 +332,7 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        editor.edit(editBuilder => {
+    editor.edit((editBuilder: vscode.TextEditorEdit) => {
             editBuilder.insert(editor.selection.active, memory.content);
         });
     }

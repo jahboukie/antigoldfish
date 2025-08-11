@@ -1,22 +1,15 @@
 /**
- * CodeContextPro-MES Memory Database
- * SQLite3-based persistent memory storage with security-first design
+ * AntiGoldfishMode Memory Database
+ * SQLite-based persistent memory storage with a security-first, local-only design
  *
- * Copyright (c) 2025 CodeContext Team. All rights reserved.
+ * MIT License
+ * Copyright (c) 2025 AntiGoldfishMode Team
  *
- * PROPRIETARY SOFTWARE - NOT LICENSED UNDER MIT
- * This file contains proprietary intellectual property of CodeContext Team
- * and is not licensed under the MIT License applicable to the CLI tool.
+ * This module implements local, air-gapped storage for persistent AI memory.
+ * No network dependencies are required for core operations. Data is stored
+ * encrypted-at-rest (machine-bound) when secure mode is enabled.
  *
- * The algorithms, encryption methods, key derivation, and memory storage
- * techniques contained herein are trade secrets and proprietary technology.
- *
- * Unauthorized copying, redistribution, reverse engineering, or modification
- * of this file, via any medium, is strictly prohibited without express
- * written permission from CodeContext Team.
- *
- * Phase 1 Sprint 1.3: Real Database Implementation
- * Compatible with SQLite3 3.44.2 on Node.js 22+ Windows x64
+ * Compatible with SQLite 3.x on Node.js 18+ (Windows/macOS/Linux)
  */
 
 import Database from 'better-sqlite3';
@@ -25,7 +18,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import * as os from 'os';
 
-// TypeScript augmentation for GCM cipher methods
+// TypeScript augmentation (legacy note retained for compatibility)
 declare module 'crypto' {
     function createCipherGCM(algorithm: string, key: crypto.CipherKey, iv: crypto.BinaryLike): crypto.CipherGCM;
     function createDecipherGCM(algorithm: string, key: crypto.CipherKey, iv: crypto.BinaryLike): crypto.DecipherGCM;
@@ -93,6 +86,7 @@ interface EncryptedDatabaseFile {
     integrityHash: string;
     algorithm: string;
     keyDerivation: string;
+    salt: string; // base64-encoded salt used for PBKDF2
 }
 
 export class MemoryDatabase {
@@ -102,6 +96,7 @@ export class MemoryDatabase {
     private tempDbPath: string;
     private initialized = false;
     private encryptionKey: Buffer | null = null;
+    private encryptionKeySaltBase64: string | null = null;
     private devMode: boolean;
     private encryptionScheduled = false;
     private backgroundEncryptionTimer: NodeJS.Timeout | null = null;
@@ -117,17 +112,18 @@ export class MemoryDatabase {
      * Generate machine-specific encryption key
      * CRITICAL SECURITY: Uses machine-specific data for key derivation
      */
-    private generateEncryptionKey(): Buffer {
-        if (this.encryptionKey) {
+    private generateEncryptionKey(salt: Buffer): Buffer {
+        const saltB64 = salt.toString('base64');
+        if (this.encryptionKey && this.encryptionKeySaltBase64 === saltB64) {
             return this.encryptionKey;
         }
 
-        // Collect machine-specific identifiers including network info
+        // Collect stable machine-specific identifiers
         const networkInterfaces = os.networkInterfaces();
         const macAddresses = Object.values(networkInterfaces)
             .flat()
-            .filter(iface => iface && !iface.internal && iface.mac !== '00:00:00:00:00:00')
-            .map(iface => iface!.mac)
+            .filter(iface => iface && !iface.internal && iface.mac && iface.mac !== '00:00:00:00:00:00')
+            .map(iface => (iface as any)!.mac)
             .sort()
             .join(',');
 
@@ -137,19 +133,12 @@ export class MemoryDatabase {
             os.arch(),
             os.cpus()[0]?.model || 'unknown',
             process.env.USERNAME || process.env.USER || 'unknown',
-            __dirname,
-            macAddresses || 'no-mac',
-            os.totalmem().toString(),
-            process.pid.toString()
+            macAddresses || 'no-mac'
         ].join(':');
 
-        // Use stronger salt generation with timestamp
-        const timestamp = Date.now().toString();
-        const baseSalt = `codecontext-memory-salt-${timestamp.slice(-4)}`;
-        const salt = crypto.createHash('sha256').update(baseSalt).digest();
-
-        // Derive encryption key using PBKDF2 with higher iterations
-        this.encryptionKey = crypto.pbkdf2Sync(machineId, salt, 200000, 32, 'sha256');
+        // Derive encryption key using PBKDF2 with higher iterations and provided salt
+    this.encryptionKey = crypto.pbkdf2Sync(machineId, salt, 200000, 32, 'sha256');
+    this.encryptionKeySaltBase64 = saltB64;
 
         console.log('🔐 Generated secure machine-specific encryption key');
         return this.encryptionKey;
@@ -219,7 +208,7 @@ export class MemoryDatabase {
     }
 
     /**
-     * Encrypt database file with AES-256-GCM
+     * Encrypt database file with AES-256-CTR
      * CRITICAL SECURITY: Encrypts SQLite database at rest
      */
     private async encryptDatabaseFile(): Promise<void> {
@@ -233,8 +222,9 @@ export class MemoryDatabase {
             // Read database file
             const dbData = fs.readFileSync(this.dbPath);
 
-            // Generate encryption key and IV
-            const key = this.generateEncryptionKey();
+            // Generate encryption salt, key and IV
+            const salt = crypto.randomBytes(16);
+            const key = this.generateEncryptionKey(salt);
             const iv = crypto.randomBytes(16);
 
             // Encrypt using AES-256-CTR for Node.js compatibility
@@ -253,7 +243,8 @@ export class MemoryDatabase {
                 authTag: '', // Not used in CTR mode
                 integrityHash,
                 algorithm: 'aes-256-ctr',
-                keyDerivation: 'pbkdf2-sha256-200000'
+                keyDerivation: 'pbkdf2-sha256-200000',
+                salt: salt.toString('base64')
             };
 
             // Write encrypted file
@@ -285,19 +276,48 @@ export class MemoryDatabase {
             // Read encrypted file
             const encryptedData = JSON.parse(fs.readFileSync(this.encryptedDbPath, 'utf8')) as EncryptedDatabaseFile;
 
-            // Generate encryption key
-            const key = this.generateEncryptionKey();
-
-            // Decrypt using AES-256-CTR for compatibility
+            // Generate encryption key using stored salt
+            const salt = Buffer.from(encryptedData.salt, 'base64');
             const iv = Buffer.from(encryptedData.iv, 'base64');
-            const decipher = crypto.createDecipheriv('aes-256-ctr', key, iv);
 
-            let decrypted = decipher.update(Buffer.from(encryptedData.encrypted, 'base64'));
-            decrypted = Buffer.concat([decrypted, decipher.final()]);
+            const tryDecrypt = (key: Buffer): Buffer | null => {
+                try {
+                    const decipher = crypto.createDecipheriv('aes-256-ctr', key, iv);
+                    let dec = decipher.update(Buffer.from(encryptedData.encrypted, 'base64'));
+                    dec = Buffer.concat([dec, decipher.final()]);
+                    const hash = this.calculateIntegrityHash(dec);
+                    if (hash === encryptedData.integrityHash) return dec;
+                    return null;
+                } catch {
+                    return null;
+                }
+            };
 
-            // Verify integrity
-            const calculatedHash = this.calculateIntegrityHash(decrypted);
-            if (calculatedHash !== encryptedData.integrityHash) {
+            // Primary key (full machine id)
+            const primaryKey = this.generateEncryptionKey(salt);
+            let decrypted: Buffer | null = tryDecrypt(primaryKey);
+
+            // Fallback key using a more stable machine-id variant (exclude username)
+            if (!decrypted) {
+                const networkInterfaces = os.networkInterfaces();
+                const macAddresses = Object.values(networkInterfaces)
+                    .flat()
+                    .filter(iface => iface && !(iface as any).internal && (iface as any).mac && (iface as any).mac !== '00:00:00:00:00:00')
+                    .map(iface => (iface as any)!.mac)
+                    .sort()
+                    .join(',');
+                const stableId = [
+                    os.hostname(),
+                    os.platform(),
+                    os.arch(),
+                    os.cpus()[0]?.model || 'unknown',
+                    macAddresses || 'no-mac'
+                ].join(':');
+                const stableKey = crypto.pbkdf2Sync(stableId, salt, 200000, 32, 'sha256');
+                decrypted = tryDecrypt(stableKey);
+            }
+
+            if (!decrypted) {
                 throw new Error('Database integrity check failed - possible tampering detected');
             }
 
@@ -465,6 +485,15 @@ export class MemoryDatabase {
                         dim INTEGER NOT NULL,
                         vector BLOB NOT NULL,
                         FOREIGN KEY (id) REFERENCES memories(id) ON DELETE CASCADE
+                    );
+                `);
+
+                // Ensure file_digests table exists for incremental indexing cache
+                this.db.exec(`
+                    CREATE TABLE IF NOT EXISTS file_digests (
+                        file TEXT PRIMARY KEY,
+                        digest TEXT NOT NULL,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                     );
                 `);
 
@@ -653,6 +682,13 @@ export class MemoryDatabase {
 
             CREATE INDEX IF NOT EXISTS idx_conversations_timestamp ON conversations(timestamp);
             CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
+
+            -- File digests for incremental indexing
+            CREATE TABLE IF NOT EXISTS file_digests (
+                file TEXT PRIMARY KEY,
+                digest TEXT NOT NULL,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
         `;
 
         try {
@@ -845,6 +881,99 @@ export class MemoryDatabase {
             try { return vss.queryNearest(vec, topk) || []; } catch { return []; }
         }
 
+        /**
+         * Delete all code memories for a given relative file path (matches metadata.file)
+         */
+        async deleteCodeByFile(relUnix: string): Promise<number> {
+            if (!this.db) throw new Error('Database not initialized');
+            // metadata is stored as JSON text; use LIKE to match simple patterns
+            const like = `%"file":"${relUnix.replace(/[%_]/g, m => (m === '%' ? '\%' : '\_'))}%`;
+            const stmt = this.db.prepare(`DELETE FROM memories WHERE type = 'code' AND metadata LIKE ?`);
+            const res = stmt.run(like);
+            return res.changes || 0;
+        }
+
+        /**
+         * Update metadata.file from old path to new path for code memories (rename optimization)
+         */
+        async updateCodeFilePath(oldRelUnix: string, newRelUnix: string): Promise<number> {
+            if (!this.db) throw new Error('Database not initialized');
+            const oldEsc = oldRelUnix.replace(/"/g, '\\"');
+            const newEsc = newRelUnix.replace(/"/g, '\\"');
+            const pattern = `%"file":"${oldEsc}%`;
+            const stmt = this.db.prepare(`UPDATE memories SET metadata = REPLACE(metadata, '"file":"${oldEsc}', '"file":"${newEsc}') WHERE type = 'code' AND metadata LIKE ?`);
+            const res = stmt.run(pattern);
+            return res.changes || 0;
+        }
+
+        /**
+         * Maintenance: remove orphan vectors from fallback memory_vectors table.
+         * Returns number of rows deleted. No-op if table not created yet.
+         */
+        async pruneOrphanVectors(): Promise<number> {
+            if (!this.db) throw new Error('Database not initialized');
+            this.ensureVectorTable();
+            const has = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='memory_vectors'").get() as any;
+            if (!has) return 0;
+            const res = this.db.prepare(`DELETE FROM memory_vectors WHERE id NOT IN (SELECT id FROM memories)`).run();
+            return res.changes || 0;
+        }
+
+        /**
+         * Maintenance: list all file paths in file_digests.
+         */
+        async listAllFileDigests(): Promise<Array<{ file: string; digest: string; updatedAt: string }>> {
+            if (!this.db) throw new Error('Database not initialized');
+            const stmt = this.db.prepare('SELECT file, digest, updated_at as updatedAt FROM file_digests ORDER BY file ASC');
+            return stmt.all() as any[];
+        }
+
+        /**
+         * Count entries in file_digests for quick health summaries.
+         */
+        async countFileDigests(): Promise<number> {
+            if (!this.db) throw new Error('Database not initialized');
+            const row = this.db.prepare('SELECT COUNT(*) as cnt FROM file_digests').get() as any;
+            return row?.cnt || 0;
+        }
+
+        /** Count memories created at or after the ISO timestamp */
+        async countMemoriesSince(sinceISO: string): Promise<number> {
+            if (!this.db) throw new Error('Database not initialized');
+            const row = this.db.prepare('SELECT COUNT(*) as cnt FROM memories WHERE datetime(created_at) >= datetime(?)').get(sinceISO) as any;
+            return row?.cnt || 0;
+        }
+
+        /** Count vectors upserted for memories created at or after the timestamp (via id linkage) */
+        async countVectorsSince(sinceISO: string): Promise<number> {
+            if (!this.db) throw new Error('Database not initialized');
+            this.ensureVectorTable();
+            const row = this.db.prepare(`
+                SELECT COUNT(*) as cnt
+                FROM memory_vectors mv
+                WHERE mv.id IN (SELECT id FROM memories WHERE datetime(created_at) >= datetime(?))
+            `).get(sinceISO) as any;
+            return row?.cnt || 0;
+        }
+
+        /**
+         * Maintenance: list code memory ids with raw metadata text to derive file references in CLI.
+         */
+        async listCodeMemoryIdsAndMetadata(): Promise<Array<{ id: number; metadata: string }>> {
+            if (!this.db) throw new Error('Database not initialized');
+            const stmt = this.db.prepare(`SELECT id, metadata FROM memories WHERE type = 'code'`);
+            const rows = stmt.all() as Array<{ id: number; metadata: string }>;
+            return rows || [];
+        }
+
+        /**
+         * Maintenance: VACUUM the database to reclaim disk space.
+         */
+        async vacuum(): Promise<void> {
+            if (!this.db) throw new Error('Database not initialized');
+            this.db.exec('VACUUM');
+        }
+
 
 
 
@@ -915,8 +1044,8 @@ export class MemoryDatabase {
             throw new Error('Database not initialized');
         }
 
-        const conversationId = this.generateUUID();
-        const projectId = 'codecontextpro-production'; // Simple project ID for now
+    const conversationId = this.generateUUID();
+    const projectId = 'antigoldfishmode-production'; // Project identifier
 
         try {
             // Use a transaction to ensure atomicity
@@ -1082,6 +1211,74 @@ export class MemoryDatabase {
     }
 
     /**
+     * List memories with optional type filter. Returns raw DB rows for export tooling.
+     */
+    async listMemories(filter?: { type?: string }): Promise<Array<{
+        id: number; content: string; type: string; context: string; tags: string; metadata: string; createdAt: string; updatedAt: string;
+    }>> {
+        if (!this.db) throw new Error('Database not initialized');
+        const params: any[] = [];
+        let sql = `SELECT id, content, type, context, tags, metadata, created_at as createdAt, updated_at as updatedAt FROM memories`;
+        if (filter?.type) { sql += ' WHERE type = ?'; params.push(filter.type); }
+        sql += ' ORDER BY id';
+        const stmt = this.db.prepare(sql);
+        const rows = stmt.all(...params) as any[];
+        return rows.map(r => ({
+            id: r.id,
+            content: r.content,
+            type: r.type,
+            context: r.context,
+            tags: r.tags,
+            metadata: r.metadata,
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+        }));
+    }
+
+    /**
+     * Persistent digest cache helpers for incremental code indexing
+     */
+    async getFileDigest(fileRelUnix: string): Promise<string | null> {
+        if (!this.db) throw new Error('Database not initialized');
+        const row = this.db.prepare('SELECT digest FROM file_digests WHERE file = ?').get(fileRelUnix) as any;
+        return row?.digest || null;
+    }
+
+    async setFileDigest(fileRelUnix: string, digest: string): Promise<void> {
+        if (!this.db) throw new Error('Database not initialized');
+        this.db.prepare(`INSERT INTO file_digests(file, digest, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+                         ON CONFLICT(file) DO UPDATE SET digest=excluded.digest, updated_at=CURRENT_TIMESTAMP`).run(fileRelUnix, digest);
+    }
+
+    async deleteFileDigest(fileRelUnix: string): Promise<void> {
+        if (!this.db) throw new Error('Database not initialized');
+        this.db.prepare('DELETE FROM file_digests WHERE file = ?').run(fileRelUnix);
+    }
+
+    async clearFileDigests(): Promise<number> {
+        if (!this.db) throw new Error('Database not initialized');
+        const res = this.db.prepare('DELETE FROM file_digests').run();
+        return res.changes || 0;
+    }
+
+    async moveFileDigest(oldRelUnix: string, newRelUnix: string): Promise<void> {
+        if (!this.db) throw new Error('Database not initialized');
+        const row = this.db.prepare('SELECT digest FROM file_digests WHERE file = ?').get(oldRelUnix) as any;
+        if (row?.digest) {
+            this.db.prepare(`INSERT INTO file_digests(file, digest, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+                             ON CONFLICT(file) DO UPDATE SET digest=excluded.digest, updated_at=CURRENT_TIMESTAMP`).run(newRelUnix, row.digest);
+        }
+        this.db.prepare('DELETE FROM file_digests WHERE file = ?').run(oldRelUnix);
+    }
+
+    async listFileDigests(limit: number = 50): Promise<Array<{ file: string; digest: string; updatedAt: string }>> {
+        if (!this.db) throw new Error('Database not initialized');
+        const stmt = this.db.prepare('SELECT file, digest, updated_at as updatedAt FROM file_digests ORDER BY updated_at DESC LIMIT ?');
+        const rows = stmt.all(limit) as any[];
+        return rows.map(r => ({ file: r.file, digest: r.digest, updatedAt: r.updatedAt }));
+    }
+
+    /**
      * Close database connection and encrypt file
      * CRITICAL SECURITY: Encrypts database when closing
      */
@@ -1106,6 +1303,7 @@ export class MemoryDatabase {
 
             this.initialized = false;
             this.encryptionKey = null; // Clear encryption key from memory
+            this.encryptionKeySaltBase64 = null;
 
             // Clean up background timer if exists
             if (this.backgroundEncryptionTimer) {
@@ -1229,5 +1427,32 @@ export class MemoryDatabase {
         // Convert FTS5 rank to 0-1 relevance score
         // Lower rank = higher relevance in FTS5
         return Math.max(0, Math.min(1, 1 / (1 + Math.abs(rank) * 0.1)));
+    }
+
+    /**
+     * Vector backend statistics for observability (used by `agm vector-status`).
+     * Reports which backend is active and basic index stats from the fallback table.
+     */
+    async vectorStats(): Promise<{ backend: string; dimensions: number; count: number; note?: string }> {
+        if (!this.db) throw new Error('Database not initialized');
+
+        // Detect advanced vector backend availability (sqlite-vss)
+        const vss = (this as any)._vss as (undefined | { isAvailable: () => boolean });
+        const backend = (vss && vss.isAvailable && vss.isAvailable()) ? 'sqlite-vss' : 'local-js';
+
+        // Ensure the fallback storage table exists and compute basic stats
+        this.ensureVectorTable();
+        let count = 0;
+        let dimensions = 0;
+        try {
+            const row = this.db.prepare('SELECT COUNT(*) as cnt, COALESCE(MAX(dim), 0) as dim FROM memory_vectors').get() as any;
+            count = row?.cnt || 0;
+            dimensions = row?.dim || 0;
+        } catch {
+            // If anything goes wrong, keep defaults
+        }
+
+        const note = backend === 'sqlite-vss' ? undefined : 'Advanced vector backend not enabled; using local-js fallback';
+        return { backend, dimensions, count, ...(note ? { note } : {}) };
     }
 }

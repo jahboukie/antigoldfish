@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AntiGoldfishMode — Air‑Gapped, Local‑Only Memory CLI</title>
+  <meta name="description" content="Air‑gapped, zero‑egress persistent memory for AI coding assistants. Fast FTS + hybrid search, symbol‑aware indexing, receipts/journal, exportable .agmctx, and a prove‑offline command." />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; color: #0f172a; }
+  header { background: linear-gradient(135deg, #0ea5e9, #22c55e); color: white; padding: 64px 20px; text-align: center; }
+    .cta { display: inline-block; background: white; color: #334155; padding: 12px 22px; border-radius: 10px; text-decoration: none; font-weight: 600; }
+    .container { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+    h1 { margin: 0 0 12px; font-size: 2.2rem; }
+    .pill { display: inline-block; background: rgba(255,255,255,0.2); padding: 6px 10px; border-radius: 999px; margin-bottom: 10px; font-weight: 600; }
+    ul { line-height: 1.7; }
+    footer { padding: 32px 20px; text-align: center; color: #475569; }
+    code { background: #f1f5f9; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="pill">Air‑Gapped • Local‑Only • Zero‑Egress</div>
+    <h1>AntiGoldfishMode</h1>
+    <p>Persistent coding memory that never leaves your machine. Prove it with <code>agm prove-offline</code>.</p>
+    <a class="cta" href="https://github.com/jahboukie/antigoldfish">View on GitHub</a>
+  </header>
+
+  <main class="container">
+    <h2>Why AGM</h2>
+    <ul>
+      <li>Zero‑trust by default: allow‑listed commands/paths, audit log, receipts, and journal.</li>
+      <li>Machine‑bound encryption‑at‑rest (optional secure mode).</li>
+      <li>Code‑aware indexing: file and symbol chunking; digest cache; rename optimization.</li>
+      <li>Fast local search: SQLite FTS5 with optional hybrid vector rerank (sqlite‑vss or local fallback).</li>
+      <li>Air‑gapped exports: portable <code>.agmctx</code> bundles with optional ED25519 signatures.</li>
+      <li>VS Code tasks and keybindings; watch mode for incremental indexing.</li>
+      <li>No subscriptions, no trials, no telemetry.</li>
+    </ul>
+
+    <h2>Try It</h2>
+    <ol>
+      <li>Install: <code>npm i -g antigoldfishmode</code> or clone and <code>npm run build</code>.</li>
+      <li>Initialize: <code>agm init</code> (adds <code>.antigoldfishmode/</code> and VS Code tasks).</li>
+      <li>Prove offline: <code>agm prove-offline --json</code>.</li>
+      <li>Index: <code>agm index-code --path src --symbols</code> or run watch: <code>agm watch-code --path src</code>.</li>
+      <li>Search: <code>agm search-code "handleSearch" --hybrid --preview 3</code>.</li>
+    </ol>
+
+    <h2>Privacy</h2>
+    <p>AGM blocks network egress by default for core commands. Export/import memories air‑gapped and verify operations with receipt files and a structured journal. Use <code>agm vector-status</code> and <code>agm health</code> for observability.</p>
+
+    <h2>Pricing</h2>
+    <p>
+      AGM is MIT‑licensed and fully functional for everyone. We use an honor‑system for paid tiers — there are no license checks or DRM.
+      If AGM saves you time or unlocks offline workflows, please support the project by choosing a sponsor tier. Paid benefits are delivered outside the binary (signed builds, templates, support), so the CLI stays air‑gapped.
+    </p>
+
+    <ul>
+      <li><strong>Core (OSS):</strong> Free — all features for local use: indexing, hybrid search, receipts/journal, export/import, prove‑offline, gc/health, watch‑code.</li>
+      <li><strong>Pro (Individual):</strong> $5/month or $50/year — signed prebuilt binaries, priority triage (best‑effort), early features, health/gc extras, policy template pack, email support (48–72h).</li>
+      <li><strong>Team:</strong> $8/user/month (min $80/mo) — everything in Pro, plus org policy templates, onboarding kit, signed releases channel, email support (24–48h), quarterly roadmap call, usage/receipt aggregation scripts.</li>
+      <li><strong>Enterprise:</strong> $25/user/month (min $1,000/mo or $12k/year) — everything in Team, plus security review artifacts, air‑gapped distribution playbooks, custom build signing bootstrap, priority support (business‑hours SLA), procurement docs, optional private workshop.</li>
+    </ul>
+
+    <h3>Why upgrade to Pro</h3>
+    <ul>
+      <li>Faster, smarter indexing (improved symbol chunking; diff‑aware reindex)</li>
+      <li>Operational confidence (curated binaries; prebundled sqlite‑vss when available)</li>
+      <li>Better observability (receipt rollups; HTML health reports)</li>
+      <li>Less policy friction (ready templates; interactive policy doctor)</li>
+      <li>Enhanced .agmctx (zipped, checksums, merge, verify reports)</li>
+    </ul>
+
+    <p><em>Honor‑system</em> means the software works regardless of payment; you sponsor to support maintenance and receive value‑add services. No telemetry, no phoning home.</p>
+
+    <p>
+      <a class="cta" href="https://github.com/sponsors/jahboukie">Sponsor (Pro $5/mo)</a>
+      &nbsp;
+      <a class="cta" href="mailto:team.mobileweb@gmail.com?subject=AGM%20Team/Enterprise%20inquiry">Team/Enterprise — Contact</a>
+    </p>
+
+  <p><a href="docs/pricing.md">Learn more about pricing & the honor‑system →</a></p>
+  </main>
+
+  <footer>
+    <small>MIT Licensed • © 2025 AntiGoldfishMode</small>
+  </footer>
+</body>
+</html>

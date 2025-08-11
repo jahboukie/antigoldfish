@@ -1,0 +1,39 @@
+{
+  "schema": "v1",
+  "version": "1.6.0",
+  "id": "1754789369714-a82b5978",
+  "command": "status",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\dist\\cli.js",
+    "-status"
+  ],
+  "cwd": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+  "startTime": "2025-08-10T01:29:29.431Z",
+  "endTime": "2025-08-10T01:29:29.718Z",
+  "params": {},
+  "results": {
+    "project": {
+      "path": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+      "dbPath": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\.antigoldfishmode\\memory.db"
+    },
+    "license": {
+      "key": "AGM-TRIA...",
+      "features": [
+        "unlimited-memory",
+        "conversation-recording"
+      ],
+      "type": "trial",
+      "machineId": "7df2e01609582aea...",
+      "graceDays": 7
+    },
+    "memory": {
+      "total": 361,
+      "sizeMB": 1.48
+    }
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "1dc793f730bff698915ff6b5db0e272d833c67a5363d979dcecd7b3115205807"
+  }
+}

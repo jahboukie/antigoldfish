@@ -1,0 +1,55 @@
+{
+  "schema": "v1",
+  "version": "1.6.0",
+  "id": "1754696690700-c9f2eb57",
+  "command": "search-code",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\dist\\cli.js",
+    "search-code",
+    "class|function",
+    "--hybrid",
+    "--filter-symbol",
+    "function",
+    "class",
+    "--filter-language",
+    "typescript",
+    "--preview",
+    "1",
+    "-k",
+    "2",
+    "--trace",
+    "--explain"
+  ],
+  "cwd": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+  "startTime": "2025-08-08T23:44:50.076Z",
+  "endTime": "2025-08-08T23:44:50.701Z",
+  "params": {
+    "query": "class|function",
+    "topk": 2,
+    "preview": 1,
+    "hybrid": true,
+    "rerankN": 200,
+    "filterSymbols": [
+      "function",
+      "class"
+    ],
+    "filterLangs": [
+      "typescript"
+    ]
+  },
+  "resultSummary": {
+    "ids": [
+      "362@src/database/MemoryDatabase.ts:98-1219",
+      "338@src/database/MemoryDatabase.ts:98-1197"
+    ]
+  },
+  "results": {
+    "count": 2
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "128e350471713d31954c0051806de8304026d8c3dd5fc7894d04a6a12ca5919a",
+    "resultDigest": "e9d6140e2d04447b15f6aad165de81f9113a2610b0f3ae484379057220bfbd31"
+  }
+}

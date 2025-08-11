@@ -1,0 +1,31 @@
+{
+  "id": "1754673754325-9773ca02",
+  "command": "search-code",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode\\dist\\cli.js",
+    "search-code",
+    "MemoryDatabase",
+    "-k",
+    "3",
+    "--preview",
+    "2",
+    "--explain",
+    "--trace"
+  ],
+  "cwd": "C:\\Users\\scorp\\projects\\vibe-extension\\antigoldfishmode",
+  "startTime": "2025-08-08T17:22:34.293Z",
+  "endTime": "2025-08-08T17:22:34.326Z",
+  "params": {
+    "query": "MemoryDatabase",
+    "topk": 3,
+    "preview": 2
+  },
+  "results": {
+    "count": 3
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "272b653ffdd0297ce57efb746d9f98ee4efbb4bb11fbb99defc39ddcd604e7b1"
+  }
+}

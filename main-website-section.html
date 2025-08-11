@@ -1,5 +1,5 @@
-<!-- CodeContextPro Main Website Integration Section -->
-<!-- This section can be integrated into your main www.codecontextpro.com website -->
+<!-- AntiGoldfishMode Website Section (Local-Only, Air-Gapped) -->
+<!-- Drop-in section for a product page focused on AntiGoldfishMode -->
 
 <style>
 .tools-hero {
@@ -16,11 +16,9 @@
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
-.tools-hero .subtitle {
-    font-size: 1.3rem;
-    opacity: 0.9;
-    margin-bottom: 40px;
-}
+.tools-hero .subtitle { font-size: 1.3rem; opacity: 0.9; margin-bottom: 40px; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.tools-hero .intro-text { font-size: 1.1rem; opacity: 0.8; }
 
 .tools-grid {
     display: grid;
@@ -42,9 +40,7 @@
     text-align: center;
 }
 
-.tool-hero-card:hover {
-    transform: translateY(-10px);
-}
+.tool-hero-card:hover { transform: translateY(-10px); }
 
 .tool-hero-card::before {
     content: '';
@@ -59,98 +55,47 @@
     background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
 }
 
-.codecontextpro-hero::before {
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
-}
+/* Removed secondary product styling */
 
-.tool-icon {
-    font-size: 4rem;
-    margin-bottom: 20px;
-    display: block;
-}
+.tool-icon { font-size: 4rem; margin-bottom: 20px; display: block; }
+.tool-hero-title { font-size: 2rem; font-weight: 700; margin-bottom: 15px; color: #2d3748; }
+.tool-hero-tagline { font-size: 1.1rem; color: #666; margin-bottom: 30px; line-height: 1.6; }
 
-.tool-hero-title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 15px;
-    color: #2d3748;
-}
+.tool-hero-features { list-style: none; margin: 25px 0; text-align: left; }
+.tool-hero-features li { padding: 8px 0; font-size: 0.95rem; color: #4a5568; display: flex; align-items: center; }
+.tool-hero-features .feature-icon { margin-right: 8px; font-size: 1rem; }
 
-.tool-hero-tagline {
-    font-size: 1.1rem;
-    color: #666;
-    margin-bottom: 30px;
-    line-height: 1.6;
-}
+.hero-price { font-size: 2rem; font-weight: bold; color: #2d3748; margin: 20px 0 10px; }
+.hero-cta { display: inline-block; color: white; padding: 15px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1rem; margin-top: 15px; transition: all 0.3s ease; }
+.hero-cta:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
 
-.tool-hero-features {
-    list-style: none;
-    margin: 25px 0;
-    text-align: left;
-}
+.free-price { font-size: 1.1rem; color: #2d3748; }
+.hero-subtext { color: #2d3748; font-size: 0.9rem; font-weight: 600; }
+.beta-subtext { color: #667eea; font-size: 0.9rem; font-weight: 700; }
 
-.tool-hero-features li {
-    padding: 8px 0;
-    font-size: 0.95rem;
-    color: #4a5568;
-    display: flex;
-    align-items: center;
-}
+.antigoldfish-cta { background: linear-gradient(135deg, #4ecdc4, #44a08d); }
+/* .codecontextpro-cta removed */
 
-.tool-hero-features .feature-icon {
-    margin-right: 8px;
-    font-size: 1rem;
-}
+.status-badge { display: inline-block; padding: 6px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; }
+.available-badge { background: #d4edda; color: #155724; }
+.coming-soon-badge { background: #fff3cd; color: #856404; }
+.note-text { font-size: 0.8rem; color: #666; margin-top: 10px; }
 
-.hero-price {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #2d3748;
-    margin: 20px 0 10px;
-}
+/* Quick Decision Helper styles */
+.qdh-section { background: #f8f9fa; padding: 60px 20px; margin: 60px 0; }
+.qdh-container { max-width: 1000px; margin: 0 auto; text-align: center; }
+.qdh-title { font-size: 2.2rem; color: #2d3748; margin-bottom: 40px; }
+.qdh-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+.qdh-card { background: white; padding: 30px; border-radius: 15px; }
+.qdh-card-agm { border-left: 5px solid #4ecdc4; }
+.qdh-card-ccp { border-left: 5px solid #667eea; }
+.qdh-card-title { color: #2d3748; margin-bottom: 15px; }
+.qdh-list { list-style: none; text-align: left; color: #4a5568; line-height: 1.8; padding-left: 0; margin: 0; }
+.qdh-subtext { font-size: 1.1rem; color: #666; margin-bottom: 20px; }
+.qdh-cta { display: inline-block; background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.1rem; }
 
-.hero-cta {
-    display: inline-block;
-    color: white;
-    padding: 15px 30px;
-    border-radius: 50px;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 1rem;
-    margin-top: 15px;
-    transition: all 0.3s ease;
-}
-
-.hero-cta:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-}
-
-.antigoldfish-cta {
-    background: linear-gradient(135deg, #4ecdc4, #44a08d);
-}
-
-.codecontextpro-cta {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 6px 15px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-.available-badge {
-    background: #d4edda;
-    color: #155724;
-}
-
-.coming-soon-badge {
-    background: #fff3cd;
-    color: #856404;
+@media (max-width: 768px) {
+    .qdh-grid { grid-template-columns: 1fr; gap: 20px; }
 }
 
 @media (max-width: 768px) {
@@ -159,23 +104,17 @@
         gap: 30px;
         margin: 40px auto;
     }
-    
-    .tools-hero h1 {
-        font-size: 2.5rem;
-    }
-    
-    .tool-hero-card {
-        padding: 30px 20px;
-    }
+    .tools-hero h1 { font-size: 2.5rem; }
+    .tool-hero-card { padding: 30px 20px; }
 }
 </style>
 
 <!-- Main Hero Section -->
 <section class="tools-hero">
-    <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+    <div class="container">
         <h1>🚀 AI Memory Tools Suite</h1>
         <p class="subtitle">Choose your perfect AI memory solution</p>
-        <p style="font-size: 1.1rem; opacity: 0.8;">
+        <p class="intro-text">
             Stop re-explaining your code to AI assistants. Choose privacy-first local storage or convenient cloud collaboration.
         </p>
     </div>
@@ -201,88 +140,41 @@
             <li><span class="feature-icon">🔐</span>Enterprise-grade encryption</li>
         </ul>
         
-        <div class="hero-price">$69<span style="font-size: 1rem; color: #666;">/year</span></div>
-        <p style="color: #28a745; font-size: 0.9rem; font-weight: bold;">Early Adopter Price - Locked Forever!</p>
-        
-        <a href="https://buy.stripe.com/4gMbJ11ok5Du7tkbdr4Ja0g" class="hero-cta antigoldfish-cta">
-            🚀 Start 7-Day Free Trial
+    <div class="hero-price free-price">Free • Local‑Only</div>
+    <p class="hero-subtext">No subscriptions, no trials, no telemetry</p>
+
+    <a href="https://github.com/jahboukie/antigoldfish" class="hero-cta antigoldfish-cta">
+            🧠 View on GitHub
         </a>
         
-        <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">
-            No credit card required • 30-day money-back guarantee
+    <p class="note-text">
+            Prove offline anytime with <code>agm prove-offline</code>
         </p>
     </div>
 
-    <!-- CodeContextPro Card -->
-    <div class="tool-hero-card codecontextpro-hero">
-        <div class="status-badge coming-soon-badge">🔄 COMING Q2 2025</div>
-        
-        <span class="tool-icon">🌟</span>
-        <h2 class="tool-hero-title">CodeContextPro</h2>
-        <p class="tool-hero-tagline">
-            Cloud-powered memory with team collaboration for distributed development
-        </p>
-        
-        <ul class="tool-hero-features">
-            <li><span class="feature-icon">☁️</span>Cloud sync across all devices</li>
-            <li><span class="feature-icon">👥</span>Team memory sharing</li>
-            <li><span class="feature-icon">📊</span>Analytics and insights</li>
-            <li><span class="feature-icon">🔗</span>API for custom integrations</li>
-            <li><span class="feature-icon">👨‍💼</span>Admin dashboard and controls</li>
-        </ul>
-        
-        <div class="hero-price">$99<span style="font-size: 1rem; color: #666;">/year</span></div>
-        <p style="color: #667eea; font-size: 0.9rem; font-weight: bold;">Be first to try - Join beta waitlist</p>
-        
-        <a href="mailto:hello@codecontextpro.com?subject=CodeContextPro%20Beta%20Access&body=Hi%2C%0D%0A%0D%0AI'm%20interested%20in%20beta%20access%20to%20CodeContextPro.%0D%0A%0D%0AName%3A%20%0D%0AEmail%3A%20%0D%0ACompany%3A%20%0D%0ATeam%20Size%3A%20%0D%0A%0D%0AThanks!" class="hero-cta codecontextpro-cta">
-            📬 Join Beta Waitlist
-        </a>
-        
-        <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">
-            14-day free trial when launched • Early access perks
-        </p>
-    </div>
+    <!-- Single-product focus: CodeContextPro card removed for local-only product alignment -->
 </section>
 
-<!-- Quick Decision Helper -->
-<section style="background: #f8f9fa; padding: 60px 20px; margin: 60px 0;">
-    <div style="max-width: 1000px; margin: 0 auto; text-align: center;">
-        <h2 style="font-size: 2.2rem; color: #2d3748; margin-bottom: 40px;">
-            🤔 Not sure which tool fits your needs?
-        </h2>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
-            <div style="background: white; padding: 30px; border-radius: 15px; border-left: 5px solid #4ecdc4;">
-                <h3 style="color: #2d3748; margin-bottom: 15px;">Choose AntiGoldfishMode if you:</h3>
-                <ul style="list-style: none; text-align: left; color: #4a5568; line-height: 1.8;">
-                    <li>🔒 Work with sensitive/proprietary code</li>
-                    <li>⚡ Want the fastest possible performance</li>
-                    <li>💻 Work primarily on one machine</li>
-                    <li>🌐 Need reliable offline functionality</li>
-                    <li>💰 Want early adopter pricing</li>
-                </ul>
-            </div>
-            
-            <div style="background: white; padding: 30px; border-radius: 15px; border-left: 5px solid #667eea;">
-                <h3 style="color: #2d3748; margin-bottom: 15px;">Choose CodeContextPro if you:</h3>
-                <ul style="list-style: none; text-align: left; color: #4a5568; line-height: 1.8;">
-                    <li>👥 Work with a distributed team</li>
-                    <li>📱 Need access from multiple devices</li>
-                    <li>🔗 Want API integrations</li>
-                    <li>📊 Need usage analytics</li>
-                    <li>☁️ Prefer cloud convenience</li>
+<!-- Who It's For -->
+<section class="qdh-section">
+    <div class="qdh-container">
+        <h2 class="qdh-title">Who AntiGoldfishMode Is For</h2>
+        <div class="qdh-grid">
+            <div class="qdh-card qdh-card-agm">
+                <h3 class="qdh-card-title">Choose AGM if you:</h3>
+                <ul class="qdh-list">
+                    <li>� Need strict local‑only, zero‑egress behavior</li>
+                    <li>🏢 Work in regulated or air‑gapped environments</li>
+                    <li>⚡ Want fast, private search with FTS + hybrid rerank</li>
+                    <li>🧠 Value persistent, auditable context (receipts/journal)</li>
+                    <li>🖥️ Prefer machine‑bound encryption‑at‑rest</li>
                 </ul>
             </div>
         </div>
-        
-        <p style="font-size: 1.1rem; color: #666; margin-bottom: 20px;">
-            <strong>Still undecided?</strong> Start with AntiGoldfishMode's free trial today.
-        </p>
-        <a href="https://buy.stripe.com/4gMbJ11ok5Du7tkbdr4Ja0g" style="display: inline-block; background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.1rem;">
-            🚀 Start Free Trial Now
-        </a>
+        <p class="qdh-subtext">Try AntiGoldfishMode locally — it’s free and private.</p>
+    <a href="https://github.com/jahboukie/antigoldfish" class="qdh-cta">🧠 View on GitHub</a>
     </div>
-</section>
+    </section>
 
 <!-- Integration Instructions -->
 <!-- 
@@ -298,7 +190,24 @@ Key benefits of this approach:
 - Clean, professional presentation
 - Clear differentiation between local vs cloud
 - Immediate CTA for AntiGoldfishMode (available now)
-- Waitlist building for CodeContextPro
+-- Single-product focus: AntiGoldfishMode only
 - Mobile-responsive design
 - Self-contained CSS (no external dependencies)
 -->
+
+<!-- AntiGoldfishMode Free, Local-Only Section -->
+<section class="agm-section">
+  <div class="agm-container">
+    <h2>AntiGoldfishMode — Free, Local‑Only AI Memory</h2>
+    <p>Persistent, searchable memory for your coding assistant with zero egress. No subscriptions or trials. Prove offline at any time with <code>agm prove-offline</code>.</p>
+    <ul>
+      <li>Zero‑trust policy with allow‑listed commands and paths</li>
+      <li>Machine‑bound encryption‑at‑rest</li>
+      <li>SQLite FTS5 indexing with optional hybrid rerank</li>
+      <li>VS Code extension with offline indicator</li>
+    </ul>
+    <p>
+    <a class="agm-btn" href="https://github.com/jahboukie/antigoldfish">View on GitHub</a>
+    </p>
+  </div>
+</section>
