@@ -361,7 +361,7 @@ export class MemoryDatabase {
 
 
             // Try to load sqlite-vss extension if present (Stage 2)
-            const { SqliteVSS } = await import('../engine/vector/SqliteVSS');
+            const { SqliteVSS } = await import('../engine/vector/SqliteVSS.js');
             const vss = SqliteVSS.tryLoad(this.db, process.cwd(), 'memories_vss');
             if (vss.isAvailable()) {
                 // Ensure VSS table exists with expected dimension lazily later

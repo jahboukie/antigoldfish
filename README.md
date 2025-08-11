@@ -49,6 +49,8 @@ More docs: see the `docs/` folder:
 - docs/airgapped.md
 - docs/troubleshooting.md
 - docs/comparison.md — AGM vs. air‑gapped alternatives
+ - docs/battle-testing-guide.md — End-to-end local validation checklist
+ - docs/screencast-script.md — 2–3 min demo script and shot list (Show HN ready)
 
 ## Core features
 

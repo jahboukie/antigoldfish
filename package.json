@@ -8,17 +8,17 @@
     "antigoldfishmode": "dist/cli.js"
   },
   "scripts": {
-  "build": "tsc",
-  "build:watch": "tsc -w",
-  "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "typecheck": "tsc --noEmit",
     "start": "node dist/cli.js",
     "clean": "rmdir /s /q dist 2>nul || echo dist cleaned",
-  "prepublishOnly": "npm run clean && npm run build",
-  "postinstall": "node scripts/fix-sqlite.js",
-  "rebuild-sqlite": "node scripts/fix-sqlite.js",
-  "fix-sqlite": "node scripts/fix-sqlite.js",
-  "smoke": "node scripts/smoke.js",
-  "test": "npm run build && node --test .\\tests\\*.mjs"
+    "prepublishOnly": "npm run clean && npm run build",
+    "postinstall": "node scripts/fix-sqlite.js",
+    "rebuild-sqlite": "node scripts/fix-sqlite.js",
+    "fix-sqlite": "node scripts/fix-sqlite.js",
+    "smoke": "node scripts/smoke.js",
+    "test": "npm run build && node --test .\\tests\\*.mjs"
   },
   "keywords": [
     "ai",
@@ -26,7 +26,7 @@
     "coding-assistant",
     "developer-tools",
     "ai-assistant",
-  "persistent-memory",
+    "persistent-memory",
     "claude",
     "chatgpt",
     "copilot"
@@ -50,6 +50,9 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
+    "@types/chalk": "^0.4.31",
+    "@types/chokidar": "^1.7.5",
+    "@types/commander": "^2.12.0",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^24.1.0",
     "typescript": "^5.7.2"
@@ -58,11 +61,11 @@
     "@xenova/transformers": "^2.17.2",
     "better-sqlite3": "^11.10.0",
     "chalk": "^5.3.0",
+    "chokidar": "^3.6.0",
     "commander": "^14.0.0",
-  "dotenv": "^17.2.1",
+    "dotenv": "^17.2.1",
     "fs-extra": "^11.3.0",
-  "minimatch": "^10.0.3",
-    "chokidar": "^3.6.0"
+    "minimatch": "^10.0.3"
   },
   "overrides": {
     "@npmcli/fs": "^3.1.1",

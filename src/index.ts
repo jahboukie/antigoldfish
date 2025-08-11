@@ -155,7 +155,7 @@ export class CodeContextCLI {
             .description('Show or clear the AGM command journal')
             .option('--show', 'Show recent journal entries')
             .option('--clear', 'Clear journal (with confirmation)')
-            .action(async (opts: any) => { const { handleJournal } = await import('./commands/Journal'); await handleJournal(opts, this.cleanup.bind(this)); });
+            .action(async (opts: any) => { const { handleJournal } = await import('./commands/Journal.js'); await handleJournal(opts, this.cleanup.bind(this)); });
 
 
     // License system removed in local-only pivot
@@ -170,7 +170,7 @@ export class CodeContextCLI {
             .option('--execute', 'Actually execute (omit default dry-run)')
             .option('--summary-only', 'Print only the final summary (skip per-step summaries)')
             .action(async (opts: any) => {
-                const { handleReplay } = await import('./commands/Replay');
+                const { handleReplay } = await import('./commands/Replay.js');
                 await handleReplay(opts, this.cleanup.bind(this));
             });
 
@@ -257,7 +257,7 @@ export class CodeContextCLI {
             .command('receipt-show [idOrPath]')
             .description('Pretty-print a saved receipt by id or path')
             .option('--last', 'Show the most recent receipt')
-            .action(async (idOrPath: string, opts: any) => { const { handleReceiptShow } = await import('./commands/ReceiptShow'); await handleReceiptShow(idOrPath, { last: opts.last }); });
+            .action(async (idOrPath: string, opts: any) => { const { handleReceiptShow } = await import('./commands/ReceiptShow.js'); await handleReceiptShow(idOrPath, { last: opts.last }); });
 
         // Air-Gapped context export/import (.agmctx)
         this.program
@@ -432,7 +432,7 @@ export class CodeContextCLI {
     * Handle remember command - local-only
      */
     private async handleRemember(content: string, options: any): Promise<void> {
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             console.log(chalk.cyan('🧠 AntiGoldfishMode - AI Memory Storage'));
@@ -520,7 +520,7 @@ export class CodeContextCLI {
     * Handle recall command - local-only
      */
     private async handleRecall(query: string, options: any): Promise<void> {
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             console.log(chalk.cyan('🔍 AntiGoldfishMode - AI Memory Recall'));
@@ -607,7 +607,7 @@ export class CodeContextCLI {
      * Handle vector-status command
      */
     private async handleVectorStatus(): Promise<void> {
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             tracer.plan('vector-status', { explain: tracer.flags.explain });
@@ -670,7 +670,7 @@ export class CodeContextCLI {
      * Handle status command - Show unlimited local-only status
      */
     private async handleStatus(): Promise<void> {
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             tracer.plan('status', { explain: tracer.flags.explain });
@@ -858,7 +858,7 @@ export class CodeContextCLI {
     private async handleIndexCode(opts: any): Promise<void> {
         const root = opts.path || process.cwd();
         const maxChunk = parseInt(opts.maxChunk || '200', 10);
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             tracer.plan('index-code', { root, maxChunk, symbols: !!opts.symbols, explain: tracer.flags.explain });
@@ -868,11 +868,11 @@ export class CodeContextCLI {
             }
 
             await this.memoryEngine.initialize();
-            const { CodeIndexer } = await import('./codeindex/CodeIndexer');
+            const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
             const indexer = new CodeIndexer(root);
 
 
-            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer');
+            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
             const symIndexer = new SymbolIndexer(root);
 
             const include: string[] | undefined = opts.include;
@@ -883,9 +883,9 @@ export class CodeContextCLI {
             const context = 'code';
 
             // Embeddings (Stage 1): prepare provider
-            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider');
+            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider.js');
             const provider = EmbeddingProvider.create(process.cwd());
-            await provider.init().catch((e) => {
+            await provider.init().catch((e: unknown) => {
                 console.log(chalk.yellow('⚠️ Embedding provider init failed. Continuing without vectors.'));
                 if (tracer.flags.trace) console.log(String(e));
                 return undefined;
@@ -918,7 +918,7 @@ export class CodeContextCLI {
                     }
                 }
             } else {
-                indexer.indexFiles({ maxChunkLines: maxChunk, context, include, exclude }, (chunk) => {
+                indexer.indexFiles({ maxChunkLines: maxChunk, context, include, exclude }, (chunk: { text: string; meta: { language?: string } }) => {
                     if (tracer.flags.dryRun) { return; }
                     const tags = ['code', chunk.meta.language || 'unknown'];
                     pending.push(embedAndStore(chunk.text, tags, chunk.meta));
@@ -928,7 +928,7 @@ export class CodeContextCLI {
             await Promise.all(pending);
 
             // reuse dynamic import above; construct a temporary indexer for digest
-            const listForDigest = new (await import('./codeindex/CodeIndexer')).CodeIndexer(root).listFiles({ include, exclude, maxChunkLines: maxChunk });
+            const listForDigest = new (await import('./codeindex/CodeIndexer.js')).CodeIndexer(root).listFiles({ include, exclude, maxChunkLines: maxChunk });
             const digest = crypto.createHash('sha256').update(JSON.stringify(listForDigest)).digest('hex');
 
             const result = { saved, root, digest, fileCount: listForDigest.length };
@@ -936,7 +936,7 @@ export class CodeContextCLI {
                 console.log(JSON.stringify(result, null, 2));
 
             if (tracer.flags.explain) {
-                const { CodeIndexer } = await import('./codeindex/CodeIndexer');
+                const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
                 const files = new CodeIndexer(root).listFiles({ include, exclude, maxChunkLines: maxChunk });
                 console.log(chalk.gray(`Explain: include=${JSON.stringify(include||['**/*'])} exclude=${JSON.stringify(exclude||['**/node_modules/**', '**/.git/**', '**/dist/**'])}`));
                 console.log(chalk.gray(`Explain: files considered=${files.length}`));
@@ -962,7 +962,7 @@ export class CodeContextCLI {
      * Search code-aware memories (prototype)
      */
     private async handleSearchCode(query: string, opts: any): Promise<void> {
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             const topk = parseInt(opts.topk || '20', 10);
@@ -992,7 +992,7 @@ export class CodeContextCLI {
 
             if (hybrid) {
                 const take = Math.min(topk, results.length);
-                const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider');
+                const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider.js');
                 const provider = EmbeddingProvider.create(process.cwd());
                 let queryVec: Float32Array | null = null;
                 try {
@@ -1158,7 +1158,7 @@ export class CodeContextCLI {
         if (useSymbols) {
             this.nudgePro('symbols-watch', 'Enhanced symbol chunking and faster diff-aware reindex are Pro features. Proceeding with basic symbol mode.');
         }
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         tracer.plan('watch-code', { root, maxChunk, include, exclude, symbols: useSymbols, debounceMs, explain: tracer.flags.explain });
         tracer.mirror(`agm watch-code --path ${JSON.stringify(root)} --max-chunk ${maxChunk}${useSymbols?' --symbols':''}${include?` --include ${include.join(' ')}`:''}${exclude?` --exclude ${exclude.join(' ')}`:''}${debounceMs!==400?` --debounce ${debounceMs}`:''}${tracer.flags.explain?' --explain':''}`);
@@ -1168,12 +1168,12 @@ export class CodeContextCLI {
 
         try {
             await this.memoryEngine.initialize();
-            const { CodeIndexer } = await import('./codeindex/CodeIndexer');
-            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer');
+            const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
+            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
             const indexer = new CodeIndexer(root);
             const symIndexer = new SymbolIndexer(root);
 
-            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider');
+            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider.js');
             const provider = EmbeddingProvider.create(process.cwd());
             try { await provider.init(); } catch { /* proceed without vectors */ }
 
@@ -1321,7 +1321,7 @@ export class CodeContextCLI {
 
     // --- Digest cache maintenance ---
     private async handleDigestCache(opts: any): Promise<void> {
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             await this.memoryEngine.initialize();
@@ -1362,7 +1362,7 @@ export class CodeContextCLI {
             this.nudgePro('symbols-reindex-folder', 'Pro enhances symbol chunking and speeds up bulk reindex. Proceeding with basic symbol mode.');
         }
         const maxChunk = 200;
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             await this.memoryEngine.initialize();
@@ -1370,12 +1370,12 @@ export class CodeContextCLI {
             const wsRel = path.relative(process.cwd(), abs).replace(/\\/g,'/');
             try { await (this.memoryEngine.database as any).deleteCodeByFile?.(relUnix); } catch {}
             try { await (this.memoryEngine.database as any).deleteCodeByFile?.(wsRel); } catch {}
-            const { CodeIndexer } = await import('./codeindex/CodeIndexer');
-            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer');
+            const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
+            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
             const idx = new CodeIndexer(root);
             const sym = new SymbolIndexer(root);
-            const chunks = useSymbols ? sym.chunkBySymbols(abs) : idx.chunkFile(abs, maxChunk).map(c => ({ text: c.text, meta: c.meta }));
-            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider');
+            const chunks = useSymbols ? sym.chunkBySymbols(abs) : idx.chunkFile(abs, maxChunk).map((c: { text: string; meta: any }) => ({ text: c.text, meta: c.meta }));
+            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider.js');
             const provider = EmbeddingProvider.create(process.cwd());
             try { await provider.init(); } catch {}
             let saved = 0;
@@ -1406,18 +1406,18 @@ export class CodeContextCLI {
         const exclude: string[] | undefined = opts.exclude;
         const useSymbols = !!opts.symbols;
         const maxChunk = parseInt(String(opts.maxChunk || '200'), 10) || 200;
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             await this.memoryEngine.initialize();
-            const { CodeIndexer } = await import('./codeindex/CodeIndexer');
-            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer');
+            const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
+            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
             const idx = new CodeIndexer(absFolder);
             const sym = new SymbolIndexer(absFolder);
 
             const files = idx.listFiles({ include, exclude, maxChunkLines: maxChunk });
             let added = 0, errors = 0;
-            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider');
+            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider.js');
             const provider = EmbeddingProvider.create(process.cwd());
             try { await provider.init(); } catch {}
             for (const rel of files) {
@@ -1426,7 +1426,7 @@ export class CodeContextCLI {
                 try {
                     // wipe existing
                     try { await (this.memoryEngine.database as any).deleteCodeByFile?.(projectRel); } catch {}
-                    const chunks = useSymbols ? sym.chunkBySymbols(full) : idx.chunkFile(full, maxChunk).map(c => ({ text: c.text, meta: c.meta }));
+                    const chunks = useSymbols ? sym.chunkBySymbols(full) : idx.chunkFile(full, maxChunk).map((c: { text: string; meta: any }) => ({ text: c.text, meta: c.meta }));
                     for (const chunk of chunks) {
                         const id = await this.memoryEngine.database.storeMemory(chunk.text, 'code', 'code', ['code', (chunk as any).meta?.language || 'unknown', useSymbols?'symbol':undefined].filter(Boolean) as string[], chunk.meta);
                         if (provider && (provider as any).getInfo) {
@@ -1453,7 +1453,7 @@ export class CodeContextCLI {
 
     // --- GC maintenance ---
     private async handleGC(opts: any): Promise<void> {
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         const root = process.cwd();
         try {
@@ -1496,7 +1496,7 @@ export class CodeContextCLI {
 
     // --- Health summary ---
     private async handleHealth(opts?: any): Promise<void> {
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             await this.memoryEngine.initialize();
@@ -1797,7 +1797,7 @@ export class CodeContextCLI {
     private async handleExportContext(opts: any): Promise<void> {
         const outPath = path.resolve(process.cwd(), opts.out || 'context.agmctx');
         const type = String(opts.type || 'code');
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             tracer.plan('export-context', { outPath, type, sign: !!opts.sign });
@@ -1948,7 +1948,7 @@ export class CodeContextCLI {
 
     private async handleImportContext(file: string): Promise<void> {
         const dir = path.resolve(process.cwd(), file);
-        const { Tracer } = await import('./utils/Trace');
+    const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
             const manifestPath = path.join(dir, 'manifest.json');
@@ -2032,8 +2032,8 @@ export class CodeContextCLI {
         } catch (error) {
             console.error(chalk.red('❌ Import failed:'), error instanceof Error ? error.message : 'Unknown error');
             try {
-                const receipt = (await import('./utils/Trace')).Tracer.create(process.cwd()).writeReceipt('import-context', { file }, {}, false, (error as Error).message);
-                ;(await import('./utils/Trace')).Tracer.create(process.cwd()).appendJournal({ cmd: 'import-context', error: (error as Error).message, receipt });
+                const receipt = (await import('./utils/Trace.js')).Tracer.create(process.cwd()).writeReceipt('import-context', { file }, {}, false, (error as Error).message);
+                ;(await import('./utils/Trace.js')).Tracer.create(process.cwd()).appendJournal({ cmd: 'import-context', error: (error as Error).message, receipt });
             } catch {}
         }
     }
