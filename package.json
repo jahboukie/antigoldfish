@@ -14,7 +14,7 @@
     "start": "node dist/cli.js",
     "clean": "rmdir /s /q dist 2>nul || echo dist cleaned",
     "prepublishOnly": "npm run clean && npm run build",
-    "postinstall": "node scripts/fix-sqlite.js",
+  "postinstall": "node -e \"if(process.env.CI||process.env.GITHUB_ACTIONS){console.log('Skipping fix-sqlite in CI');process.exit(0)}\" && node scripts/fix-sqlite.js",
     "rebuild-sqlite": "node scripts/fix-sqlite.js",
     "fix-sqlite": "node scripts/fix-sqlite.js",
     "smoke": "node scripts/smoke.js",

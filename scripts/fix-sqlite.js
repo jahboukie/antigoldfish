@@ -14,6 +14,12 @@ console.log('══════════════════════�
 
 async function fixSqlite() {
     try {
+        // Skip in CI environments to avoid native rebuild flakiness on runners
+        if (process.env.CI || process.env.GITHUB_ACTIONS) {
+            console.log('🏁 CI environment detected, skipping better-sqlite3 rebuild.');
+            console.log('   Relying on prebuilt binaries during CI.');
+            return;
+        }
         // Check if we're in a development environment
         const packageJsonPath = path.join(process.cwd(), 'package.json');
         const isDevEnv = fs.existsSync(packageJsonPath);
