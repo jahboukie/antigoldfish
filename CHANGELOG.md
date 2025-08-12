@@ -5,6 +5,20 @@ All notable changes to AntiGoldfishMode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2025-08-11
+
+### Added
+- 📊 Health metrics rollups and improved `health`/`vector-status` observability.
+- 🧪 Portable test runner (`scripts/run-tests.js`) to reliably discover and run `tests/*.mjs` across OS/Node.
+
+### Fixed
+- 🧱 CI stability across Node 18/20/22 and all OS runners.
+- 🔌 Avoid ESM/CommonJS mismatch by pinning `chalk` to 4.1.2.
+- 🧩 Skip flaky native rebuilds for `better-sqlite3` in CI; guarded with `scripts/ensure-sqlite.js`.
+
+### Security/Chore
+- 🚫 Ignore local `.antigoldfishmode/` and backup `.antigoldfishmode.bak-*/` directories; removed accidental backups from repo.
+
 ## [1.1.0] - 2025-07-29
 
 ### Added
