@@ -18,7 +18,7 @@
     "rebuild-sqlite": "node scripts/fix-sqlite.js",
     "fix-sqlite": "node scripts/fix-sqlite.js",
     "smoke": "node scripts/smoke.js",
-  "test": "npm run build && node --test \"tests/*.mjs\""
+  "test": "npm run build && node scripts/run-tests.js"
   },
   "keywords": [
     "ai",
