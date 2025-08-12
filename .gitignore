@@ -1,3 +1,6 @@
+# AntiGoldfishMode local data and backups
+.antigoldfishmode/
+.antigoldfishmode.bak-*/
 # Dependencies
 node_modules/
 npm-debug.log*
