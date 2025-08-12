@@ -31,6 +31,9 @@ jobs:
         shell: bash
       - name: Install deps
         run: npm ci
+      - name: Ensure better-sqlite3 loadable (CI)
+        run: node scripts/ensure-sqlite.js
+        shell: bash
       - name: Show chalk version
         run: |
           node -e "try{console.log('chalk version:', require('chalk/package.json').version)}catch(e){console.error('chalk not found')}"
