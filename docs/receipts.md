@@ -65,7 +65,7 @@ All receipts share the following envelope shape:
   - `schemaVersion` (number)
   - `type` (string)
   - `metadataRows` (number)
-  - `vectors` (object | undefined) `{ rows: number, dim: number }`
+  - `vectors` (object | undefined) `{ rows: number, dim: number, backend?: string }`
 
 ## Examples
 

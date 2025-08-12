@@ -33,6 +33,29 @@ agm policy doctor --cmd search-code --path .
 agm policy trust search-code --minutes 15
 ```
 
+## Air-gapped context policy toggles (.agmctx)
+
+AGM supports portable context via `.agmctx`. Two policy toggles control signing and import verification:
+
+- `signExports` (boolean): When true, `agm export-context` signs by default as if `--sign` was passed. You can also force signing with the flag or set the environment toggle `AGM_SIGN_EXPORT=1`.
+- `requireSignedContext` (boolean): When true, `agm import-context` requires a valid signature (signature.bin/publickey.der) and blocks unsigned contexts.
+
+Temporary bypass for unsigned import (trusted):
+```powershell
+agm policy trust import-context --minutes 15
+agm import-context ./ctx.agmctx --allow-unsigned
+```
+Run `agm policy status` to view the effective values: `.agmctx defaults: signExports=…, requireSignedContext=…`.
+
+### Precedence (signing decision)
+
+Highest to lowest:
+1. `policy.forceSignedExports=true`
+2. CLI flag `--sign` / `--no-sign`
+3. `policy.signExports=true`
+4. `AGM_SIGN_EXPORT=1`
+5. default: unsigned
+
 ## Help/version bypass
 AGM never blocks `--help`, `-h`, `--version`, `-V`. The CLI also bypasses enforcement when only these flags are present. If you see a one-off block message in a task, reload VS Code to clear stale state.
 

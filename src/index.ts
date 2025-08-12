@@ -183,6 +183,7 @@ export class CodeContextCLI {
             .option('--include <glob...>', 'Include patterns (space-separated, supports ** and *)')
             .option('--exclude <glob...>', 'Exclude patterns (space-separated, supports ** and *)')
             .option('--symbols', 'Use symbol-aware chunking (functions/classes) where supported')
+            .option('--diff', 'Skip files whose content digest matches existing indexed version (faster re-run)')
             .action(async (opts: any) => { await this.handleIndexCode(opts); });
 
         // Watch mode for incremental code indexing
@@ -251,27 +252,42 @@ export class CodeContextCLI {
             .option('--since <days>', 'Show deltas for the last N days')
             .action(async (opts: any) => { await this.handleHealth(opts); });
 
+        // DB doctor (integrity + optional repair)
+        this.program
+            .command('db-doctor')
+            .description('Run SQLite integrity check; if corrupted can auto-backup and rebuild fresh schema')
+            .option('--dry-run', 'Only report issues; do not modify')
+            .option('--json', 'Output JSON summary')
+            .option('--no-repair', 'Do not attempt repair even if corruption detected')
+            .action(async (opts: any) => { await this.handleDbDoctor(opts); });
+
 
         // Receipt show
         this.program
             .command('receipt-show [idOrPath]')
             .description('Pretty-print a saved receipt by id or path')
             .option('--last', 'Show the most recent receipt')
-            .action(async (idOrPath: string, opts: any) => { const { handleReceiptShow } = await import('./commands/ReceiptShow.js'); await handleReceiptShow(idOrPath, { last: opts.last }); });
+            .option('--limit <n>', 'Show the last N receipts (implies --last)')
+            .action(async (idOrPath: string, opts: any) => { const { handleReceiptShow } = await import('./commands/ReceiptShow.js'); await handleReceiptShow(idOrPath, { last: opts.last, limit: opts.limit ? parseInt(String(opts.limit),10)||5 : undefined }); });
 
         // Air-Gapped context export/import (.agmctx)
         this.program
             .command('export-context')
-            .description('Export code memories to a .agmctx (unsigned v0)')
+            .description('Export code memories to a .agmctx (v1 manifest). Defaults to signing if policy.signExports=true (or AGM_SIGN_EXPORT=1).')
             .option('--out <file>', 'Output file path', 'context.agmctx')
             .option('--type <type>', 'Memory type to export', 'code')
             .option('--sign', 'Sign export with ED25519 (stores signature.bin and publickey.der)')
+            .option('--no-sign', 'Disable signing even if policy.signExports=true (ignored if policy.forceSignedExports=true)')
+            .option('--zip', 'Package export into single .agmctx.zip with checksums.json')
+            .option('--delta-from <prev>', 'Only export new/changed chunks relative to previous export (dir or .zip)')
+            .option('--delta', 'Shortcut: use last recorded export as --delta-from base (if available)')
             .action(async (opts: any) => { await this.handleExportContext(opts); });
 
     this.program
             .command('import-context <file>')
-            .description('Verify and import a .agmctx (unsigned v0)')
-            .action(async (file: string) => { await this.handleImportContext(file); });
+            .description('Verify and import a .agmctx; if policy.requireSignedContext=true, unsigned imports are blocked unless trusted and --allow-unsigned is set.')
+            .option('--allow-unsigned', 'Allow unsigned import when trusted via policy trust')
+            .action(async (file: string, opts: any) => { await this.handleImportContext(file, opts); });
 
         // AI Assistant Instructions command
         this.program
@@ -332,6 +348,26 @@ export class CodeContextCLI {
             .command('why')
             .description('List compelling reasons to upgrade (what you get with Pro)')
             .action(async () => { this.printProWhy(); });
+
+        // Key management (signing) - simple rotation (single active key)
+        const key = this.program.command('key').description('Manage signing key for .agmctx exports');
+        key
+            .command('status')
+            .description('Show current key fingerprint (keyId) if present')
+            .action(async () => { await this.handleKeyStatus(); });
+        key
+            .command('rotate')
+            .description('Rotate ED25519 signing key (creates new key pair)')
+            .action(async () => { await this.handleKeyRotate(); });
+        key
+            .command('list')
+            .description('List current and archived signing keys')
+            .action(async () => { await this.handleKeyList(); });
+        key
+            .command('prune')
+            .description('Prune archived keys older than --days (default 30)')
+            .option('--days <n>', 'Age in days (default 30)')
+            .action(async (opts: any) => { await this.handleKeyPrune(opts); });
     }
 
     // --- Soft Pro status (honor-system) helpers ---
@@ -376,6 +412,75 @@ export class CodeContextCLI {
         console.log(' - Less policy friction (policy templates; interactive doctor)');
         console.log(' - Enhanced .agmctx (zipped, checksums, merge, verify reports)');
         console.log('Sponsor: https://github.com/sponsors/jahboukie  |  Contact: team.mobileweb@gmail.com');
+    }
+
+    /**
+     * Load previous export index (map.csv + manifest.json) from either a directory or .zip file.
+     * Returns set of chunk identity keys (file:ls:le:chunkSha) and manifest digest for provenance.
+     */
+    private loadPreviousExportIndex(basePath: string): { keys: Set<string>; manifestDigest: string } {
+        const fs = require('fs');
+        const path = require('path');
+        const crypto = require('crypto');
+        let tempDir: string | null = null;
+        const cleanup = () => { try { if (tempDir && fs.existsSync(tempDir)) { fs.rmSync(tempDir, { recursive: true, force: true }); } } catch {} };
+        try {
+            let workDir = basePath;
+            if (/\.zip$/i.test(basePath)) {
+                // unzip into temp dir
+                const { unzipSync } = require('fflate');
+                const data = fs.readFileSync(basePath);
+                const files = unzipSync(new Uint8Array(data.buffer, data.byteOffset, data.length));
+                tempDir = path.join(process.cwd(), '.antigoldfishmode', 'tmp-prev-' + Date.now().toString(36));
+                fs.mkdirSync(tempDir, { recursive: true });
+                for (const name of Object.keys(files)) {
+                    const out = path.join(tempDir, name);
+                    fs.writeFileSync(out, Buffer.from(files[name]));
+                }
+                workDir = tempDir!; // now guaranteed non-null
+            }
+            const manifestPath = path.join(workDir, 'manifest.json');
+            const mapPath = path.join(workDir, 'map.csv');
+            if (!fs.existsSync(manifestPath) || !fs.existsSync(mapPath)) {
+                throw new Error('manifest.json or map.csv missing');
+            }
+            const manifestBuf = fs.readFileSync(manifestPath);
+            const manifestDigest = crypto.createHash('sha256').update(manifestBuf).digest('hex');
+            const map = fs.readFileSync(mapPath, 'utf8').split(/\r?\n/).slice(1).filter(Boolean);
+            const keys = new Set<string>();
+            // local lightweight CSV parser (handles quoted commas)
+            const parseCsvLine = (l: string): string[] => {
+                const out: string[] = [];
+                let cur = '';
+                let q = false;
+                for (let i = 0; i < l.length; i++) {
+                    const ch = l[i];
+                    if (q) {
+                        if (ch === '"') {
+                            if (l[i + 1] === '"') { cur += '"'; i++; } else { q = false; }
+                        } else cur += ch;
+                    } else {
+                        if (ch === ',') { out.push(cur); cur = ''; }
+                        else if (ch === '"') { q = true; }
+                        else cur += ch;
+                    }
+                }
+                out.push(cur);
+                return out.map(s => s.trim());
+            };
+            for (const line of map) {
+                const cols = parseCsvLine(line);
+                if (cols.length < 9) continue; // id,file,lang,line_start,line_end,symbol,type,timestamp,chunk_sha256
+                const file = cols[1];
+                const ls = cols[3];
+                const le = cols[4];
+                const sha = cols[8];
+                keys.add(`${file}:${ls}:${le}:${sha}`);
+            }
+            return { keys, manifestDigest };
+        } finally {
+            cleanup();
+        }
     }
 
     private nudgePro(featureKey: string, message: string): void {
@@ -861,10 +966,10 @@ export class CodeContextCLI {
     const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
-            tracer.plan('index-code', { root, maxChunk, symbols: !!opts.symbols, explain: tracer.flags.explain });
-            tracer.mirror(`agm index-code --path ${JSON.stringify(root)} --max-chunk ${maxChunk}${opts.symbols?' --symbols':''}${tracer.flags.explain?' --explain':''}`);
+            tracer.plan('index-code', { root, maxChunk, symbols: !!opts.symbols, diff: !!opts.diff, explain: tracer.flags.explain });
+            tracer.mirror(`agm index-code --path ${JSON.stringify(root)} --max-chunk ${maxChunk}${opts.symbols?' --symbols':''}${opts.diff?' --diff':''}${tracer.flags.explain?' --explain':''}`);
             if (tracer.flags.explain) {
-                console.log(chalk.gray(`Explanation: Walk files (include/exclude), ${opts.symbols?'chunk by symbols (functions/classes)':'chunk by lines'}, store as type=code with metadata (file, language, line ranges).`));
+                console.log(chalk.gray(`Explanation: Walk files (include/exclude), ${opts.symbols?'chunk by symbols (functions/classes/interfaces/enums)':'chunk by lines'}, store as type=code with metadata (file, language, line ranges).${opts.diff?' Diff: skip files whose contentSha already present.':''}`));
             }
 
             await this.memoryEngine.initialize();
@@ -892,7 +997,7 @@ export class CodeContextCLI {
             });
 
             const embedAndStore = async (text: string, tags: string[], metadata: any) => {
-                const id = await this.memoryEngine.database.storeMemory(text, context, 'code', tags, metadata);
+                const id = await this.memoryEngine.database.storeMemory(text, context, 'code', tags, metadata, { quiet: true });
                 if (provider && (provider as any).getInfo) {
                     try {
                         const vec = await provider.embed(text);
@@ -904,34 +1009,68 @@ export class CodeContextCLI {
                 saved++;
             };
 
+            // Pre-list files once (applies to both symbol and line modes)
+            const fileList = new (await import('./codeindex/CodeIndexer.js')).CodeIndexer(root).listFiles({ include, exclude, maxChunkLines: maxChunk });
+            // Load / build file digest cache (persisted) if --diff
+            let existingFileDigest: Map<string,string> | null = null;
+            let fileDigestCachePath: string | null = null;
+            if (opts.diff) {
+                existingFileDigest = new Map();
+                try {
+                    fileDigestCachePath = path.join(process.cwd(), '.antigoldfishmode', 'file-digests.json');
+                    if (fs.existsSync(fileDigestCachePath)) {
+                        const raw = JSON.parse(fs.readFileSync(fileDigestCachePath, 'utf8'));
+                        Object.keys(raw || {}).forEach(f => existingFileDigest!.set(f, raw[f]));
+                    }
+                } catch {}
+            } else {
+                // Build baseline cache so future --diff run can skip unchanged files
+                existingFileDigest = new Map();
+                try {
+                    fileDigestCachePath = path.join(process.cwd(), '.antigoldfishmode', 'file-digests.json');
+                } catch {}
+            }
+
             if (opts.symbols) {
                 if (!this.proEnabled) {
                     this.nudgePro('symbols', 'Enhanced symbol chunking (Tree-sitter pack, smarter heuristics) is available with Pro. Proceeding with basic symbol indexing.');
                 }
-                for (const file of indexer.listFiles({ include, exclude, maxChunkLines: maxChunk })) {
+                for (const file of fileList) {
                     const full = require('path').join(root, file);
+                    let fileSha: string | undefined;
+                    try { fileSha = crypto.createHash('sha256').update(fs.readFileSync(full)).digest('hex'); } catch {}
+                    if (existingFileDigest && fileSha && existingFileDigest.get(file) === fileSha) continue; // unchanged file (diff mode)
                     const chunks = symIndexer.chunkBySymbols(full);
                     for (const chunk of chunks) {
                         if (tracer.flags.dryRun) { continue; }
                         const tags = ['code', chunk.meta.language || 'unknown', 'symbol'];
-                        await embedAndStore(chunk.text, tags, chunk.meta);
+                        await embedAndStore(chunk.text, tags, { ...chunk.meta, contentSha: crypto.createHash('sha256').update(chunk.text).digest('hex'), fileDigest: fileSha });
                     }
+                    if (existingFileDigest && fileSha) existingFileDigest.set(file, fileSha); // update cache
                 }
             } else {
+                // Need file digests: build map file->fileDigest first
+                const fileDigestMap = new Map<string,string>();
+                for (const f of fileList) {
+                    try { fileDigestMap.set(f, crypto.createHash('sha256').update(fs.readFileSync(path.join(root, f))).digest('hex')); } catch {}
+                }
                 indexer.indexFiles({ maxChunkLines: maxChunk, context, include, exclude }, (chunk: { text: string; meta: { language?: string } }) => {
                     if (tracer.flags.dryRun) { return; }
+                    const rel = (chunk as any).meta?.file;
+                    if (existingFileDigest && rel && existingFileDigest.get(rel) === fileDigestMap.get(rel)) return; // unchanged file in diff mode
                     const tags = ['code', chunk.meta.language || 'unknown'];
-                    pending.push(embedAndStore(chunk.text, tags, chunk.meta));
+                    pending.push(embedAndStore(chunk.text, tags, { ...chunk.meta, contentSha: crypto.createHash('sha256').update(chunk.text).digest('hex'), fileDigest: rel ? fileDigestMap.get(rel) : undefined }));
+                    if (existingFileDigest && rel) existingFileDigest.set(rel, fileDigestMap.get(rel)!);
                 });
             }
 
             await Promise.all(pending);
 
             // reuse dynamic import above; construct a temporary indexer for digest
-            const listForDigest = new (await import('./codeindex/CodeIndexer.js')).CodeIndexer(root).listFiles({ include, exclude, maxChunkLines: maxChunk });
+            const listForDigest = fileList; // already computed
             const digest = crypto.createHash('sha256').update(JSON.stringify(listForDigest)).digest('hex');
 
-            const result = { saved, root, digest, fileCount: listForDigest.length };
+            const result = { saved, root, digest, fileCount: listForDigest.length, diff: !!opts.diff };
             if (tracer.flags.json) {
                 console.log(JSON.stringify(result, null, 2));
 
@@ -943,12 +1082,25 @@ export class CodeContextCLI {
             }
 
             } else {
-                console.log(`✅ Indexed code from ${root}. Saved chunks: ${saved}`);
-                console.log(chalk.gray(`   Files considered: ${listForDigest.length}, digest: ${digest.slice(0,8)}…`));
+                console.log(`✅ Indexed code from ${root}. Saved chunks: ${saved}${opts.diff?' (diff)':''}`);
+                console.log(chalk.gray(`   Files considered: ${listForDigest.length}, digest: ${digest.slice(0,8)}…${opts.diff?' (skipped unchanged)':''}`));
+                if (opts.diff && saved === 0) {
+                    console.log(chalk.gray('   All files unchanged (nothing new to index).'));
+                }
             }
 
-            const receipt = tracer.writeReceipt('index-code', { root, maxChunk, include, exclude, dryRun: tracer.flags.dryRun }, result, true, undefined, { resultSummary: { saved }, digests: { fileListDigest: digest } });
+            const receipt = tracer.writeReceipt('index-code', { root, maxChunk, include, exclude, dryRun: tracer.flags.dryRun, diff: !!opts.diff }, result, true, undefined, { resultSummary: { saved }, digests: { fileListDigest: digest } });
             tracer.appendJournal({ cmd: 'index-code', args: { root, maxChunk, include, exclude, dryRun: tracer.flags.dryRun }, receipt });
+
+            // Persist updated file digest cache if diff
+            if (fileDigestCachePath && existingFileDigest) {
+                try {
+                    fs.mkdirSync(path.dirname(fileDigestCachePath), { recursive: true });
+                    const obj: Record<string,string> = {};
+                    existingFileDigest.forEach((v,k) => { obj[k] = v; });
+                    fs.writeFileSync(fileDigestCachePath, JSON.stringify(obj, null, 2));
+                } catch {}
+            }
         } catch (error) {
             const receipt = tracer.writeReceipt('index-code', { root, maxChunk }, {}, false, (error as Error).message);
             tracer.appendJournal({ cmd: 'index-code', error: (error as Error).message, receipt });
@@ -1795,24 +1947,80 @@ export class CodeContextCLI {
 
     // ----- .agmctx export/import -----
     private async handleExportContext(opts: any): Promise<void> {
-        const outPath = path.resolve(process.cwd(), opts.out || 'context.agmctx');
+    const outPath = path.resolve(process.cwd(), opts.out || 'context.agmctx');
         const type = String(opts.type || 'code');
     const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
-            tracer.plan('export-context', { outPath, type, sign: !!opts.sign });
-            tracer.mirror(`agm export-context --out ${JSON.stringify(opts.out||'context.agmctx')} --type ${type}${opts.sign?' --sign':''}`);
+            const startedAt = Date.now();
+            // Resolve --delta shorthand to last export base if present
+            if (opts.delta && !opts.deltaFrom) {
+                try {
+                    const markerPath = path.join(process.cwd(), '.antigoldfishmode', 'last-export.json');
+                    if (fs.existsSync(markerPath)) {
+                        const meta = JSON.parse(fs.readFileSync(markerPath, 'utf8'));
+                        if (meta && meta.outPath && fs.existsSync(meta.outPath)) {
+                            opts.deltaFrom = meta.outPath;
+                        }
+                    }
+                } catch {}
+            }
+            const pol = this.policyBroker.getPolicy();
+            let signReason: 'force'|'flag'|'policy'|'env'|undefined;
+            let wantSign: boolean;
+            if (pol.forceSignedExports) { wantSign = true; signReason = 'force'; }
+            else if (typeof opts.sign === 'boolean') { wantSign = !!opts.sign; signReason = 'flag'; }
+            else if (pol.signExports) { wantSign = true; signReason = 'policy'; }
+            else if (process.env.AGM_SIGN_EXPORT === '1') { wantSign = true; signReason = 'env'; }
+            else { wantSign = false; }
+            if (pol.forceSignedExports && opts.sign === false) {
+                console.log(chalk.yellow('ℹ️ --no-sign ignored: policy.forceSignedExports=true'));
+            }
+            tracer.plan('export-context', { outPath, type, sign: wantSign, decision: { sign: { effective: wantSign, reason: signReason } } });
+            tracer.mirror(`agm export-context --out ${JSON.stringify(opts.out||'context.agmctx')} --type ${type}${wantSign?' --sign':''}`);
             if (tracer.flags.explain) {
                 console.log(chalk.gray('Explanation: exports type-filtered memories, metadata map, and vectors as a portable .agmctx directory. If --sign, emits ED25519 signature using a local private key.'));
             }
 
             await this.memoryEngine.initialize();
-            const list = await this.memoryEngine.database.listMemories({ type });
+            let fullList = await this.memoryEngine.database.listMemories({ type });
+            const originalCountAll = fullList.length;
+            let unchangedFiltered = 0;
+
+            // If delta-from specified, load previous export's map and filter
+            let deltaBaseManifestDigest: string | undefined;
+            let deltaBasePath: string | undefined;
+            if (opts.deltaFrom) {
+                try {
+                    deltaBasePath = path.resolve(process.cwd(), opts.deltaFrom);
+                    const prev = this.loadPreviousExportIndex(deltaBasePath);
+                    deltaBaseManifestDigest = prev.manifestDigest;
+                    const prevKeys = prev.keys; // Set<string>
+                    // build key for each memory chunk; key uses file:lineStart:lineEnd:chunkSha (if metadata available)
+                    const filterBefore = fullList.length;
+                    fullList = fullList.filter((m: any) => {
+                        let meta: any = {}; try { meta = JSON.parse(m.metadata||'{}'); } catch {}
+                        const file = meta.file || '';
+                        const ls = meta.lineStart || '';
+                        const le = meta.lineEnd || '';
+                        const sha = crypto.createHash('sha256').update(String(m.content||'')).digest('hex');
+                        const key = `${file}:${ls}:${le}:${sha}`;
+                        return !prevKeys.has(key);
+                    });
+                    unchangedFiltered = filterBefore - fullList.length;
+                    if (tracer.flags.explain) {
+                        console.log(chalk.gray(`Delta export: filtered ${unchangedFiltered} unchanged chunk(s) using base ${deltaBasePath}`));
+                    }
+                } catch (e) {
+                    console.log(chalk.yellow(`⚠️ delta-from ignored (failed to load previous export): ${(e as Error).message}`));
+                }
+            }
+            const list = fullList;
             // Prepare container dir
             const tmpDir = path.join(process.cwd(), '.antigoldfishmode', 'tmp-export-' + Date.now().toString(36));
             fs.mkdirSync(tmpDir, { recursive: true });
             // map.csv (write first)
-            const mapLines = ['id,file,lang,line_start,line_end,symbol,type,timestamp'];
+            const mapLines = ['id,file,lang,line_start,line_end,symbol,type,timestamp,chunk_sha256'];
             for (const m of list) {
                 const meta = (() => { try { return JSON.parse(m.metadata||'{}'); } catch { return {}; } })();
                 const file = meta.file || '';
@@ -1822,7 +2030,8 @@ export class CodeContextCLI {
                 const sym = meta.symbolName || '';
                 const typ = meta.symbolType || '';
                 const ts = m.createdAt || '';
-                mapLines.push([m.id, file, lang, ls, le, sym, typ, ts].map(v => String(v).replace(/"/g,'""')).map(v => /,|"/.test(v)?`"${v}"`:v).join(','));
+                const chunkSha = crypto.createHash('sha256').update(String(m.content||'')).digest('hex');
+                mapLines.push([m.id, file, lang, ls, le, sym, typ, ts, chunkSha].map(v => String(v).replace(/"/g,'""')).map(v => /,|"/.test(v)?`"${v}"`:v).join(','));
             }
             fs.writeFileSync(path.join(tmpDir, 'map.csv'), mapLines.join('\n'));
             // notes.jsonl (non-code memories placeholder: export none for now)
@@ -1861,17 +2070,33 @@ export class CodeContextCLI {
                 }
             } catch {}
 
-            const manifest = {
+            const manifest: any = {
                 schemaVersion: 1,
                 type,
                 count: list.length,
                 createdAt: new Date().toISOString(),
+                exporter: {
+                    name: 'antigoldfishmode',
+                    version: require('../package.json').version,
+                    node: process.version,
+                    host: require('os').hostname()
+                },
                 vectors: { dim, count: total, backend }
             };
+            if (deltaBaseManifestDigest) {
+                manifest.delta = {
+                    baseManifestDigest: deltaBaseManifestDigest,
+                    basePath: deltaBasePath,
+                    originalCount: originalCountAll,
+                    unchangedSkipped: unchangedFiltered,
+                    exportedCount: list.length
+                };
+            }
+            // keyId will be injected below if signing
             fs.writeFileSync(path.join(tmpDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
 
             // Optional signing (ED25519) using a local keypair stored under .antigoldfishmode/keys
-            if (opts.sign) {
+            if (wantSign) {
                 this.nudgePro('sign', 'Signed exports (.agmctx + signature) are a Pro convenience feature. Proceeding with local signing.');
                 try {
                     const keyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
@@ -1892,6 +2117,15 @@ export class CodeContextCLI {
                         fs.writeFileSync(pubKeyPath, publicKey);
                         fs.writeFileSync(privKeyPath, privateKey);
                     }
+                    // Compute keyId (fingerprint)
+                    const keyId = crypto.createHash('sha256').update(publicKey).digest('hex').slice(0,16);
+                    // Re-write manifest with keyId included (before signing)
+                    try {
+                        const manifestPath = path.join(tmpDir, 'manifest.json');
+                        const current = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+                        current.keyId = keyId;
+                        fs.writeFileSync(manifestPath, JSON.stringify(current, null, 2));
+                    } catch {}
 
                     // Sign manifest+map+vectors digest
                     const { createSign, createHash } = await import('crypto');
@@ -1912,32 +2146,72 @@ export class CodeContextCLI {
                 }
             }
 
-            // Pack into a simple zip-like tar (use naive .zip substitute: concatenate files in a folder).
-            // Simpler: write as a directory renamed .agmctx (portable). For now, create a .zip via Node built-ins unavailable; so ship folder.
-            // We’ll write a folder named outPath without extension if outPath ends with .agmctx
-            if (outPath.toLowerCase().endsWith('.agmctx')) {
-                const outDir = outPath;
-                fs.mkdirSync(outDir, { recursive: true });
-                const files = ['manifest.json','map.csv','notes.jsonl','vectors.f32'];
-                if (opts.sign) files.push('signature.bin','publickey.der');
-                for (const f of files) {
-                    fs.copyFileSync(path.join(tmpDir, f), path.join(outDir, f));
+            // Build file list and checksums
+            const baseFiles = ['manifest.json','map.csv','notes.jsonl','vectors.f32'];
+            if (wantSign) baseFiles.push('signature.bin','publickey.der');
+            const checksums: Record<string,string> = {};
+            for (const f of baseFiles) {
+                const buf = fs.readFileSync(path.join(tmpDir, f));
+                checksums[f] = crypto.createHash('sha256').update(buf).digest('hex');
+            }
+            fs.writeFileSync(path.join(tmpDir, 'checksums.json'), JSON.stringify({ algorithm: 'sha256', files: checksums }, null, 2));
+            baseFiles.push('checksums.json');
+            const wantZip = !!opts.zip || /\.zip$/i.test(outPath);
+            if (wantZip) {
+                const zipTarget = outPath.endsWith('.zip') ? outPath : (outPath.endsWith('.agmctx') ? outPath + '.zip' : outPath + '.agmctx.zip');
+                const { zipSync } = await import('fflate');
+                const zipInput: any = {};
+                for (const f of baseFiles) {
+                    const data = fs.readFileSync(path.join(tmpDir, f));
+                    zipInput[f] = new Uint8Array(data.buffer, data.byteOffset, data.length);
+                }
+                const zipped = zipSync(zipInput, { level: 6 });
+                fs.writeFileSync(zipTarget, Buffer.from(zipped));
+                const artifactSha = crypto.createHash('sha256').update(zipped).digest('hex');
+                const tookMs = Date.now() - startedAt;
+                console.log(chalk.green(`✅ Exported ${list.length} '${type}' memories${opts.deltaFrom?' (delta)':''} (zipped) → ${zipTarget}`));
+                console.log(chalk.gray(`   artifact sha256=${artifactSha.slice(0,16)}… files=${baseFiles.length-1}`));
+                if (opts.deltaFrom && deltaBaseManifestDigest) {
+                    console.log(chalk.gray(`   delta: base=${deltaBaseManifestDigest.slice(0,12)} unchanged=${unchangedFiltered} original=${originalCountAll}`));
+                }
+                console.log(chalk.gray(`   time: ${tookMs}ms  rate: ${(list.length? (list.length/(tookMs/1000)).toFixed(1):'—')} chunks/s`));
+                if (!opts.deltaFrom && originalCountAll && list.length === originalCountAll) {
+                    console.log(chalk.gray('   hint: next time run with --delta to skip unchanged chunks.'));
                 }
             } else {
-                // Out as directory
-                fs.mkdirSync(outPath, { recursive: true });
-                const files = ['manifest.json','map.csv','notes.jsonl','vectors.f32'];
-                if (opts.sign) files.push('signature.bin','publickey.der');
-                for (const f of files) {
-                    fs.copyFileSync(path.join(tmpDir, f), path.join(outPath, f));
+                const outDir = outPath;
+                fs.mkdirSync(outDir, { recursive: true });
+                for (const f of baseFiles) {
+                    fs.copyFileSync(path.join(tmpDir, f), path.join(outDir, f));
+                }
+                const aggregate = crypto.createHash('sha256').update(Object.values(checksums).join('')).digest('hex');
+                const tookMs = Date.now() - startedAt;
+                console.log(chalk.green(`✅ Exported ${list.length} '${type}' memories${opts.deltaFrom?' (delta)':''} to ${outDir}`));
+                console.log(chalk.gray(`   aggregate sha256=${aggregate.slice(0,16)}… files=${baseFiles.length-1}`));
+                if (opts.deltaFrom && deltaBaseManifestDigest) {
+                    console.log(chalk.gray(`   delta: base=${deltaBaseManifestDigest.slice(0,12)} unchanged=${unchangedFiltered} original=${originalCountAll}`));
+                }
+                console.log(chalk.gray(`   time: ${tookMs}ms  rate: ${(list.length? (list.length/(tookMs/1000)).toFixed(1):'—')} chunks/s`));
+                if (!opts.deltaFrom && originalCountAll && list.length === originalCountAll) {
+                    console.log(chalk.gray('   hint: next time run with --delta to skip unchanged chunks.'));
                 }
             }
 
-            console.log(chalk.green(`✅ Exported ${list.length} '${type}' memories to ${outPath}`));
             // Emit a receipt for export
             try {
-                const receipt = tracer.writeReceipt('export-context', { outPath, type, sign: !!opts.sign }, { outPath, type, count: list.length, signed: !!opts.sign, vectors: { dim, count: total, backend } }, true);
-                tracer.appendJournal({ cmd: 'export-context', args: { outPath, type, sign: !!opts.sign }, receipt });
+                // load manifest to capture keyId if present
+                let keyId: string | undefined; let manifestPathCandidate = path.join(outPath, 'manifest.json');
+                if (fs.existsSync(manifestPathCandidate)) { try { keyId = JSON.parse(fs.readFileSync(manifestPathCandidate,'utf8')).keyId; } catch {} }
+                const deltaInfo = deltaBaseManifestDigest ? { baseManifestDigest: deltaBaseManifestDigest, originalCount: originalCountAll, unchangedSkipped: unchangedFiltered, exportedCount: list.length } : undefined;
+                const tookMs = Date.now() - startedAt;
+                const receipt = tracer.writeReceipt('export-context', { outPath, type, sign: wantSign, zip: !!opts.zip, decision: { sign: { effective: wantSign, reason: signReason } }, delta: deltaInfo, timing: { ms: tookMs } }, { outPath, type, count: list.length, signed: wantSign, zipped: !!opts.zip, keyId, vectors: { dim, count: total, backend }, delta: deltaInfo, timing: { ms: tookMs } }, true);
+                tracer.appendJournal({ cmd: 'export-context', args: { outPath, type, sign: wantSign }, receipt });
+                // Persist last export marker (always record full outPath; prefer directory if not zipped)
+                try {
+                    const markerDir = path.join(process.cwd(), '.antigoldfishmode');
+                    fs.mkdirSync(markerDir, { recursive: true });
+                    fs.writeFileSync(path.join(markerDir, 'last-export.json'), JSON.stringify({ outPath, type, at: new Date().toISOString(), count: list.length, delta: !!opts.deltaFrom }, null, 2));
+                } catch {}
             } catch {}
         } catch (error) {
             console.error(chalk.red('❌ Export failed:'), error instanceof Error ? error.message : 'Unknown error');
@@ -1946,20 +2220,213 @@ export class CodeContextCLI {
         }
     }
 
-    private async handleImportContext(file: string): Promise<void> {
-        const dir = path.resolve(process.cwd(), file);
+    /**
+     * Database doctor: integrity check and optional repair.
+     */
+    private async handleDbDoctor(opts: any): Promise<void> {
+        const dbDir = path.join(process.cwd(), '.antigoldfishmode');
+        // Support encrypted filename variant
+        let dbPath = path.join(dbDir, 'memories.db');
+        const encPath = path.join(dbDir, 'memory.db.enc');
+        if (fs.existsSync(encPath) && !fs.existsSync(dbPath)) {
+            dbPath = encPath; // operate on encrypted container (will just back it up & rebuild fresh decrypted then re-encrypt on next init)
+        }
+        const jsonOut = !!opts.json;
+        const report: any = { dbPath, exists: fs.existsSync(dbPath) };
+    if (!fs.existsSync(dbPath)) {
+            const msg = 'No memories.db present (nothing to check).';
+            if (jsonOut) console.log(JSON.stringify({ ...report, message: msg }, null, 2)); else console.log(chalk.yellow(msg));
+            return;
+        }
+        let corrupted = false; let details: string[] = [];
+        try {
+            const sqlite3 = require('better-sqlite3');
+            const db = sqlite3(dbPath, { readonly: true });
+            try {
+                details = db.prepare('PRAGMA integrity_check;').all().map((r: any) => Object.values(r)[0]);
+            } catch (e) {
+                details = ['corrupt'];
+            } finally { db.close(); }
+            corrupted = !(details.length === 1 && details[0] === 'ok');
+        } catch (e) {
+            corrupted = true; details = ['open_failed:' + (e as Error).message];
+        }
+        report.integrity = details; report.corrupted = corrupted;
+        if (!corrupted) {
+            if (jsonOut) console.log(JSON.stringify({ ...report, status: 'ok' }, null, 2)); else console.log(chalk.green('✅ Database integrity OK.'));
+            return;
+        }
+        if (!jsonOut) console.log(chalk.red('❌ Corruption detected.'));
+        if (opts.noRepair) {
+            if (!jsonOut) console.log(chalk.yellow('Skipping repair (--no-repair set).'));
+            if (jsonOut) console.log(JSON.stringify({ ...report, status: 'corrupted', action: 'none' }, null, 2));
+            return;
+        }
+        if (opts.dryRun) {
+            if (!jsonOut) console.log(chalk.gray('Dry-run: would backup and rebuild.')); else console.log(JSON.stringify({ ...report, status: 'corrupted', dryRun: true }, null, 2));
+            return;
+        }
+        const actions: any[] = [];
+        try {
+            const ts = new Date().toISOString().replace(/[:.]/g,'-');
+            const backupDir = path.join(dbDir, 'corrupt-backups');
+            fs.mkdirSync(backupDir, { recursive: true });
+            const baseName = path.basename(dbPath);
+            const backupPath = path.join(backupDir, `${baseName}.${ts}`);
+            fs.copyFileSync(dbPath, backupPath); actions.push({ backup: backupPath });
+            ;['memories.db','memories.db-wal','memories.db-shm','memory.db.enc'].forEach(f => { const p = path.join(dbDir, f); if (fs.existsSync(p)) fs.rmSync(p); });
+            actions.push({ removed: 'original_files' });
+            await this.memoryEngine.initialize();
+            actions.push({ rebuilt: true });
+            if (!jsonOut) console.log(chalk.green('✅ Rebuilt fresh database (backup stored).'));
+            if (jsonOut) console.log(JSON.stringify({ ...report, status: 'repaired', actions }, null, 2));
+        } catch (e) {
+            if (!jsonOut) console.log(chalk.red('❌ Repair failed:'), (e as Error).message);
+            if (jsonOut) console.log(JSON.stringify({ ...report, status: 'repair_failed', error: (e as Error).message, actions }, null, 2));
+        } finally {
+            await this.cleanup();
+        }
+    }
+
+    private async handleKeyStatus(): Promise<void> {
+        try {
+            const keyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
+            const pubKeyPath = path.join(keyDir, 'agm_ed25519.pub');
+            if (!fs.existsSync(pubKeyPath)) {
+                console.log(chalk.yellow('ℹ️ No signing key present (will auto-generate on first signed export).'));
+                return;
+            }
+            const pub = fs.readFileSync(pubKeyPath);
+            const keyId = crypto.createHash('sha256').update(pub).digest('hex').slice(0,16);
+            console.log(chalk.cyan('🔑 Signing Key'));
+            console.log(`   keyId: ${keyId}`);
+            console.log(`   pub: ${pub.length} bytes (ed25519)`);
+        } catch (e) {
+            console.log(chalk.red('❌ Key status failed:'), (e as Error).message);
+        }
+    }
+
+    private async handleKeyRotate(): Promise<void> {
+        try {
+            const keyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
+            if (!fs.existsSync(keyDir)) fs.mkdirSync(keyDir, { recursive: true });
+            const pubKeyPath = path.join(keyDir, 'agm_ed25519.pub');
+            const privKeyPath = path.join(keyDir, 'agm_ed25519.key');
+            // Archive existing key if present
+            if (fs.existsSync(pubKeyPath) && fs.existsSync(privKeyPath)) {
+                try {
+                    const oldPub = fs.readFileSync(pubKeyPath);
+                    const oldKeyId = crypto.createHash('sha256').update(oldPub).digest('hex').slice(0,16);
+                    const archiveDir = path.join(keyDir, 'archive');
+                    fs.mkdirSync(archiveDir, { recursive: true });
+                    const ts = new Date().toISOString().replace(/[:.]/g,'-');
+                    fs.renameSync(pubKeyPath, path.join(archiveDir, `${oldKeyId}.${ts}.pub`));
+                    fs.renameSync(privKeyPath, path.join(archiveDir, `${oldKeyId}.${ts}.key`));
+                } catch (e) {
+                    console.log(chalk.yellow('⚠️ Failed to archive previous key (continuing):'), (e as Error).message);
+                }
+            }
+            const { generateKeyPairSync } = await import('crypto');
+            const { publicKey: pub, privateKey: priv } = generateKeyPairSync('ed25519');
+            const publicKey = pub.export({ type: 'spki', format: 'der' }) as Buffer;
+            const privateKey = priv.export({ type: 'pkcs8', format: 'der' }) as Buffer;
+            fs.writeFileSync(pubKeyPath, publicKey);
+            fs.writeFileSync(privKeyPath, privateKey);
+            const keyId = crypto.createHash('sha256').update(publicKey).digest('hex').slice(0,16);
+            console.log(chalk.green(`✅ Rotated signing key. New keyId=${keyId}`));
+            console.log(chalk.gray('   Existing signed .agmctx remain verifiable (they embed their public key).'));
+        } catch (e) {
+            console.log(chalk.red('❌ Key rotation failed:'), (e as Error).message);
+        }
+    }
+
+    private async handleKeyList(): Promise<void> {
+        try {
+            const keyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
+            const pubKeyPath = path.join(keyDir, 'agm_ed25519.pub');
+            console.log(chalk.cyan('🔑 Keyring'));
+            if (fs.existsSync(pubKeyPath)) {
+                try {
+                    const pub = fs.readFileSync(pubKeyPath);
+                    const keyId = crypto.createHash('sha256').update(pub).digest('hex').slice(0,16);
+                    console.log(`   current: ${keyId}`);
+                } catch {}
+            } else {
+                console.log('   current: (none)');
+            }
+            const archiveDir = path.join(keyDir, 'archive');
+            if (fs.existsSync(archiveDir)) {
+                const entries = fs.readdirSync(archiveDir).filter(f => /\.pub$/.test(f));
+                if (entries.length) {
+                    console.log('   archived:');
+                    for (const f of entries.slice(0,20)) {
+                        const [kid, iso] = f.split('.');
+                        console.log(`     • ${kid}  rotatedAt=${iso}`);
+                    }
+                    if (entries.length > 20) console.log(`     … (${entries.length-20} more)`);
+                }
+            }
+        } catch (e) {
+            console.log(chalk.red('❌ Key list failed:'), (e as Error).message);
+        }
+    }
+
+    private async handleKeyPrune(opts: any): Promise<void> {
+        try {
+            const days = parseInt(String(opts.days||'30'),10) || 30;
+            const cutoff = Date.now() - days*24*60*60*1000;
+            const keyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
+            const archiveDir = path.join(keyDir, 'archive');
+            if (!fs.existsSync(archiveDir)) { console.log(chalk.gray('ℹ️ No archive directory')); return; }
+            let removed = 0;
+            for (const f of fs.readdirSync(archiveDir)) {
+                const full = path.join(archiveDir, f);
+                try {
+                    const st = fs.statSync(full);
+                    if (st.mtimeMs < cutoff) { fs.unlinkSync(full); removed++; }
+                } catch {}
+            }
+            console.log(chalk.green(`✅ Pruned ${removed} archived key file(s) older than ${days} day(s)`));
+        } catch (e) {
+            console.log(chalk.red('❌ Key prune failed:'), (e as Error).message);
+        }
+    }
+
+    private async handleImportContext(file: string, opts?: any): Promise<void> {
+        let dir = path.resolve(process.cwd(), file);
     const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
+            // If a zip archive is provided, unzip to a temp directory first
+            if (/\.zip$/i.test(dir) && fs.existsSync(dir)) {
+                try {
+                    const buf = fs.readFileSync(dir);
+                    const { unzipSync } = await import('fflate');
+                    const unzipped = unzipSync(new Uint8Array(buf));
+                    const tmpDir = path.join(process.cwd(), '.antigoldfishmode', 'tmp-import-' + Date.now().toString(36));
+                    fs.mkdirSync(tmpDir, { recursive: true });
+                    for (const [name, data] of Object.entries(unzipped)) {
+                        const out = path.join(tmpDir, name);
+                        fs.writeFileSync(out, Buffer.from(data as Uint8Array));
+                    }
+                    dir = tmpDir; // treat as directory import below
+                } catch (e) {
+                    console.log(chalk.red('❌ Failed to unzip provided archive:'), (e as Error).message);
+                    process.exit(1); return;
+                }
+            }
             const manifestPath = path.join(dir, 'manifest.json');
             const mapPath = path.join(dir, 'map.csv');
             const vecPath = path.join(dir, 'vectors.f32');
             if (!fs.existsSync(manifestPath) || !fs.existsSync(mapPath) || !fs.existsSync(vecPath)) {
                 console.log(chalk.red('❌ Invalid .agmctx: missing required files'));
+                process.exit(1);
                 return;
             }
             const manifest = JSON.parse(fs.readFileSync(manifestPath,'utf8'));
             let verified = false;
+            let invalidSignature = false;
+            let checksumMismatch = false;
             // If signature present, verify
             const sigPath = path.join(dir, 'signature.bin');
             const pubPath = path.join(dir, 'publickey.der');
@@ -1973,11 +2440,63 @@ export class CodeContextCLI {
                     sha.update(fs.readFileSync(vecPath));
                     const digest = sha.digest();
                     const ok = verify(null, digest, pub, fs.readFileSync(sigPath));
-                    verified = ok;
+                    if (ok) {
+                        verified = true;
+                    } else {
+                        invalidSignature = true; // signature present but mismatch
+                    }
                 } catch (e) {
-                    console.log(chalk.yellow('⚠️ Signature verification failed; proceeding without trust guarantee:'), (e as Error).message);
+                    invalidSignature = true;
+                    console.log(chalk.yellow('⚠️ Signature verification failed'), (e as Error).message);
                 }
             }
+            // Verify checksums.json if present
+            try {
+                const checksumsPath = path.join(dir, 'checksums.json');
+                if (fs.existsSync(checksumsPath)) {
+                    const data = JSON.parse(fs.readFileSync(checksumsPath, 'utf8'));
+                    if (data && data.files && typeof data.files === 'object') {
+                        for (const [fname, expected] of Object.entries<string>(data.files)) {
+                            const target = path.join(dir, fname);
+                            if (!fs.existsSync(target)) { checksumMismatch = true; console.log(chalk.red(`❌ Missing file listed in checksums.json: ${fname}`)); break; }
+                            const buf = fs.readFileSync(target);
+                            const got = crypto.createHash('sha256').update(buf).digest('hex');
+                            if (got !== expected) { checksumMismatch = true; console.log(chalk.red(`❌ Checksum mismatch for ${fname}`)); break; }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log(chalk.yellow('⚠️ Failed to verify checksums:'), (e as Error).message);
+            }
+
+            // Enforce policy if required or mismatch
+            try {
+                const pol = this.policyBroker.getPolicy();
+                const allowUnsigned = !!(opts?.allowUnsigned) && this.policyBroker.isTrusted('import-context');
+                if (checksumMismatch) {
+                    const receipt = tracer.writeReceipt('import-context', { file, decision: { unsignedBypass: { allowed: false, reason: 'checksum_mismatch' } } }, {}, false, 'checksum_mismatch', { exitCode: 4 });
+                    tracer.appendJournal({ cmd: 'import-context', args: { file }, receipt });
+                    console.log(chalk.red('❌ Import blocked: checksum mismatch (exit 4)'));
+                    process.exit(4); return;
+                }
+                if (pol.requireSignedContext) {
+                    if (invalidSignature) {
+                        const receipt = tracer.writeReceipt('import-context', { file, decision: { unsignedBypass: { allowed: false, reason: 'invalid_signature' } } }, {}, false, 'invalid_signature', { exitCode: 3 });
+                        tracer.appendJournal({ cmd: 'import-context', args: { file }, receipt });
+                        console.log(chalk.red('❌ Import blocked: invalid signature (exit 3)'));
+                        process.exit(3);
+                        return;
+                    }
+                    if (!verified && !allowUnsigned) {
+                        const receipt = tracer.writeReceipt('import-context', { file, decision: { unsignedBypass: { allowed: false, reason: 'policy' } } }, {}, false, 'unsigned_blocked', { exitCode: 2 });
+                        tracer.appendJournal({ cmd: 'import-context', args: { file }, receipt });
+                        console.log(chalk.red('❌ Import blocked: policy requires a valid signed .agmctx (signature.bin/publickey.der)'));
+                        console.log(chalk.gray('   Tip: agm policy trust import-context --minutes 15, then rerun with --allow-unsigned to bypass temporarily.'));
+                        process.exit(2);
+                        return;
+                    }
+                }
+            } catch {}
             console.log(chalk.green(`✅ Context verified (v${manifest.schemaVersion}, type=${manifest.type}, count=${manifest.count}${verified?', signed':''})`));
 
             // Import vectors: read map.csv for ids in order, then vectors.f32
@@ -2026,7 +2545,16 @@ export class CodeContextCLI {
             // Emit a receipt for import
             try {
                 const vectorsMeta = dim ? { rows: Math.floor(vecBuf.length/4/dim), dim, backend: manifest?.vectors?.backend } : undefined;
-                const receipt = tracer.writeReceipt('import-context', { file }, { verified, schemaVersion: Number(manifest.schemaVersion), type: String(manifest.type), metadataRows: ids.length, vectors: vectorsMeta }, true);
+                // Build verification extras (files + checksums if available)
+                let checksumInfo: any = undefined;
+                try {
+                    const csPath = path.join(dir, 'checksums.json');
+                    if (fs.existsSync(csPath)) {
+                        const data = JSON.parse(fs.readFileSync(csPath,'utf8'));
+                        checksumInfo = { count: Object.keys(data.files||{}).length };
+                    }
+                } catch {}
+                const receipt = tracer.writeReceipt('import-context', { file, decision: { unsignedBypass: { allowed: !verified, reason: !verified ? 'trust' : 'signed' } } }, { verified, schemaVersion: Number(manifest.schemaVersion), type: String(manifest.type), metadataRows: ids.length, vectors: vectorsMeta, checksumVerified: checksumInfo?.count }, true, undefined, { verification: { checksums: checksumInfo } });
                 tracer.appendJournal({ cmd: 'import-context', args: { file }, receipt });
             } catch {}
         } catch (error) {
@@ -2047,6 +2575,18 @@ export class CodeContextCLI {
         console.log(`   Paths allowed: ${pol.allowedGlobs.join(', ')}`);
         console.log(`   Network egress: ${pol.networkEgress ? 'allowed' : 'blocked'}`);
         console.log(`   Audit trail: ${pol.auditTrail ? 'on' : 'off'}`);
+        if (typeof pol.signExports === 'boolean' || typeof pol.requireSignedContext === 'boolean') {
+            console.log(`   .agmctx defaults: signExports=${!!pol.signExports}, requireSignedContext=${!!pol.requireSignedContext}, forceSignedExports=${!!(pol as any).forceSignedExports}`);
+        }
+        try {
+            const trust = this.policyBroker.listTrust();
+            if (trust.length) {
+                console.log('   Trust tokens:');
+                for (const t of trust.slice(0,5)) {
+                    console.log(`     • ${t.cmd} until ${t.until}`);
+                }
+            }
+        } catch {}
     }
 
     private async handlePolicyAllowCommand(cmd: string): Promise<void> {
@@ -2180,3 +2720,15 @@ export function main(argv: string[]): void {
 if (require.main === module) {
     main(process.argv);
 }
+
+// DIFF TEST MUTATION 1755005861828
+
+// DIFF TEST MUTATION 1755006005906
+
+// DIFF TEST MUTATION 1755006380939
+
+// DIFF TEST MUTATION 1755006551099
+
+// DIFF TEST MUTATION 1755019143782
+
+// DIFF TEST MUTATION 1755019188496

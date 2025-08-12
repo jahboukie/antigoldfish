@@ -5,6 +5,31 @@ All notable changes to AntiGoldfishMode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2025-08-12
+
+### Added
+- 🔐 Per-file SHA256 checksums on export with verification during import (definitive tamper detection).
+- 🗜️ Zipped context export/import (`.agmctx.zip`) alongside directory mode.
+- ✍️ Export provenance metadata (exporter name/version/node/host + keyId) embedded in `manifest.json`.
+- 🗝️ Key lifecycle commands: `key list`, `key prune` plus archival of rotated keys (`keys/archive/`).
+- 🧾 Receipt verification extras (records checksum/signature verification outcomes).
+- 🛡️ Path redaction guard for receipts (sanitizes potentially sensitive absolute paths).
+
+### Changed
+- 🔄 Key rotation now archives prior keypair instead of deleting, enabling future multi-key trust.
+- 🧬 Import precedence: checksum mismatch (exit 4) takes priority over signature mismatch (exit 3) for clearer failure semantics.
+
+### Fixed
+- 🧪 Updated tamper tests to distinguish checksum vs signature failures deterministically.
+
+### Security
+- ✅ Added deterministic exit codes: 2 (unsigned policy block), 3 (invalid signature), 4 (checksum mismatch) for scripting & CI.
+
+### Notes
+- This release focuses on integrity, provenance, and key management groundwork prior to advanced symbol/ANN recall.
+
+---
+
 ## [1.7.0] - 2025-08-11
 
 ### Added

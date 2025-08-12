@@ -87,6 +87,9 @@ export class MemoryEngine2 {
         cacheHits: 0
     };
 
+    // Promise that resolves when core components (but not DB schema) are constructed.
+    private componentsReady: Promise<void> | null = null;
+
     constructor(projectPath: string, options: MemoryEngine2Options = {}) {
         this.projectPath = projectPath;
         this.dbPath = path.join(projectPath, '.antigoldfishmode', 'memory_v2.db');
@@ -105,7 +108,12 @@ export class MemoryEngine2 {
             ...options
         };
 
-        this.initializeComponents();
+        // Kick off async component construction but don't block constructor.
+        // Store promise so initialize()/ensureInitialized can await it to avoid race conditions.
+        this.componentsReady = this.initializeComponents().catch(err => {
+            console.error('❌ Component initialization failed:', err);
+            throw err;
+        });
     }
 
     /**
@@ -162,6 +170,11 @@ export class MemoryEngine2 {
 
         try {
             const initStart = Date.now();
+
+            // Ensure component construction (pool, cache, embeddings, db wrapper, hybrid engine) finished
+            if (this.componentsReady) {
+                await this.componentsReady;
+            }
 
             // Ensure project directory exists
             this.validateAndCreateProjectStructure();
@@ -506,6 +519,11 @@ export class MemoryEngine2 {
      * Private helper methods
      */
     private async ensureInitialized(): Promise<void> {
+        if (this.initialized) return;
+        // Wait for component construction if still in progress
+        if (this.componentsReady) {
+            await this.componentsReady;
+        }
         if (!this.initialized) {
             await this.initialize();
         }

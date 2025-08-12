@@ -1,21 +1,54 @@
 Executive Summary
-AGM is an AI‑native tool with Developer Parity: anything the agent does is transparent, reproducible, and verifiable by a human. We will lead with an Agent Transparency & Operator Parity layer, then ship code‑aware semantic recall and zero‑trust execution. This sequence builds trust first and upgrades recall second.
+AGM is an AI‑native tool with Developer Parity: anything the agent does is transparent, reproducible, and verifiable by a human. We led with Agent Transparency & Operator Parity, then hardened zero‑trust + air‑gapped context integrity. Advanced semantic recall (Tree‑sitter + ANN) is the next performance leap. Sequence: build trust first → deliver durable recall → accelerate performance for power users.
 
-Immediate priorities (memory‑only scope):
-1) Agent Transparency & Operator Parity (trace/dry‑run/journal/receipts)
-2) Code‑aware FAISS/sqlite‑vss hybrid recall
-3) Zero‑Trust policy enforcement for memory/index operations (no code execution)
-4) Air‑Gapped Context (.agmctx) with integrity signatures (verify/import)
-5) Context Replay for auditability
+Immediate priorities (original memory‑only scope) & STATUS:
+1) Agent Transparency & Operator Parity ✅ (trace / dry‑run / receipts / journal / plan+mirror)
+2) Code‑aware hybrid recall ▶ (baseline hybrid rerank shipped; Tree‑sitter + ANN pending)
+3) Zero‑Trust policy enforcement ✅ (allow-command/path, trust tokens, doctor, network guard)
+4) Air‑Gapped Context (.agmctx) ✅ (signing, zip, per‑file checksums, provenance, exit codes)
+5) Context Replay ⏳ (kept minimal until after public launch)
 
-This reframing eliminates the "AI black box" criticism and makes AGM safe and intuitive for both AI agents and experienced developers—supporting the air‑gapped, regulated use cases and the $5k/seat value.
+Additional delivered items:
+6) Import exit codes: 2 unsigned blocked, 3 invalid signature, 4 checksum mismatch ✅
+7) Key management: rotate, status, archive, list, prune ✅
+8) Path redaction guard in receipts ✅
+9) Zipped export + checksums.json + exporter provenance ✅
+10) Key archive groundwork (multi-key verification pending) ✅
 
-Quick Vetting: Impact, Effort, Risk
+This sequencing eliminated the "AI black box" criticism and made AGM safe and intuitive for both AI agents and developers—establishing trust before advanced recall.
+
+STATUS MATRIX (v1.8.0)
+Legend: ✅ complete · ▶ partial · ⏳ planned · 💤 deferred
+
+| Theme | State | Next / Delta | Tier |
+|-------|-------|--------------|------|
+| Transparency (plan/mirror/dry-run/receipts/journal) | ✅ | Add receipt schema cross-links | Free |
+| Policy broker | ✅ | Pro: guided wizard/templates | Free (wizard Pro) |
+| Indexing (line + basic symbols) | ✅ | Pro: Tree‑sitter precision & diff-aware | Free baseline |
+| Hybrid search (FTS + cosine fallback) | ✅ | ANN + adaptive fusion (Pro) | Free |
+| Vector backend abstraction | ▶ | ANN acceleration | Free |
+| Air‑gapped export dir | ✅ | Merge/diff & role filters | Free |
+| Zipped export (.agmctx.zip) | ✅ | Incremental/delta export | Free |
+| Signing + key rotation/archive | ✅ | Multi-key trust chain + expiry alerts | Free baseline |
+| Checksums (per-file) | ✅ | Delta mode | Free |
+| Import validation (2/3/4) | ✅ | Unified verification report (Pro) | Free |
+| Provenance (exporter metadata + keyId) | ✅ | schema v2 (issuer/expiry) | Free |
+| Path redaction | ✅ | Configurable patterns | Free |
+| Replay (basic) | ▶ | Point-in-time reconstruction | Free |
+| Health metrics | ✅ | HTML dashboards & rollups | Free (dash Pro) |
+| Key archive list/prune | ✅ | Accept archived keys on verify | Free |
+| Usage-based nudges | ⏳ | usage.json scaffolding | N/A |
+| Incremental export | ⏳ | Build from checksums | Pro |
+| Time-travel replay | 💤 | After ANN + Tree‑sitter | Mixed |
+
+Priority recommendation (current): finalize README polish → tag 1.8.0 → Show HN → deliver Tree‑sitter + ANN.
+
+Quick Vetting (Updated)
 Agent Transparency & Operator Parity
 Impact: Very High (trust, adoption, compliance)
 Effort: Low‑Medium
 Risk: Low
-Code‑Aware Semantic Vector Memory (Tree‑sitter + FAISS)
+Code‑Aware Semantic Vector Memory (Tree‑sitter + ANN/sqlite‑vss)
 Impact: Very High (differentiating recall quality)
 Effort: Medium‑High
 Risk: Medium (cross‑platform builds, perf)
@@ -45,7 +78,7 @@ Effort: Medium
 Risk: Low
 Priority recommendation: 1, 2, 3, 4, 5, then 7, 10, 9, 8.
 
-Recommendations and Design Notes
+Recommendations and Design Notes (historical + updated where marked)
 1) Agent Transparency & Operator Parity (Sprint 1)
 What:
 - Global flags: --trace, --dry-run, --json, --explain on all commands
@@ -59,16 +92,16 @@ How:
 - Journal append after command exits; respect --dry-run (write a simulation receipt only)
 - Update README with “agent vs human” parity workflows
 
-Transparency & Replay (Glassbox) — Current Status
+Transparency & Replay (Glassbox) — Current Status (UPDATED)
 - Plan & Mirror: Every core command prints plan and a copy‑pastable mirror line in trace/explain mode
 - Dry‑Run by Default (where sensitive): replay defaults to --dry-run; index/search support dry-run
-- Receipts v1: Standardized receipts (schema, version, argv, params, resultSummary, success, digests)
-- Journal Trail: .antigoldfishmode/journal.jsonl appends one line per command with the saved receipt reference
+- Receipts v1: Standardized receipts (schema, version, argv, params, resultSummary, success, digests, extras.hybrid, extras.redactions)
+- Journal Trail: .antigoldfishmode/journal.jsonl + receipts/*.json (one per mutating or reporting command)
 - Integrity Digests:
   - index-code: fileListDigest (sha256 over considered file list)
   - search-code: resultDigest (sha256 over ordered result IDs and file:line)
   - replay: batch digest over replayed receipt IDs
-- Replay UX: normalized mirrors, deduped flags, per-step summaries, safe-by-default replays
+- Replay UX: normalized mirrors, deduped flags, per-step summaries, safe-by-default replays (batch aggregate line TODO)
 - Inspection: agm receipt-show <idOrPath> pretty-prints receipts
 
 Examples
@@ -85,7 +118,7 @@ Examples
   - agm journal --show
   - agm receipt-show <id>
 
-Near-term Transparency Roadmap
+Near-term Transparency Roadmap (Refined)
 - Final aggregate replay summary line (batch totals)
 - Expand explain text to be consistent and concise across all commands
 - Add receipt schema v1 to docs with field meanings
@@ -96,7 +129,7 @@ Acceptance:
 - --dry-run produces identical plan output with no side effects
 - agm journal show lists last N entries with digests; clear with confirmation
 
-2) Code‑Aware Semantic Vector Memory (Tree‑sitter + FAISS)
+2) Code‑Aware Semantic Vector Memory (Tree‑sitter + ANN/sqlite‑vss)
 What:
 - Parse code into functions/classes/tests/docs with Tree-sitter
 - Create embeddings per symbol-level chunk; store in sqlite‑vss FAISS index
@@ -136,22 +169,18 @@ Combine FTS5 on code text with FAISS kNN on structured vectors
 Filters: language, file path, symbol type
 Output:
 agm search-code “” → ranked function-level results with file:line and quick preview
-4) Air‑Gapped Context (.agmctx)
-What: A self-contained, signed artifact for context transfer in air-gapped environments
-Format:
-manifest.json: schemaVersion, dims, counts, roles, filters used, hash of each payload asset
-vectors.f32: contiguous Float32 array (row-major) or chunked blocks
-map.csv: id,file,path,lang,line_start,line_end,symbol,type,timestamp
-notes.jsonl: non-code memories and summaries
-signatures.json: ed25519 signatures over manifest and assets
-Why: Enable agents to load rich context with zero network
-How:
-agm export --roles SecurityReviewBot,UXBot --path src/ --out ctx.agmctx
-agm import ctx.agmctx: verify signatures and counts, load vectors and metadata
-Notes:
-Support incremental/agreed‑upon schema versions for compatibility
-Optional lossy compression for large repos (quantization, PCA)
-5) Multi‑Agent Role Memory Profiles
+4) Air‑Gapped Context (.agmctx) — CURRENT IMPLEMENTATION
+Shipped:
+- Directory OR zipped bundle (manifest.json, map.csv, vectors.f32, notes.jsonl, checksums.json)
+- Optional ed25519 signature (signature.bin + publickey.der) with keyId in manifest
+- Per-file SHA256 checksum verification (exit 4 on mismatch)
+- Exit codes: 2 unsigned blocked (policy), 3 invalid signature, 4 checksum mismatch
+Next:
+- Merge/diff preview (Pro) prior to import
+- Incremental/delta exports using prior checksums
+- Multi-key verification (accept archived keys) + expiry metadata
+- Role/path scoped export filters
+5) Multi‑Agent Role Memory Profiles (Deferred until after Tree‑sitter + ANN)
 What: Role-scoped views of memory based on tags/contexts/paths
 Role: SecurityReviewBot → auth, crypto, policy code; excludes UI strings
 How:
@@ -159,7 +188,7 @@ Policy model: role → include/exclude rules (type, path, language, tags)
 CLI: agm assign-role UXBot ./project/ui/ and agm role describe UXBot
 Enforce at query time and during export (.agmctx)
 Why: Reduces blast radius and cognitive noise; aligns with least privilege
-6) Context Replay System
+6) Context Replay System (Deferred – keep basic replay only pre‑launch)
 What: Reconstruct memory state as of timestamp T to reproduce agent context
 How:
 Add an append-only event log (create/update/delete/migrate) with content_hash and metadata deltas
@@ -168,7 +197,7 @@ Why: Audits and postmortems require reproducibility
 Notes:
 Store replay indices as temp DBs; do not mutate production
 Combine with Zero-Trust audit logs for end-to-end traceability
-7) Live Code‑Aware Recall
+7) Live Code‑Aware Recall (Post initial launch)
 What:
 Watch current file in the editor/CLI and bias recall to nearby functions/imports
 agm recall --related-to openFile.js or a background daemon providing suggestions
@@ -177,7 +206,7 @@ Editor integration (VS Code): get active file + cursor symbol via LSP/VS Code AP
 CLI mode: specify file path and optional line range
 Enhance ranking with proximity (same file/module) and import graph (optional)
 Why: Low-latency, high-relevance recall that follows the developer
-8) CLI Shell Embedding
+8) CLI Shell Embedding (Lower priority pre‑launch)
 What:
 agm shell: a memory-enhanced terminal with context-aware autocomplete and #recall
 How:
@@ -186,14 +215,14 @@ Start a subshell where Tab completion also queries AGM index
 Notes:
 Keep Zero-Trust enforcement; no AI-suggested execution unless approved
 Position as optional UX feature after core security/FAISS work
-9) Secure Agent Middleware Hooks
+9) Secure Agent Middleware Hooks (Enterprise roadmap)
 What:
 beforePrompt, sanitizeMemory, customEmbedding, memoryMasking hooks
 How:
 Pluggable middleware pipeline around recall and export
 Org policy can lock configuration; hooks run offline
 Why: Enterprise needs policy guardrails and extensibility
-10) Internal Memory Linter
+10) Internal Memory Linter (Post-launch quality sweep)
 What: Quality checks and fixes for memory corpus
 Rules:
 Contradictions: heuristic text checks; flag human review
@@ -202,7 +231,7 @@ Redundant: near-duplicate content_hash or high cosine similarity
 CLI:
 agm lint-memory [--fix redundant] [--report]
 Why: Keeps context lean and reliable; reduces hallucination fuel
-Roadmap (Phased)
+Roadmap (Phased) — ORIGINAL (for provenance) vs CURRENT adjustments
 Phase 1 (Weeks 1–3)
 FAISS/sqlite-vss backend with IVectorIndex abstraction
 Tree-sitter based CodeIndexer; function-level embeddings
@@ -232,9 +261,46 @@ Format stability (.agmctx)
 Mitigation: versioned manifest; backward compatibility layer; integrity checks and signatures
 Positioning (non-commercial):
 Free, local‑only tool emphasizing privacy, transparency, and high‑quality recall. No licenses, subscriptions, or telemetry.
-Immediate Next Steps
-Confirm OS/arch coverage for prebuilt sqlite‑vss binaries (optional)
-Finalize receipt schema v1 and document policy defaults
-Lock .agmctx v0 schema (manifest.json, vectors.f32, map.csv, notes.jsonl; signatures optional)
-Ship symbol‑aware indexing (Tree‑sitter) and hybrid recall behind flags
-Provide updated docs emphasizing memory‑only, zero‑egress posture
+Launch (Show HN) Readiness Checklist
+✅ Receipts + journal + trace/dry-run across core commands
+✅ Policy broker (allow-command/path/trust/doctor)
+✅ Export/import with signing, checksums, zip, key rotation, archive
+✅ Key list / prune / archive rotation
+✅ Path redaction guard
+✅ Health + prove-offline (explicit no-egress proof)
+✅ 19 passing tests (integrity, precedence, key mgmt, zip, checksum)
+✅ README quickstart & pricing clarity (honor-system)
+✅ Screencast script (docs/screencast-script.md)
+⚠ Basic heuristic symbol mode (note in README). Pro: Tree‑sitter precision coming.
+⚠ ANN acceleration not yet bundled (call out roadmap).
+⚠ Replay limited (no time-travel) – future.
+⚠ Merge/diff import preview not yet (Pro roadmap).
+
+Polish Before Posting (Fast Wins)
+1. Add STATUS section to README (link here)
+2. Add IMPORT EXIT CODES table to docs/airgapped.md (2/3/4 meanings)
+3. Add symbol mode disclaimer + “Pro precision upcoming” note in README
+4. README link to SECURITY.md near Why AGM
+5. Optional: one health output nudge about Pro ANN/diff-aware
+6. usage.json scaffold (counts of index/search/export) to support future nudges
+7. CHANGELOG entry for 1.8.0 (zip, checksums, key mgmt, checksum exit code, provenance)
+
+Post-Launch (First 2 Weeks)
+P1: Tree‑sitter pack (TS/Go/Py) + adaptive search latency benchmarks
+P1: ANN integration (sqlite-vss / fallback approximate) + fusion tuning
+P2: Merge/diff import dry-run preview
+P2: Usage-based nudge system
+P3: HTML receipt/health dashboards (Pro)
+
+Narrative (Show HN Draft Tagline)
+"Local-first AI memory engine: transparent, signed, air‑gapped context you can verify. Free is fully capable; Pro just makes it faster and smarter."
+
+Risk Audit (Launch Scope)
+Explicitly excluded from Day 1: time-travel replay, role profiles, middleware hooks, linter – listed to prevent scope creep questions.
+
+Immediate Next Steps (Adjusted)
+1. Apply README polish items
+2. Add 1.8.0 CHANGELOG entry
+3. Record 2–3 min screencast (follow docs/screencast-script.md)
+4. Draft & dry run Show HN post (feature bullets, security stance, roadmap snippet)
+5. Tag v1.8.0 + attach signed artifacts (export sample + signature + checksums)
