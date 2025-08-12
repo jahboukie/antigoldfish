@@ -20,21 +20,20 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: 'npm'
-      - name: Install deps
-        run: npm ci
-      - name: Show chalk version
-        run: |
-          node -e "try{console.log('chalk version:', require('chalk/package.json').version)}catch(e){console.error('chalk not found')}"
       - name: Clean build artifacts
         run: |
           git --no-pager status
           node -v
           npm -v
-          npm ls chalk || echo "chalk not installed yet"
           if [ -d node_modules ]; then rm -rf node_modules; fi
           if [ -d dist ]; then rm -rf dist; fi
           echo "Cleaned node_modules and dist (if existed)"
         shell: bash
+      - name: Install deps
+        run: npm ci
+      - name: Show chalk version
+        run: |
+          node -e "try{console.log('chalk version:', require('chalk/package.json').version)}catch(e){console.error('chalk not found')}"
       - name: Build
         run: npm run build
       - name: Typecheck
