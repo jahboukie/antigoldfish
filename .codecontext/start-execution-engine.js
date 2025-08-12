@@ -1,11 +1,5 @@
-#!/usr/bin/env node
-const { app } = require('../../execution-engine/dist/index.js');
-const path = require('path');
-
-// Set project path for memory integration
-process.env.PROJECT_PATH = 'C:\Users\scorp\projects\vibe-extension\antigoldfishmode';
-process.env.SANDBOX_DIR = 'C:\Users\scorp\projects\vibe-extension\antigoldfishmode\.codecontext\sandbox';
-
-console.log('🚀 Starting CodeContext Pro Execution Engine...');
-console.log('📁 Project:', 'C:\Users\scorp\projects\vibe-extension\antigoldfishmode');
-console.log('🏗️  Sandbox:', 'C:\Users\scorp\projects\vibe-extension\antigoldfishmode\.codecontext\sandbox');
+// Deprecated: AntiGoldfishMode is memory-only. No code execution sandbox.
+// This file remains as a no-op placeholder for legacy references.
+module.exports = () => {
+	console.log('AGM: execution sandbox removed. This stub does nothing.');
+};

@@ -1,25 +1,12 @@
 /**
- * CodeContextPro-MES Memory Engine
- * Security-first persistent memory implementation with SQLite database
- * 
- * Copyright (c) 2025 CodeContext Team. All rights reserved.
- * 
- * PROPRIETARY SOFTWARE - NOT LICENSED UNDER MIT
- * This file contains proprietary intellectual property of CodeContext Team
- * and is not licensed under the MIT License applicable to the CLI tool.
- * 
- * The memory management algorithms, search optimization, and AI-context
- * integration techniques contained herein are trade secrets and proprietary
- * technology that power the CodeContextPro-MES service.
- * 
- * Unauthorized copying, redistribution, reverse engineering, or modification 
- * of this file, via any medium, is strictly prohibited without express 
- * written permission from CodeContext Team.
- * 
- * Handles secure storage and retrieval of development context
- * with comprehensive input validation and secret detection
- * 
- * Phase 1 Sprint 1.3: Real SQLite Database Integration
+ * AntiGoldfishMode Memory Engine
+ * Security-first, local-only persistent memory implementation with SQLite
+ *
+ * MIT License
+ * Copyright (c) 2025 AntiGoldfishMode Team
+ *
+ * Handles secure storage and retrieval of development context with
+ * comprehensive input validation and lightweight secret detection.
  */
 
 import * as fs from 'fs';
@@ -294,6 +281,20 @@ export class MemoryEngine {
             await this.database.close();
             this.initialized = false;
         }
+    }
+
+    /**
+     * Vector backend info for CLI (fallback implementation).
+     * Reports current backend and basic stats via MemoryDatabase.
+     */
+    async getVectorBackendInfo(): Promise<{ backend: string; dimensions: number; count: number; note?: string }> {
+        await this.initialize();
+        if ((this as any).vectorIndex && typeof (this as any).vectorIndex.stats === 'function') {
+            // In case a richer engine is wired later, defer to it
+            const s = await (this as any).vectorIndex.stats();
+            return { backend: s.backend, dimensions: s.dimensions, count: s.count };
+        }
+        return await (this.database as any).vectorStats();
     }
 
     /**

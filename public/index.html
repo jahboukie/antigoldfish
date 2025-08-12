@@ -4,289 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AntiGoldfishMode - Stop Re-Explaining Your Code to AI</title>
-    <meta name="description" content="Give your AI assistant an elephant's memory. 7-day free trial, then lock in $69/year forever. Never lose context again.">
+    <meta name="description" content="Give your AI assistant an elephant's memory. 100% local-only, private, and free of licensing. Never lose context again.">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
     <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="AntiGoldfishMode - Stop Re-Explaining Your Code to AI">
-    <meta property="og:description" content="Give your AI assistant an elephant's memory. 7-day free trial, then lock in $69/year forever.">
+    <meta property="og:description" content="Give your AI assistant an elephant's memory. 100% local-only and private.">
     <meta property="og:url" content="https://antigoldfish.dev">
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="AntiGoldfishMode - Stop Re-Explaining Your Code to AI">
-    <meta name="twitter:description" content="Give your AI assistant an elephant's memory. 7-day free trial, then lock in $69/year forever.">
+    <meta name="twitter:description" content="Give your AI assistant an elephant's memory. 100% local-only and private.">
     
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #1877f2 0%, #42a5f5 100%);
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .header {
-            text-align: center;
-            padding: 60px 0 40px;
-            color: white;
-        }
-        
-        .header h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .header .subtitle {
-            font-size: 1.3rem;
-            opacity: 0.9;
-            margin-bottom: 40px;
-        }
-        
-        .hero-section {
-            background: white;
-            border-radius: 20px;
-            padding: 50px;
-            margin: 40px 0;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
-        }
-        
-        .early-adopter-badge {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            display: inline-block;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(238, 90, 36, 0.3);
-        }
-        
-        .pricing-container {
-            text-align: center;
-            margin: 40px 0;
-        }
-        
-        .price-crossed {
-            font-size: 1.5rem;
-            text-decoration: line-through;
-            color: #999;
-            margin-right: 20px;
-        }
-        
-        .price-current {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #2d3748;
-            display: inline-block;
-        }
-        
-        .price-period {
-            font-size: 1.2rem;
-            color: #666;
-            margin-left: 10px;
-        }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin: 50px 0;
-        }
-        
-        .feature-card {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 15px;
-            border-left: 5px solid #4ecdc4;
-        }
-        
-        .feature-card h3 {
-            color: #2d3748;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-        
-        .feature-list {
-            list-style: none;
-            margin: 30px 0;
-        }
-        
-        .feature-list li {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 1.1rem;
-        }
-        
-        .feature-list li:last-child {
-            border-bottom: none;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #4ecdc4, #44a08d);
-            color: white;
-            padding: 20px 40px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin: 20px 10px;
-            box-shadow: 0 15px 35px rgba(68, 160, 141, 0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 40px rgba(68, 160, 141, 0.4);
-        }
-        
-        .cta-button.secondary {
-            background: linear-gradient(135deg, #1877f2, #42a5f5);
-            margin-top: 10px;
-        }
-        
-        .comparison-section {
-            background: #f8f9fa;
-            padding: 50px;
-            border-radius: 20px;
-            margin: 50px 0;
-        }
-        
-        .before-after {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 50px;
-            margin-top: 30px;
-        }
-        
-        .before, .after {
-            padding: 30px;
-            border-radius: 15px;
-        }
-        
-        .before {
-            background: #ffebee;
-            border-left: 5px solid #f44336;
-        }
-        
-        .after {
-            background: #e8f5e8;
-            border-left: 5px solid #4caf50;
-        }
-        
-        .standard-pricing {
-            background: #f1f3f4;
-            padding: 40px;
-            border-radius: 15px;
-            margin: 40px 0;
-            text-align: center;
-        }
-        
-        .guarantee-section {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            padding: 40px;
-            border-radius: 20px;
-            margin: 50px 0;
-            text-align: center;
-        }
-        
-        .guarantee-list {
-            list-style: none;
-            display: inline-block;
-            text-align: left;
-            margin: 20px 0;
-        }
-        
-        .guarantee-list li {
-            padding: 10px 0;
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-        
-        .install-section {
-            background: #1a1a1a;
-            color: #00ff00;
-            padding: 30px;
-            border-radius: 15px;
-            margin: 40px 0;
-            font-family: 'Monaco', 'Menlo', monospace;
-        }
-        
-        .install-section h3 {
-            color: white;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin-bottom: 20px;
-        }
-        
-        .code-block {
-            background: #000;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-            font-size: 1.1rem;
-        }
-        
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2.5rem;
-            }
-            
-            .hero-section {
-                padding: 30px 20px;
-            }
-            
-            .before-after {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .price-current {
-                font-size: 2.5rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
     <div class="container">
         <header class="header">
             <h1>🧠 AntiGoldfishMode</h1>
             <p class="subtitle">The AI Memory Engine That Remembers Everything</p>
-            <p style="font-size: 1.4rem; opacity: 0.9; margin-bottom: 20px;">Stop wasting hours re-explaining your codebase to AI assistants</p>
-            <p style="font-size: 1.1rem; opacity: 0.8;">Give your AI assistant an elephant's memory. 7-day free trial, then lock in $69/year forever.</p>
+            <p class="subheadline">Stop wasting hours re-explaining your codebase to AI assistants</p>
+            <p class="muted">Give your AI assistant an elephant's memory. 100% local-only and private—no license, no cloud, no egress.</p>
 
             <!-- Social Proof -->
-            <div style="margin-top: 30px; opacity: 0.9;">
-                <p style="font-size: 1rem; margin-bottom: 10px;">🔥 Join 1,200+ developers who never lose context again</p>
-                <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; font-size: 0.9rem;">
+            <div class="social-proof">
+                <p class="social-proof-lead">🔥 Join 1,200+ developers who never lose context again</p>
+                <div class="social-stats">
                     <span>⭐⭐⭐⭐⭐ "Game changer for AI coding"</span>
                     <span>💰 $2.3M+ in developer time saved</span>
                     <span>🚀 50% faster AI conversations</span>
@@ -295,211 +40,155 @@
         </header>
 
         <section class="hero-section">
-            <div class="early-adopter-badge">
-                🔥 EARLY ADOPTER SPECIAL - LIMITED TIME
-            </div>
             
-            <h2 style="font-size: 2.5rem; margin-bottom: 20px; text-align: center;">
-                AntiGoldfishMode Pro: Lifetime Price Lock
-            </h2>
             
-            <p style="text-align: center; font-size: 1.3rem; color: #e74c3c; font-weight: bold; margin-bottom: 30px;">
-                ⚠️ ONLY 20,000 LICENSES AVAILABLE
-            </p>
+            <h2 class="hero-heading">AntiGoldfishMode: Local-Only AI Memory</h2>
             
-            <div class="pricing-container">
-                <span class="price-crossed">$149/year</span>
-                <span class="price-current">$69<span class="price-period">/year</span></span>
-                <p style="margin-top: 10px; color: #666;">Billed Annually</p>
-            </div>
             
-            <!-- Pricing Options -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 800px; margin: 40px auto;">
-                
-                <!-- Monthly Option -->
-                <div style="text-align: center; padding: 30px; border: 2px solid #e9ecef; border-radius: 15px; position: relative; background: white;">
-                    <div style="position: absolute; top: -10px; right: 20px; background: #1877f2; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">MONTHLY</div>
-                    <h3 style="color: #2d3748; margin: 0 0 15px 0; font-size: 1.4rem;">💳 Monthly Plan</h3>
-                    <div style="font-size: 2.5rem; font-weight: bold; color: #2d3748; margin-bottom: 10px;">$10<span style="font-size: 1rem; color: #666;">/month</span></div>
-                    <p style="color: #666; margin-bottom: 20px; font-size: 1rem;">7-day free trial • Cancel anytime</p>
-                    <a href="https://buy.stripe.com/9B6fZheb6d5W8xo95j4Ja0h" style="display: inline-block; background: #1877f2; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.1rem; width: 80%;">
-                        Start Monthly Plan
-                    </a>
-                    <div style="margin-top: 20px; font-size: 0.9rem; color: #666;">
-                        $120/year total cost
-                    </div>
-                </div>
+            
+            
+            
+            
 
-                <!-- Annual Plan (Most Popular) -->
-                <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #ff6b6b, #ee5a24); border-radius: 15px; position: relative; border: 3px solid #ffd700; transform: scale(1.05);">
-                    <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: #ffd700; color: #333; padding: 8px 20px; border-radius: 25px; font-size: 0.9rem; font-weight: bold; white-space: nowrap;">⭐ MOST POPULAR</div>
-                    <h3 style="color: white; margin: 15px 0 15px 0; font-size: 1.4rem;">🎯 Annual Plan</h3>
-                    <div style="color: white; margin-bottom: 10px; font-size: 1rem; text-decoration: line-through; opacity: 0.8;">$120/year if monthly</div>
-                    <div style="font-size: 2.5rem; font-weight: bold; color: white; margin-bottom: 10px;">$69<span style="font-size: 1rem;">/year</span></div>
-                    <p style="color: white; opacity: 0.9; margin-bottom: 20px; font-size: 1rem;">7-day free trial • Price locked forever</p>
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; margin: 20px 0; color: white;">
-                        <strong>💰 Save $51/year!</strong><br>
-                        <span style="font-size: 0.9rem; opacity: 0.9;">Early Adopter Special</span>
-                    </div>
-                    <a href="https://buy.stripe.com/4gMbJ11ok5Du7tkbdr4Ja0g" style="display: inline-block; background: white; color: #ee5a24; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.1rem; width: 80%;">
-                        Lock in $69/Year
-                    </a>
-                </div>
-
-            </div>
-
-            <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
-                <p style="color: #666; font-size: 0.9rem; margin: 0;">
-                    🎯 <strong>Both plans include 7-day free trial</strong> • No credit card required until trial ends<br>
-                    <span style="font-size: 0.8rem;">Annual plan saves you $51/year and locks in Early Adopter pricing forever</span>
-                </p>
-            </div>
+            
 
             <!-- Problem Cards Section -->
-            <div style="margin: 50px 0;">
-                <h2 style="text-align: center; font-size: 2.2rem; margin-bottom: 40px; color: #2d3748;">
+            <div class="section-pad-y">
+                <h2 class="section-heading">
                     The Problem Every Developer Faces
                 </h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 50px;">
-                    <div style="background: #fff5f5; border: 2px solid #fed7d7; border-radius: 15px; padding: 30px; text-align: center;">
-                        <div style="font-size: 3rem; margin-bottom: 20px;">🤯</div>
-                        <h3 style="color: #e53e3e; font-size: 1.4rem; margin-bottom: 15px;">AI Amnesia</h3>
-                        <p style="color: #4a5568; line-height: 1.6;">AI assistants forget your project context between conversations, forcing you to re-explain the same code structure repeatedly.</p>
+                <div class="problem-grid">
+                    <div class="problem-card">
+                        <div class="emoji-xl">🤯</div>
+                        <h3 class="problem-title">AI Amnesia</h3>
+                        <p class="muted-body">AI assistants forget your project context between conversations, forcing you to re-explain the same code structure repeatedly.</p>
                     </div>
-                    <div style="background: #fff5f5; border: 2px solid #fed7d7; border-radius: 15px; padding: 30px; text-align: center;">
-                        <div style="font-size: 3rem; margin-bottom: 20px;">⏰</div>
-                        <h3 style="color: #e53e3e; font-size: 1.4rem; margin-bottom: 15px;">Time Wasted</h3>
-                        <p style="color: #4a5568; line-height: 1.6;">Spend 10-15 minutes every conversation explaining your codebase architecture, dependencies, and patterns.</p>
+                    <div class="problem-card">
+                        <div class="emoji-xl">⏰</div>
+                        <h3 class="problem-title">Time Wasted</h3>
+                        <p class="muted-body">Spend 10-15 minutes every conversation explaining your codebase architecture, dependencies, and patterns.</p>
                     </div>
-                    <div style="background: #fff5f5; border: 2px solid #fed7d7; border-radius: 15px; padding: 30px; text-align: center;">
-                        <div style="font-size: 3rem; margin-bottom: 20px;">🔄</div>
-                        <h3 style="color: #e53e3e; font-size: 1.4rem; margin-bottom: 15px;">Context Switching</h3>
-                        <p style="color: #4a5568; line-height: 1.6;">Constantly switching between explaining old code and writing new code breaks your flow and productivity.</p>
+                    <div class="problem-card">
+                        <div class="emoji-xl">🔄</div>
+                        <h3 class="problem-title">Context Switching</h3>
+                        <p class="muted-body">Constantly switching between explaining old code and writing new code breaks your flow and productivity.</p>
                     </div>
                 </div>
             </div>
 
             <!-- Solution Cards Section -->
-            <div style="margin: 50px 0;">
-                <h2 style="text-align: center; font-size: 2.2rem; margin-bottom: 20px; color: #2d3748;">
+            <div class="section-pad-y">
+                <h2 class="section-heading-sm">
                     The Solution: Persistent AI Memory
                 </h2>
-                <p style="text-align: center; font-size: 1.2rem; color: #4a5568; margin-bottom: 40px;">
+                <p class="muted-body center-lead">
                     AntiGoldfishMode gives your AI assistant an elephant's memory
                 </p>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
+                <div class="two-col">
                     <div>
-                        <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #ff6b6b, #ee5a24); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                                <span style="font-size: 1.5rem;">⚡</span>
+                        <div class="row-center">
+                            <div class="icon-box icon-box-orange">
+                                <span class="emoji-lg">⚡</span>
                             </div>
-                            <h3 style="color: #2d3748; font-size: 1.3rem; margin: 0;">Instant Context</h3>
+                            <h3 class="card-title">Instant Context</h3>
                         </div>
-                        <p style="color: #4a5568; line-height: 1.6; margin-bottom: 20px;">
+                        <p class="muted-body mb-20">
                             AI assistants get immediate access to your project structure, patterns, and decisions without you explaining anything.
                         </p>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <div style="display: flex; align-items: center; padding: 10px; background: #f7fafc; border-left: 3px solid #4299e1; border-radius: 5px;">
-                                <span style="margin-right: 10px;">🎯</span>
-                                <span style="color: #2d3748; font-size: 0.9rem;">Decision History</span>
+                        <div class="col-gap-10">
+                            <div class="pill pill-blue">
+                                <span>🎯</span>
+                                <span class="pill-label">Decision History</span>
                             </div>
-                            <div style="display: flex; align-items: center; padding: 10px; background: #f7fafc; border-left: 3px solid #4299e1; border-radius: 5px;">
-                                <span style="margin-right: 10px;">📊</span>
-                                <span style="color: #2d3748; font-size: 0.9rem;">Real-time Updates</span>
+                            <div class="pill pill-blue">
+                                <span>📊</span>
+                                <span class="pill-label">Real-time Updates</span>
                             </div>
-                            <div style="display: flex; align-items: center; padding: 10px; background: #f7fafc; border-left: 3px solid #4299e1; border-radius: 5px;">
-                                <span style="margin-right: 10px;">💾</span>
-                                <span style="color: #2d3748; font-size: 0.9rem;">Local SQLite Storage</span>
+                            <div class="pill pill-blue">
+                                <span>💾</span>
+                                <span class="pill-label">Local SQLite Storage</span>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #4ecdc4, #44a08d); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                                <span style="font-size: 1.5rem;">🧠</span>
+                        <div class="row-center">
+                            <div class="icon-box icon-box-green">
+                                <span class="emoji-lg">🧠</span>
                             </div>
-                            <h3 style="color: #2d3748; font-size: 1.3rem; margin: 0;">Remember Everything</h3>
+                            <h3 class="card-title">Remember Everything</h3>
                         </div>
-                        <p style="color: #4a5568; line-height: 1.6; margin-bottom: 20px;">
+                        <p class="muted-body mb-20">
                             AI Memory Engine creates a persistent, local knowledge base of your project that AI assistants can reference instantly.
                         </p>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <div style="display: flex; align-items: center; padding: 10px; background: #f7fafc; border-left: 3px solid #48bb78; border-radius: 5px;">
-                                <span style="margin-right: 10px;">📁</span>
-                                <span style="color: #2d3748; font-size: 0.9rem;">Project Structure Mapping</span>
+                        <div class="col-gap-10">
+                            <div class="pill pill-green">
+                                <span>📁</span>
+                                <span class="pill-label">Project Structure Mapping</span>
                             </div>
-                            <div style="display: flex; align-items: center; padding: 10px; background: #f7fafc; border-left: 3px solid #48bb78; border-radius: 5px;">
-                                <span style="margin-right: 10px;">🔗</span>
-                                <span style="color: #2d3748; font-size: 0.9rem;">Dependency Tracking</span>
+                            <div class="pill pill-green">
+                                <span>🔗</span>
+                                <span class="pill-label">Dependency Tracking</span>
                             </div>
-                            <div style="display: flex; align-items: center; padding: 10px; background: #f7fafc; border-left: 3px solid #48bb78; border-radius: 5px;">
-                                <span style="margin-right: 10px;">🎨</span>
-                                <span style="color: #2d3748; font-size: 0.9rem;">Code Pattern Recognition</span>
+                            <div class="pill pill-green">
+                                <span>🎨</span>
+                                <span class="pill-label">Code Pattern Recognition</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div style="text-align: center;">
-                    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                            <span style="font-size: 1.5rem;">🔒</span>
+                <div class="text-center">
+                    <div class="center-row">
+                        <div class="icon-box icon-box-purple">
+                            <span class="emoji-lg">🔒</span>
                         </div>
-                        <h3 style="color: #2d3748; font-size: 1.3rem; margin: 0;">Privacy First</h3>
+                        <h3 class="card-title">Privacy First</h3>
                     </div>
-                    <p style="color: #4a5568; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+                    <p class="privacy-desc">
                         All data stays on your machine. No cloud uploads, no privacy concerns. Your code remains completely private.
                     </p>
                 </div>
             </div>
 
-            <h3 style="text-align: center; margin: 40px 0 30px; font-size: 1.8rem;">Why This Changes Everything:</h3>
+            <h3 class="why-heading">Why This Changes Everything:</h3>
             
-            <div style="background: #fff3cd; padding: 25px; border-radius: 15px; margin: 30px 0; border-left: 5px solid #ffc107;">
-                <h4 style="color: #856404; margin-bottom: 15px; font-size: 1.4rem;">🚀 Coming in v2.0: Secure Code Execution Sandbox</h4>
-                <p style="font-size: 1.1rem; margin-bottom: 15px;">Test AI-generated code safely in isolated Docker containers. Supports JavaScript, TypeScript, Python, Go, and Rust.</p>
-                <div style="background: #f8f9fa; color: #495057; padding: 15px; border-radius: 8px; font-family: 'Monaco', monospace; font-size: 1rem; border: 1px solid #dee2e6;">
-                    <strong>Early Adopters:</strong> $69 + $49 = <span style="color: #28a745; font-weight: bold;">$118/year total</span><br>
-                    <strong>Standard Users:</strong> $149 + $51 = <span style="color: #dc3545; font-weight: bold;">$200/year total</span><br>
-                    <em>Available Q4 2025 - Save $82/year as early adopter!</em>
+
+            <div class="yellow-callout">
+                
+                <p class="muted-body fs-11 mb-15">AntiGoldfishMode focuses on persistent, local memory for AI assistants. There is no code execution feature.</p>
+                <div class="mono-box">
+                    <strong>Focus:</strong> Persistent, local memory only. No code execution feature.
                 </div>
             </div>
             
             <ul class="feature-list">
-                <li>✅ <strong>Price Locked FOR LIFE</strong> - Never pay more than $69/year, even when new users pay $149</li>
                 <li>🧠 <strong>Persistent AI Memory</strong> - AI remembers your entire project history across sessions</li>
-                <li>🚀 <strong>Future: Code Execution</strong> - Secure sandbox coming in v2.0 (Early adopters: +$49/year)</li>
                 <li>🔒 <strong>100% Local & Private</strong> - Your code and data never leave your machine</li>
                 <li>📝 <strong>Conversation Recording</strong> - All AI interactions automatically saved and searchable</li>
                 <li>🔐 <strong>Local encryption</strong> - Your intellectual property stays yours</li>
-                <li>💻 <strong>1 machine license</strong> - Perfect for your main development setup</li>
-                <li>📧 <strong>Priority developer support</strong> - Direct access to our team</li>
-                <li>🚀 <strong>v1.0 updates included</strong> - Memory features always free</li>
-                <li>⏰ <strong>7-day offline grace period</strong> - Works without internet connection</li>
+                <li>�️ <strong>Works offline</strong> - No network required; prove it with <code>agm prove-offline</code></li>
             </ul>
         </section>
 
         <section class="install-section">
             <h3>🛠️ Quick Install & Setup:</h3>
             <div class="code-block">$ npm install -g antigoldfishmode</div>
-            <div class="code-block">$ antigoldfishmode activate [your-license-key]</div>
             <div class="code-block">$ antigoldfishmode remember "My first persistent memory"</div>
             <div class="code-block">$ antigoldfishmode recall "search anything"</div>
-            <div style="margin: 20px 0; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                <strong>🚀 Coming in v2.0 - Secure code execution sandbox:</strong>
-            </div>
-            <div class="code-block" style="opacity: 0.7; border: 2px dashed #ffc107;">$ antigoldfishmode execute javascript "console.log('Safe execution!')" # Coming Q4 2025</div>
+            <div class="code-block">$ antigoldfishmode prove-offline --json</div>
+            
+            
         </section>
 
         <section class="comparison-section">
-            <h2 style="text-align: center; margin-bottom: 30px; font-size: 2.2rem;">💡 Why Developers Love This</h2>
+            <h2 class="section-heading-sm">💡 Why Developers Love This</h2>
             
             <div class="before-after">
                 <div class="before">
-                    <h3 style="color: #f44336; margin-bottom: 20px;">😤 Before AntiGoldfishMode:</h3>
-                    <ul style="list-style: none;">
+                    <h3>😤 Before AntiGoldfishMode:</h3>
+                    <ul>
                         <li>❌ "Here's my project structure again..."</li>
                         <li>❌ "Let me re-explain this authentication flow..."</li>
                         <li>❌ "I already told you about this bug..."</li>
@@ -509,8 +198,8 @@
                 </div>
                 
                 <div class="after">
-                    <h3 style="color: #4caf50; margin-bottom: 20px;">🚀 After AntiGoldfishMode:</h3>
-                    <ul style="list-style: none;">
+                    <h3>🚀 After AntiGoldfishMode:</h3>
+                    <ul>
                         <li>✅ AI remembers your architecture patterns</li>
                         <li>✅ Builds on previous conversations seamlessly</li>
                         <li>✅ Understands your coding style and preferences</li>
@@ -521,231 +210,186 @@
             </div>
         </section>
 
-        <section class="standard-pricing">
-            <h2 style="margin-bottom: 20px;">🔮 After Early Adopter Sells Out</h2>
-            <h3 style="font-size: 2rem; color: #666; margin-bottom: 20px;">$149/year</h3>
-            <p style="margin-bottom: 20px; font-size: 1.1rem;">Same features as Early Adopter, just regular price. Once we sell 20,000 licenses, new users will pay $149/year. Early adopters keep their $69 rate forever.</p>
-            
-            <!-- Waitlist for Standard Plan -->
-            <a href="mailto:antigoldfish.dev@gmail.com?subject=AntiGoldfishMode%20Waitlist%20-%20Standard%20Plan&body=Hi%2C%20please%20add%20me%20to%20the%20AntiGoldfishMode%20waitlist%20for%20when%20the%20Early%20Adopter%20offer%20ends!%0D%0A%0D%0AName%3A%20%0D%0AEmail%3A%20%0D%0ACompany%20(optional)%3A%20%0D%0A%0D%0AInterested%20in%3A%20Standard%20Plan%20%24149%2Fyear%20(after%20Early%20Adopter%20ends)%0D%0A%0D%0AThanks!" 
-               class="cta-button secondary">
-                📧 Join Waitlist for $149 Plan
-            </a>
-            
-            <p style="margin-top: 15px; font-size: 0.9rem; color: #666;">
-                Get notified when Early Adopter licenses sell out
-            </p>
+    <section class="free-banner">
+            <h2>🆓 Free, Local-Only</h2>
+            <p>AGM is free to use and always local-first. No accounts, no telemetry, no payments.</p>
         </section>
 
         <!-- FAQ Section -->
-        <section class="faq-section" style="background: white; margin: 40px 0; padding: 60px 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+    <section class="faq-section">
             <div class="container">
-                <h2 style="text-align: center; font-size: 2.5rem; color: #333; margin-bottom: 50px; font-weight: 700;">
+        <h2 class="faq-title">
                     🤔 Frequently Asked Questions
                 </h2>
 
-                <div class="faq-grid" style="display: grid; gap: 30px; max-width: 1000px; margin: 0 auto;">
+        <div class="faq-grid">
 
                     <!-- Getting Started -->
                     <div class="faq-category">
-                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                        <h3>
                             🚀 Getting Started
                         </h3>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                        <div class="faq-item">
+                            <h4>
                                 Q: How do I install AntiGoldfishMode?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: Simply run <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">npm install -g antigoldfishmode</code> in your terminal. You'll need Node.js 16+ installed.
+                            <p>
+                                A: Simply run <code>npm install -g antigoldfishmode</code> in your terminal. You'll need Node.js 18+ installed (22+ recommended).
                             </p>
                         </div>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                        <div class="faq-item">
+                            <h4>
                                 Q: Do I need to set up anything after installation?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: Yes! Run <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode activate [your-license-key]</code> to activate your license, then <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode init</code> in your project directory to initialize the memory system.
+                            <p>
+                                A: After installation, run <code>antigoldfishmode init</code> in your project directory to initialize the local memory system.
                             </p>
                         </div>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
-                                Q: What's the difference between trial and paid versions?
-                            </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: The 7-day trial includes all features (unlimited memory, code execution, conversation recording). After trial, you get the same features for $69/year with priority support and lifetime price lock.
-                            </p>
-                        </div>
                     </div>
 
                     <!-- Core Features -->
                     <div class="faq-category">
-                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                        <h3>
                             🧠 Core Features
                         </h3>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                        <div class="faq-item">
+                            <h4>
                                 Q: How does the AI memory system work?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: AntiGoldfishMode automatically records every AI conversation and stores memories in an encrypted SQLite database. Use <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode remember "content"</code> to store insights and <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode recall "query"</code> to search them.
+                            <p>
+                                A: AntiGoldfishMode automatically records every AI conversation and stores memories in an encrypted SQLite database. Use <code>antigoldfishmode remember "content"</code> to store insights and <code>antigoldfishmode recall "query"</code> to search them.
                             </p>
                         </div>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
-                                Q: What programming languages can I execute safely?
+                        <div class="faq-item">
+                            <h4>
+                                Q: Which AI assistants does it work with?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: JavaScript/Node.js, TypeScript, Python 3.x, Go, and Rust. All code runs in isolated Docker containers with configurable timeouts and memory limits for security.
+                            <p>
+                                A: It works great alongside ChatGPT, Claude, and GitHub Copilot. AntiGoldfishMode provides persistent, local memory only—no code execution.
                             </p>
                         </div>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                        <div class="faq-item">
+                            <h4>
                                 Q: Can I search through past conversations with my AI assistant?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: Absolutely! Every command automatically records AI interactions with rich metadata. Use the recall command to search through everything: conversations, code executions, and stored memories.
+                            <p>
+                                A: Absolutely! Every command automatically records AI interactions with rich metadata. Use the recall command to search through everything: conversations and stored memories.
                             </p>
                         </div>
                     </div>
 
                     <!-- Technical Questions -->
                     <div class="faq-category">
-                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                        <h3>
                             ⚙️ Technical Details
                         </h3>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                        <div class="faq-item">
+                            <h4>
                                 Q: Where is my data stored? Is it secure?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                            <p>
                                 A: Everything is stored locally on your machine in an encrypted SQLite database. No data ever leaves your computer. The database is machine-specific and encrypted for security.
                             </p>
                         </div>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
-                                Q: Do I need Docker for code execution?
-                            </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: Docker is recommended for secure code execution but not required. Without Docker, the memory and recall features still work perfectly. Install Docker for the full experience.
-                            </p>
-                        </div>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                        <div class="faq-item">
+                            <h4>
                                 Q: What are the system requirements?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: Node.js 16+, ~10MB storage for installation (variable for memories), and any modern OS (Windows, macOS, Linux). Docker optional but recommended.
+                            <p>
+                                A: Node.js 18+ (22+ recommended), ~10MB storage for installation (variable for memories), and any modern OS (Windows, macOS, Linux). No Docker required.
                             </p>
                         </div>
                     </div>
 
                     <!-- Usage & Best Practices -->
                     <div class="faq-category">
-                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                        <h3>
                             💡 Usage & Best Practices
                         </h3>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                        <div class="faq-item">
+                            <h4>
                                 Q: How should I use the memory system effectively?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: Store project patterns, code snippets, architectural decisions, and bug fixes. Use contexts like <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">--context "api-design"</code> to categorize memories for better organization.
+                            <p>
+                                A: Store project patterns, code snippets, architectural decisions, and bug fixes. Use contexts like <code>--context "api-design"</code> to categorize memories for better organization.
                             </p>
                         </div>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                        <div class="faq-item">
+                            <h4>
                                 Q: Can I use this with any AI assistant?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                            <p>
                                 A: Yes! AntiGoldfishMode works with ChatGPT, Claude, Copilot, or any AI coding assistant. It's designed to enhance any AI interaction by providing persistent memory and context.
                             </p>
                         </div>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                        <div class="faq-item">
+                            <h4>
                                 Q: What happens if I work on multiple projects?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: Each project gets its own <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">.codecontext</code> directory with project-specific memories. You can also use global memories that work across all projects.
+                            <p>
+                                A: Each project gets its own <code>.antigoldfishmode</code> directory with project-specific memories. You can also use global memories that work across all projects.
                             </p>
                         </div>
                     </div>
 
                     <!-- Licensing & Support -->
                     <div class="faq-category">
-                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                        <h3>
                             🎫 Licensing & Support
                         </h3>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
-                                Q: How does the licensing work?
-                            </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: Licenses are machine-bound for security. You get a 7-day offline grace period, so you can work without internet. Use <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode deactivate</code> to move your license to another machine.
-                            </p>
+                        
+
+                        <div class="faq-item">
+                            <h4>Q: What if I need help or have issues?</h4>
+                            <p>A: Check <code>antigoldfishmode status</code> for diagnostics and use <code>antigoldfishmode --help</code> for command reference. You can also email us at <a href="mailto:antigoldfish.dev@gmail.com">antigoldfish.dev@gmail.com</a>.</p>
                         </div>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
-                                Q: What if I need help or have issues?
-                            </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: Paid users get priority email support. Check <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode status</code> for system diagnostics, and use <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">antigoldfishmode --help</code> for command reference.
-                            </p>
-                        </div>
-
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
-                                Q: Is there a refund policy?
-                            </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: We offer a 7-day free trial so you can test everything first. If you're not satisfied within 30 days of purchase, contact support for a full refund.
-                            </p>
-                        </div>
+                        
                     </div>
 
                     <!-- Advanced Usage -->
                     <div class="faq-category">
-                        <h3 style="color: #667eea; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                        <h3>
                             🔧 Advanced Usage
                         </h3>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
-                                Q: Can I customize execution timeouts and memory limits?
+                        <div class="faq-item">
+                            <h4>
+                                Q: Can I export or back up my memories?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: Yes! Use <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">--timeout 60</code> for longer executions and <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">--memory 1g</code> for more memory. Default is 30 seconds and 512MB.
+                            <p>
+                                A: Yes. Export code memories with <code>antigoldfishmode export-context --type code</code>. For raw backup, the local database lives at <code>.antigoldfishmode/memory.db</code> (encrypted and machine-specific).
                             </p>
                         </div>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                        <div class="faq-item">
+                            <h4>
                                 Q: How do I backup or share my memories?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: The database is in <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">.codecontext/memory.db</code>. You can backup this file, but it's encrypted and machine-specific. For team sharing, export specific memories and share the text.
+                            <p>
+                                A: The database is in <code>.antigoldfishmode/memory.db</code>. You can backup this file, but it's encrypted and machine-specific. For team sharing, export specific memories and share the text.
                             </p>
                         </div>
 
-                        <div class="faq-item" style="margin-bottom: 25px;">
-                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 8px; font-weight: 600;">
+                        <div class="faq-item">
+                            <h4>
                                 Q: Does AntiGoldfishMode work with CI/CD or automated workflows?
                             </h4>
-                            <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
-                                A: AntiGoldfishMode is designed for interactive development. For automated workflows, the code execution features work, but the memory system is optimized for human-AI collaboration.
+                            <p>
+                                A: AntiGoldfishMode is designed for interactive development and persistent recall. There is no code execution; the focus is memory quality and privacy.
                             </p>
                         </div>
                     </div>
@@ -753,51 +397,43 @@
                 </div>
 
                 <!-- Call to Action -->
-                <div style="text-align: center; margin-top: 50px; padding: 30px; background: linear-gradient(135deg, #1877f2 0%, #42a5f5 100%); border-radius: 10px;">
-                    <h3 style="color: white; font-size: 1.5rem; margin-bottom: 15px;">
+                    <div class="cta-panel">
+                    <h3>
                         Still have questions?
                     </h3>
-                    <p style="color: white; opacity: 0.9; margin-bottom: 20px; font-size: 1.1rem;">
-                        Start your 7-day free trial and experience the difference persistent AI memory makes!
+                    <p>
+                        Try AGM now and experience the difference persistent AI memory makes—no signup required.
                     </p>
-                    <a href="https://buy.stripe.com/4gMbJ11ok5Du7tkbdr4Ja0g" style="display: inline-block; background: white; color: #667eea; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.1rem; transition: transform 0.2s;">
-                        Start Free Trial →
-                    </a>
+                    
                 </div>
 
             </div>
         </section>
 
         <section class="guarantee-section">
-            <h2 style="margin-bottom: 30px; font-size: 2.2rem;">🛡️ Risk-Free Promise</h2>
+            <h2>🛡️ Local-Only Promise</h2>
             <ul class="guarantee-list">
-                <li>✅ <strong>7-day free trial</strong> - Full features, no restrictions</li>
-                <li>✅ <strong>30-day money-back guarantee</strong> after subscription</li>
-                <li>✅ <strong>Cancel anytime</strong> - No long-term commitments</li>
-                <li>✅ <strong>Price locked for life</strong> - Early adopters never pay more</li>
+                <li>✅ <strong>No egress</strong> - Operates fully offline</li>
+                <li>✅ <strong>No license</strong> - No activation or keys</li>
+                <li>✅ <strong>No telemetry</strong> - We don't collect usage
+                </li>
             </ul>
         </section>
 
-        <footer style="text-align: center; padding: 40px 0; color: white;">
-            <h3 style="margin-bottom: 20px;">🎉 Join 20,000 Developers Getting Early Adopter Pricing</h3>
-            <p style="opacity: 0.8; margin-bottom: 30px;">Once we hit 20,000 licenses, the price goes to $149/year permanently.</p>
+        <footer class="site-footer">
+            <h3>🎉 Build faster with persistent context</h3>
             
-            <!-- Early Adopter $69/year Payment Link - LIVE -->
-            <a href="https://buy.stripe.com/4gMbJ11ok5Du7tkbdr4Ja0g" class="cta-button" style="font-size: 1.4rem;">
-                🚀 Secure Your $69/Year Price Now
-            </a>
-            
-            <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.7;">
-                Need help? Email us at <a href="mailto:antigoldfish.dev@gmail.com" style="color: #4ecdc4;">antigoldfish.dev@gmail.com</a>
+            <p class="contact">
+                Need help? Email us at <a href="mailto:antigoldfish.dev@gmail.com">antigoldfish.dev@gmail.com</a>
             </p>
 
             <!-- Legal Links -->
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
-                <p style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 10px;">
-                    <a href="privacy-policy.html" style="color: #4ecdc4; text-decoration: none; margin-right: 20px;">Privacy Policy</a>
-                    <a href="terms-of-service.html" style="color: #4ecdc4; text-decoration: none;">Terms of Service</a>
+            <div class="legal">
+                <p>
+                    <a href="privacy-policy.html">Privacy Policy</a>
+                    <a href="terms-of-service.html">Terms of Service</a>
                 </p>
-                <p style="font-size: 0.7rem; opacity: 0.5;">
+                <p class="smallprint">
                     © 2025 AntiGoldfishMode. All rights reserved.
                 </p>
             </div>

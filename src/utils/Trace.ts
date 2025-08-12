@@ -18,6 +18,7 @@ export interface ReceiptV1 {
   cwd: string;
   startTime: string;
   endTime: string;
+  durationMs: number;
   params: any;
   resultSummary?: any; // condensed summary for quick inspection
   results: any;
@@ -25,6 +26,7 @@ export interface ReceiptV1 {
   exitCode?: number;
   error?: string;
   digests?: { argsSha256: string; [k: string]: string };
+  extras?: any;
 }
 
 export class Tracer {
@@ -81,6 +83,9 @@ export class Tracer {
   writeReceipt(command: string, params: any, results: any, success: boolean, error?: string, extra?: { resultSummary?: any; exitCode?: number; digests?: Record<string,string>; hybrid?: { backend: string; fusionWeights: { bm25: number; cosine: number }; rerankN: number } }): string {
     const id = `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
     const argsSha256 = crypto.createHash('sha256').update(JSON.stringify({ argv: this.argv, params })).digest('hex');
+    const endISO = new Date().toISOString();
+    let durationMs = 0;
+    try { durationMs = Math.max(0, new Date(endISO).getTime() - new Date(this.startISO).getTime()); } catch {}
     const receipt: ReceiptV1 = {
       schema: 'v1',
       version: require('../../package.json').version || '0.0.0',
@@ -89,14 +94,16 @@ export class Tracer {
       argv: this.argv,
       cwd: process.cwd(),
       startTime: this.startISO,
-      endTime: new Date().toISOString(),
+      endTime: endISO,
+      durationMs,
       params,
       resultSummary: extra?.resultSummary,
       results,
       success,
       exitCode: extra?.exitCode,
       error,
-      digests: { argsSha256, ...(extra?.digests || {}) }
+      digests: { argsSha256, ...(extra?.digests || {}) },
+      extras: extra?.hybrid ? { hybrid: extra.hybrid } : undefined
     };
     const filePath = path.join(this.receiptsDir(), `${id}.json`);
     fs.writeFileSync(filePath, JSON.stringify(receipt, null, 2));

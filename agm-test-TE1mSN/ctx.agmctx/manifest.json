@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "type": "code",
+  "count": 0,
+  "createdAt": "2025-08-11T14:43:10.134Z",
+  "vectors": {
+    "dim": 0,
+    "count": 0,
+    "backend": "local-js"
+  }
+}

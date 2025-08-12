@@ -1,3 +1,6 @@
+# AntiGoldfishMode local data and backups
+.antigoldfishmode/
+.antigoldfishmode.bak-*/
 # Dependencies
 node_modules/
 npm-debug.log*
@@ -53,23 +56,10 @@ coverage/
 *.db-journal
 LICENSING.md
 
-# License Manager (separate tool, not in repo)
-../license-manager/
-license-manager/
-**/license-manager/
-license-log.json
-*.license-key
-license-generator.js
-setup-license-manager.bat
-WEBHOOK_SETUP.md
-.env.example
+# Removed legacy license/webhook artifacts
+# (license manager, generators, webhook setup were deleted)
 
-# Website/Landing page files (keep public/ for website)
-faq-section.html
-landing-page.html
-privacy-policy.html
-terms-of-service.html
-CHANGELOG.md
+# Website files are now tracked; do not ignore
 
 # Test files (keep source tests)
 test-*.js

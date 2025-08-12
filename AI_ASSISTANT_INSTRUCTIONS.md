@@ -30,7 +30,7 @@ antigoldfishmode recall "search term"
 ```bash
 antigoldfishmode status
 ```
-- See your memory statistics and license status
+- See your memory statistics (local-only)
 - Understand your current capabilities
 
 ## 🚀 When To Use This (Be Proactive!)
@@ -94,7 +94,7 @@ You: "I'll remember that preference for future suggestions."
 ## 🔍 Search Tips
 
 ### Effective Search Terms:
-- Use specific technology names: "React", "TypeScript", "Docker"
+- Use specific technology names: "React", "TypeScript"
 - Include error messages or symptoms
 - Search by feature names or component names
 - Use action words: "fixed", "implemented", "debugged"

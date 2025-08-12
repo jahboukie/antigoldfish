@@ -1,11 +1,11 @@
 Executive Summary
 AGM is an AI‑native tool with Developer Parity: anything the agent does is transparent, reproducible, and verifiable by a human. We will lead with an Agent Transparency & Operator Parity layer, then ship code‑aware semantic recall and zero‑trust execution. This sequence builds trust first and upgrades recall second.
 
-Immediate priorities:
+Immediate priorities (memory‑only scope):
 1) Agent Transparency & Operator Parity (trace/dry‑run/journal/receipts)
 2) Code‑aware FAISS/sqlite‑vss hybrid recall
-3) Zero‑Trust, offline‑by‑default execution with auditable trails
-4) Air‑Gapped Agent Protocol (.agmctx) with integrity signatures
+3) Zero‑Trust policy enforcement for memory/index operations (no code execution)
+4) Air‑Gapped Context (.agmctx) with integrity signatures (verify/import)
 5) Context Replay for auditability
 
 This reframing eliminates the "AI black box" criticism and makes AGM safe and intuitive for both AI agents and experienced developers—supporting the air‑gapped, regulated use cases and the $5k/seat value.
@@ -19,10 +19,10 @@ Code‑Aware Semantic Vector Memory (Tree‑sitter + FAISS)
 Impact: Very High (differentiating recall quality)
 Effort: Medium‑High
 Risk: Medium (cross‑platform builds, perf)
-Zero‑Trust Execution Profile
-Impact: Very High (core for regulated sectors)
-Effort: Medium
-Risk: Medium (usability, OS differences)
+Zero‑Trust Policy (Memory‑only)
+Impact: High (privacy and compliance)
+Effort: Low‑Medium
+Risk: Low
 Air‑Gapped Agent Protocol (.agmctx)
 Impact: High (safe portability)
 Effort: Medium
@@ -110,19 +110,16 @@ Acceptance:
 - index-code produces symbol‑scoped chunks with metadata
 - search-code --semantic returns better top‑K on function queries (measurable)
 
-2) Zero‑Trust Execution Profile
+2) Zero‑Trust Policy (Memory‑only)
 What:
-Offline-strict mode enabled by default; deny all network egress for AGM features
-Whitelist-only command execution for agent suggestions, with explicit operator approval
-Full audit trail: intent → proposed commands → approvals → outcomes
-Why: Regulated orgs need least-privilege, provable no-egress operation
+Offline‑strict mode enabled by default; deny all network egress for AGM features
+Allow‑list policy for commands and paths that affect local memory/indexing operations
+Full audit: plan → mirror → receipts → journal for all mutating ops
+Why: Regulated orgs need least‑privilege, provable no‑egress operation
 How:
-Add agm policy:export/import and policy:edit (JSON policy with allowed commands/globs, env var passthrough rules)
-Run all “agent-executed” commands through an AGM broker that enforces whitelist, sim/dry-run, and prompts
-Log all proposed executions and memory injections with timestamps and hashes
-Notes:
-On Windows/macOS/Linux, avoid system-level firewall changes; enforce at the process layer
-Provide “prove offline” report: scan runtime for net module usage and open connections (self-check)
+Policy JSON with allowed commands/globs; doctor and trust helpers
+Network guard wrapping http/https to block egress by default
+Prove‑offline report: environment checks and guard status
 3) Code‑Aware Semantic Vector Memory (Tree‑sitter + FAISS)
 What:
 Parse code into functions/classes/tests/docs with Tree-sitter
@@ -139,7 +136,7 @@ Combine FTS5 on code text with FAISS kNN on structured vectors
 Filters: language, file path, symbol type
 Output:
 agm search-code “” → ranked function-level results with file:line and quick preview
-4) Air‑Gapped Agent Protocol (AGAP) and .agmctx
+4) Air‑Gapped Context (.agmctx)
 What: A self-contained, signed artifact for context transfer in air-gapped environments
 Format:
 manifest.json: schemaVersion, dims, counts, roles, filters used, hash of each payload asset
@@ -152,7 +149,7 @@ How:
 agm export --roles SecurityReviewBot,UXBot --path src/ --out ctx.agmctx
 agm import ctx.agmctx: verify signatures and counts, load vectors and metadata
 Notes:
-Support incremental/agreed-upon schema versions for compatibility
+Support incremental/agreed‑upon schema versions for compatibility
 Optional lossy compression for large repos (quantization, PCA)
 5) Multi‑Agent Role Memory Profiles
 What: Role-scoped views of memory based on tags/contexts/paths
@@ -233,20 +230,11 @@ Policy usability vs safety
 Mitigation: defaults to safest mode; policy templates; dry-run previews; audit dashboards
 Format stability (.agmctx)
 Mitigation: versioned manifest; backward compatibility layer; integrity checks and signatures
-Pricing and Positioning
-Enterprise value anchors:
-Provable offline operation (reports), zero-trust execution, audited context replay, role-based scoping, code-aware FAISS recall
-Packaging:
-Air-gapped installer bundle with all binaries, SBOM, and docs
-License: offline activation file; machine-bound option; org-level policies
-SLA/Support: priority support channel, onboarding assistance, security questionnaire responses
+Positioning (non-commercial):
+Free, local‑only tool emphasizing privacy, transparency, and high‑quality recall. No licenses, subscriptions, or telemetry.
 Immediate Next Steps
-Approve Phase 1 scope
-Confirm OS/arch coverage for prebuilt binaries
-Approve initial schemas:
-.agent-context.json manifest (repo root)
-.agmctx container components (manifest.json, vectors.f32, map.csv, notes.jsonl, signatures.json)
-Confirm policy defaults for Zero-Trust (allowed commands baseline)
-Once approved, I’ll translate this plan into concrete tasks, start with the FAISS/sqlite‑vss backend and CodeIndexer, and provide an initial CLI UX with tests and offline verification reports.
-
-If you want, I can draft the initial schema definitions for .agent-context.json and .agmctx next.
+Confirm OS/arch coverage for prebuilt sqlite‑vss binaries (optional)
+Finalize receipt schema v1 and document policy defaults
+Lock .agmctx v0 schema (manifest.json, vectors.f32, map.csv, notes.jsonl; signatures optional)
+Ship symbol‑aware indexing (Tree‑sitter) and hybrid recall behind flags
+Provide updated docs emphasizing memory‑only, zero‑egress posture
