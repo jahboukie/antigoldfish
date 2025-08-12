@@ -42,7 +42,7 @@ function enforcePolicyBeforeCommand(cmd: string, filePath?: string, envVars?: st
   policyBroker.logAction('command_executed', { cmd, filePath, envVars });
 }
 
-export const version = "1.6.0";
+export const version = "1.8.0"; // keep in sync with package.json
 
 function buildHighlightRegex(query: string): RegExp | null {
     const tokens = (query || '').toLowerCase().split(/[^a-z0-9_]+/i).filter(t => t.length >= 3);
