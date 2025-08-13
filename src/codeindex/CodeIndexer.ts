@@ -62,7 +62,16 @@ export class CodeIndexer {
           stack.push(full);
         } else if (e.isFile()) {
           // must match include and not excluded
-          const included = include.some(p => new RegExp('^' + p.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*') + '$').test(relUnix));
+          const included = include.some(p => {
+            const pattern = p.replace(/[.+^${}()|[\]\\]/g, '\\$&')
+              .replace(/\*\*/g, '.*')
+              .replace(/\*/g, '[^/]*');
+            const re = new RegExp('^' + pattern + '$');
+            if (re.test(relUnix)) return true;
+            // Special case: pattern like **/* should also match root-level files (no slash)
+            if (p === '**/*' && !relUnix.includes('/')) return true;
+            return false;
+          });
           if (!included) continue;
           if (this.shouldExclude(relUnix, exclude)) continue;
           if (relUnix.endsWith('.lock') || relUnix.endsWith('.min.js')) continue;

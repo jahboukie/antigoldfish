@@ -24,10 +24,13 @@ export class SymbolIndexer {
     const chunks: SymbolChunk[] = [];
 
     if (lang === 'typescript' || lang === 'javascript') {
-      // Heuristics: function foo( | class Foo | const foo = (|export default function
+      // Extended heuristics: function, class, arrow fn, interface, enum, exported const object literal
       const fnRe = /^(export\s+)?(async\s+)?function\s+([A-Za-z0-9_]+)/;
       const classRe = /^(export\s+)?class\s+([A-Za-z0-9_]+)/;
       const arrowRe = /^(export\s+)?(const|let|var)\s+([A-Za-z0-9_]+)\s*=\s*(async\s*)?\(/;
+      const ifaceRe = /^(export\s+)?interface\s+([A-Za-z0-9_]+)/;
+      const enumRe = /^(export\s+)?enum\s+([A-Za-z0-9_]+)/;
+      const objRe = /^(export\s+)?const\s+([A-Za-z0-9_]+)\s*=\s*\{/;
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         let m;
@@ -48,6 +51,24 @@ export class SymbolIndexer {
           const { end } = findBlockEnd(lines, i);
           chunks.push(makeChunk(fullPath, lang!, name, 'function', lines, i, end));
           i = end - 1; continue;
+        }
+        if ((m = line.match(ifaceRe))) {
+          const name = m[2];
+            const { end } = findBlockEnd(lines, i);
+            chunks.push(makeChunk(fullPath, lang!, name, 'interface', lines, i, end));
+            i = end - 1; continue;
+        }
+        if ((m = line.match(enumRe))) {
+          const name = m[2];
+            const { end } = findBlockEnd(lines, i);
+            chunks.push(makeChunk(fullPath, lang!, name, 'enum', lines, i, end));
+            i = end - 1; continue;
+        }
+        if ((m = line.match(objRe))) {
+          const name = m[2];
+            const { end } = findBlockEnd(lines, i);
+            chunks.push(makeChunk(fullPath, lang!, name, 'object', lines, i, end));
+            i = end - 1; continue;
         }
       }
     } else if (lang === 'python') {
@@ -92,9 +113,17 @@ export class SymbolIndexer {
       }
     }
 
-    // Fallback: whole file as one chunk if nothing detected
+    // Fallback: if nothing detected, chunk large files into manageable segments; else single file chunk
     if (chunks.length === 0) {
-      chunks.push(makeChunk(fullPath, lang || 'unknown', path.basename(fullPath), 'file', lines, 0, lines.length));
+      if (lines.length > 400) {
+        const size = 200;
+        for (let i = 0; i < lines.length; i += size) {
+          const end = Math.min(lines.length, i + size);
+          chunks.push(makeChunk(fullPath, lang || 'unknown', path.basename(fullPath) + `#${Math.floor(i/size)+1}`, 'file-part', lines, i, end));
+        }
+      } else {
+        chunks.push(makeChunk(fullPath, lang || 'unknown', path.basename(fullPath), 'file', lines, 0, lines.length));
+      }
     }
 
     return chunks;

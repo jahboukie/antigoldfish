@@ -13,6 +13,7 @@ For pricing details and the honor‑system approach, see: docs/pricing.md
 - Zero‑trust by default: command and file access must be explicitly allowed, with an audit trail.
 - Glassbox operations: plan/mirror/explain/dry‑run on every command, receipts + journal + digests.
 - Code‑aware recall: index code by files or symbols, search via FTS and hybrid vector rerank (sqlite‑vss fallback safe).
+ - Diff‑aware reindex: cache file digests; skip unchanged files with `--diff` (baseline cache built automatically).
 - Air‑gapped protocol: export/import portable context bundles (.agmctx) for offline transfer.
 
 ## Quick start (CLI = `agm`)
@@ -68,13 +69,51 @@ More docs: see the `docs/` folder:
 
 - Code‑aware Index & Search
 	- `agm index-code [--symbols] [--path .] [--include ...] [--exclude ...]`
+		- Add `--diff` to skip unchanged files after an initial baseline run.
 	- `agm search-code <query> [-k N] [--preview N] [--hybrid] [--filter-path ...]`
 	- Hybrid FTS + vector rerank; sqlite‑vss when available, otherwise local cosine fallback
 
 - Air‑Gapped Context (.agmctx)
-	- `agm export-context --out ./ctx.agmctx --type code`
-	- `agm import-context ./ctx.agmctx` (verify‑only v0)
-	- Exports: `manifest.json`, `map.csv`, `vectors.f32`, `notes.jsonl`
+	- `agm export-context --out ./ctx.agmctx --type code [--zip] [--sign]`
+	- `agm import-context ./ctx.agmctx[.zip]` (verification + receipts)
+	- Exports now include: `manifest.json`, `map.csv`, `vectors.f32`, `notes.jsonl`, `checksums.json`, optional `signature.bin` + `publickey.der` (if signed)
+	- Supports zipped bundle (`ctx.agmctx.zip`) with identical verification logic
+	- Deterministic integrity & exit codes (see Status / Air‑gapped integrity)
+
+## Status (v1.8.0)
+
+Legend: ✅ shipped · ▶ partial · ⏳ planned · 💤 deferred
+
+| Area | State | Notes |
+|------|-------|-------|
+| Transparency (trace, dry-run, receipts, journal, plan/mirror) | ✅ | Receipts include verification + hybrid extras |
+| Zero‑trust policy broker | ✅ | allow-command/path, doctor, trust tokens |
+| Code indexing (file + basic symbols) | ✅ | Heuristic symbols; Tree‑sitter upcoming (Pro speed) |
+| Hybrid search (FTS + vector rerank) | ✅ | ANN acceleration roadmap |
+| Air‑gapped export/import | ✅ | Dir or zip, per‑file checksums, signing, provenance |
+| Per‑file checksums + precedence | ✅ | Exit 4 checksum > signature mismatch |
+| Signing & key rotation/archive | ✅ | key rotate/status/list/prune; archived keys stored |
+| Provenance metadata | ✅ | Exporter version/node/host + keyId in manifest |
+| Path redaction guard | ✅ | Removes sensitive absolute prefixes in receipts |
+| Replay (basic) | ▶ | Time‑travel deferred |
+| Usage-based nudges | ⏳ | usage.json scaffold not yet |
+| Tree‑sitter precision | ⏳ | Next major performance upgrade |
+| ANN / approximate vectors | ⏳ | After Tree‑sitter baseline |
+| Merge/diff import preview | ⏳ | Pro feature roadmap |
+| Time-travel replay | 💤 | Post ANN + symbol precision |
+
+Integrity Exit Codes (import-context):
+| Code | Meaning |
+|------|---------|
+| 2 | Blocked: unsigned bundle (policy requires signature) |
+| 3 | Invalid signature (cryptographic failure) |
+| 4 | Checksum mismatch (file tampered/corrupt) |
+
+Symbol Mode Disclaimer: Current symbol indexing is lightweight (regex/heuristic). Tree‑sitter provides precise language‑aware segmentation soon; performance & recall accuracy will improve further (Pro acceleration, OSS baseline still benefits).
+
+ANN Acceleration: Present build uses deterministic local cosine fallback when sqlite‑vss not available. ANN / approximate recall arrives post v1.8.0; no network calls will be introduced.
+
+Security Note: See SECURITY.md for the zero‑egress posture, signing model, and policy threat boundaries.
 
 ## Security model (local‑only by default)
 
@@ -107,13 +146,25 @@ More docs: see the `docs/` folder:
 - Air‑gapped
 	- `agm export-context` and `agm import-context`
 
+- Maintenance & Recovery
+	- `agm db-doctor` — integrity check + automatic repair (backs up corrupted file then rebuilds schema)
+	- `agm digest-cache --list|--clear` — inspect or reset file digest cache used by `--diff`
+
 ## Roadmap highlights
 
-- .agmctx signing (ed25519) and zipped container format
-- Tree‑sitter‑based symbol chunking (per‑language)
-- Prove‑offline self‑check and hardened policy templates
-- Role‑based profiles and enforcement
-- Context replay with point‑in‑time reconstruction
+Shipped (v1.8.0):
+- .agmctx signing (ed25519) + zipped container format + per‑file checksums + provenance
+- Prove‑offline self‑check & hardened policy broker
+
+Upcoming (short horizon):
+- Tree‑sitter‑based symbol chunking (precision + diff-aware reindex)
+- ANN / faster hybrid ranking
+- Merge/diff import preview & delta exports
+- Usage-based nudge scaffolding (privacy-preserving local usage.json)
+
+Deferred (post performance upgrades):
+- Role‑based memory profiles
+- Time-travel replay (point‑in‑time reconstruction)
 
 ## Requirements
 
@@ -145,3 +196,21 @@ More details and FAQs: docs/pricing.md
 - Better observability (receipt rollups; HTML health reports)
 - Less policy friction (policy templates; interactive doctor)
 - Enhanced .agmctx (zipped, checksums, merge, verify reports)
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->

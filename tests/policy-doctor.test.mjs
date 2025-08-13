@@ -26,7 +26,7 @@ test('policy doctor explains and suggests fixes', async () => {
 
   const res = run(['policy','doctor','--cmd','index-code','--path','.'], dir);
   assert.equal(res.status, 0);
-  assert.match(res.stdout, /Command check/i);
-  assert.match(res.stdout, /ALLOWED|BLOCKED/i);
-  assert.match(res.stdout, /Path check/i);
+  assert.match(res.stdout, /cmd: index-code -> allowed/i);
+  assert.match(res.stdout, /allowed|blocked/i);
+  assert.match(res.stdout, /path: \. -> blocked/i);
 });

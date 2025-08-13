@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import * as os from 'os';
 
 export interface TraceFlags {
   trace: boolean;
@@ -80,7 +81,45 @@ export class Tracer {
     }
   }
 
-  writeReceipt(command: string, params: any, results: any, success: boolean, error?: string, extra?: { resultSummary?: any; exitCode?: number; digests?: Record<string,string>; hybrid?: { backend: string; fusionWeights: { bm25: number; cosine: number }; rerankN: number } }): string {
+  writeReceipt(command: string, params: any, results: any, success: boolean, error?: string, extra?: { resultSummary?: any; exitCode?: number; digests?: Record<string,string>; hybrid?: { backend: string; fusionWeights: { bm25: number; cosine: number }; rerankN: number }; verification?: any }): string {
+    // Redaction / path escape guard: scrub any absolute or outside-root paths from params/results before persisting
+    const redactions: { outsideRoot: Set<string> } = { outsideRoot: new Set() };
+    const projectRootNorm = path.resolve(this.projectRoot);
+    const isWithinRoot = (p: string): boolean => {
+      try {
+        const rp = path.resolve(p);
+        return rp.startsWith(projectRootNorm + path.sep) || rp === projectRootNorm;
+      } catch { return false; }
+    };
+    const looksPathLike = (v: string): boolean => /[\\/]/.test(v) && (path.isAbsolute(v) || v.includes('..'+path.sep) || /^[A-Za-z]:\\/.test(v));
+    const REDACT = '<redacted:outside-root>';
+    const seen = new WeakSet();
+    const sanitize = (val: any): any => {
+      if (val == null) return val;
+      if (typeof val === 'string') {
+        if (looksPathLike(val)) {
+          try {
+            const abs = path.isAbsolute(val) ? val : path.resolve(this.projectRoot, val);
+            if (!isWithinRoot(abs)) {
+              redactions.outsideRoot.add(val);
+              return REDACT;
+            }
+          } catch { /* ignore */ }
+        }
+        return val;
+      }
+      if (typeof val === 'object') {
+        if (seen.has(val)) return val; seen.add(val);
+        if (Array.isArray(val)) return val.map(sanitize);
+        const out: any = {};
+        for (const [k,v] of Object.entries(val)) out[k] = sanitize(v);
+        return out;
+      }
+      return val;
+    };
+    const scrubbedParams = sanitize(params);
+    const scrubbedResults = sanitize(results);
+
     const id = `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
     const argsSha256 = crypto.createHash('sha256').update(JSON.stringify({ argv: this.argv, params })).digest('hex');
     const endISO = new Date().toISOString();
@@ -96,14 +135,27 @@ export class Tracer {
       startTime: this.startISO,
       endTime: endISO,
       durationMs,
-      params,
+      params: scrubbedParams,
       resultSummary: extra?.resultSummary,
-      results,
+      results: scrubbedResults,
       success,
       exitCode: extra?.exitCode,
       error,
       digests: { argsSha256, ...(extra?.digests || {}) },
-      extras: extra?.hybrid ? { hybrid: extra.hybrid } : undefined
+      extras: (() => {
+        const base: any = {};
+  if (extra?.hybrid) base.hybrid = extra.hybrid;
+  if (extra?.verification) base.verification = extra.verification;
+        if (redactions.outsideRoot.size) {
+          base.redactions = {
+            outsideRoot: {
+              count: redactions.outsideRoot.size,
+              examples: Array.from(redactions.outsideRoot).slice(0,5)
+            }
+          };
+        }
+        return Object.keys(base).length ? base : undefined;
+      })()
     };
     const filePath = path.join(this.receiptsDir(), `${id}.json`);
     fs.writeFileSync(filePath, JSON.stringify(receipt, null, 2));

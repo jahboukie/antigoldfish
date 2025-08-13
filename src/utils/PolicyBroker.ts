@@ -8,6 +8,10 @@ export interface Policy {
   envPassthrough: string[];
   networkEgress: boolean;
   auditTrail: boolean;
+  // New: portability and integrity toggles
+  signExports?: boolean;              // default false; if true, agm export-context signs by default
+  requireSignedContext?: boolean;     // default false; if true, agm import-context requires a valid signature
+  forceSignedExports?: boolean;       // default false; if true, signing cannot be disabled (even with --no-sign)
 }
 
 export class PolicyBroker {
@@ -29,9 +33,11 @@ export class PolicyBroker {
     const raw = fs.readFileSync(this.policyPath, 'utf8');
     let loaded: Policy = JSON.parse(raw);
     // Ensure required keys and merge with defaults if missing to avoid blocking
-    const defaultPolicy: Policy = {
+  const defaultPolicy: Policy = {
     allowedCommands: [
   "init","status","vector-status","ai-guide","index-code","search-code","journal","replay","receipt-show","remember","recall","policy",
+  // .agmctx portability commands
+  "export-context","import-context",
   // Diagnostics
   "prove-offline",
   // Global flags/commands that should never be blocked
@@ -40,14 +46,20 @@ export class PolicyBroker {
       allowedGlobs: ["**/*"],
       envPassthrough: ["NODE_ENV","AGM_MODE","PATH","HOME","USER","USERNAME"],
       networkEgress: false,
-      auditTrail: true
+  auditTrail: true,
+  signExports: false,
+  requireSignedContext: false,
+  forceSignedExports: false
     };
     let changed = false;
     if (!Array.isArray((loaded as any).allowedCommands)) { (loaded as any).allowedCommands = []; changed = true; }
     if (!Array.isArray((loaded as any).allowedGlobs)) { (loaded as any).allowedGlobs = []; changed = true; }
     if (!Array.isArray((loaded as any).envPassthrough)) { (loaded as any).envPassthrough = []; changed = true; }
     if (typeof (loaded as any).networkEgress !== 'boolean') { (loaded as any).networkEgress = defaultPolicy.networkEgress; changed = true; }
-    if (typeof (loaded as any).auditTrail !== 'boolean') { (loaded as any).auditTrail = defaultPolicy.auditTrail; changed = true; }
+  if (typeof (loaded as any).auditTrail !== 'boolean') { (loaded as any).auditTrail = defaultPolicy.auditTrail; changed = true; }
+  if (typeof (loaded as any).signExports !== 'boolean') { (loaded as any).signExports = defaultPolicy.signExports!; changed = true; }
+  if (typeof (loaded as any).requireSignedContext !== 'boolean') { (loaded as any).requireSignedContext = defaultPolicy.requireSignedContext!; changed = true; }
+  if (typeof (loaded as any).forceSignedExports !== 'boolean') { (loaded as any).forceSignedExports = defaultPolicy.forceSignedExports!; changed = true; }
     // Add critical defaults if missing
     for (const cmd of defaultPolicy.allowedCommands) {
       if (!loaded.allowedCommands.includes(cmd)) { loaded.allowedCommands.push(cmd); changed = true; }
@@ -63,7 +75,7 @@ export class PolicyBroker {
   }
 
   private createDefaultPolicy(): void {
-    const defaultPolicy: Policy = {
+  const defaultPolicy: Policy = {
       // Defaults are permissive for local testing; tighten in production
       allowedCommands: [
         "init",
@@ -78,6 +90,11 @@ export class PolicyBroker {
         // Memory ops only (license system removed in local-only pivot)
         "remember",
         "recall",
+  // .agmctx portability
+  "export-context",
+  "import-context",
+  // Health snapshot
+  "health",
   // Diagnostics
   "prove-offline",
         // Global flags/commands that should never be blocked
@@ -86,7 +103,10 @@ export class PolicyBroker {
       allowedGlobs: ["**/*"],  // Allow all files by default for easier testing
       envPassthrough: ["NODE_ENV", "AGM_MODE", "PATH", "HOME", "USER", "USERNAME"],
       networkEgress: false,
-      auditTrail: true
+  auditTrail: true,
+  signExports: false,
+  requireSignedContext: false,
+  forceSignedExports: false
     };
 
     // Ensure directory exists
@@ -203,5 +223,12 @@ export class PolicyBroker {
     const m = this.readTrust();
     const t = m[cmd] || 0;
     return Date.now() < t;
+  }
+  public listTrust(): Array<{ cmd: string; until: string }>{
+    const m = this.readTrust();
+    return Object.entries(m)
+      .map(([cmd, untilMs]) => ({ cmd, until: new Date(Number(untilMs)).toISOString() }))
+      .filter(e => Date.parse(e.until) > Date.now())
+      .sort((a,b) => Date.parse(a.until) - Date.parse(b.until));
   }
 }
