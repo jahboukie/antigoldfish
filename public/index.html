@@ -70,56 +70,49 @@
       <a class="cta" href="https://github.com/jahboukie/antigoldfish">GitHub</a>
       <a class="cta" href="https://github.com/sponsors/jahboukie">Sponsor (Honor‑System)</a>
       <a class="cta" href="https://github.com/sponsors/jahboukie">Support Development</a>
-      <a class="cta" href="docs/README.md">Docs Index</a>
     </div>
     <p class="support-note">Sponsorship is voluntary. All core features (signing, checksums, policy, receipts, export/import) are MIT‑licensed and fully functional without payment.</p>
   </header>
   <main>
-    <h2>Implemented (v1.8.0)</h2>
+    <h2>Implemented (v1.9.0)</h2>
     <div class="two-col">
       <div>
-        <strong>Transparency</strong>
+        <strong>Core Engine</strong>
         <ul class="list-tight">
-          <li>Trace / plan / mirror flags</li>
-          <li>Receipts with digests & verification extras</li>
-          <li>Journal (.jsonl) per command</li>
-          <li>Path redaction guard</li>
+          <li>SQLite-based persistent memory</li>
+          <li>Local-only vector embeddings (zero egress)</li>
+          <li>Tree-sitter AST-based code chunking</li>
+          <li>Hybrid search (keyword + vector)</li>
         </ul>
-        <strong>Integrity & Export</strong>
+        <strong>Integrity &amp; Export</strong>
         <ul class="list-tight">
-          <li>Signed + checksummed <code>.agmctx</code> (dir or zip)</li>
-          <li>Provenance in manifest (exporter + keyId)</li>
-          <li>Per‑file SHA256 first, then signature verify</li>
-          <li>Deterministic exit codes 2 / 3 / 4</li>
+          <li>Signed + checksummed <code>.agmctx</code> exports</li>
+          <li>Zipped bundle support (<code>--zip</code>)</li>
+          <li>Delta exports to reduce duplication (<code>--delta</code>)</li>
+          <li>Provenance data in export manifests</li>
         </ul>
-        <strong>Policy / Zero‑Trust</strong>
+        <strong>Policy &amp; Security</strong>
         <ul class="list-tight">
-          <li>allow-command / allow-path rules</li>
-          <li>Policy doctor (explain + remediation)</li>
-          <li>Time‑scoped trust tokens</li>
+          <li>Zero-trust policy engine (command &amp; path rules)</li>
+          <li>Enforced signing (<code>forceSignedExports</code>)</li>
+          <li>Time-scoped trust tokens for temporary bypass</li>
+          <li>Full key lifecycle management (rotate, prune, etc.)</li>
         </ul>
       </div>
       <div>
-        <strong>Index & Search</strong>
+        <strong>Transparency &amp; Auditing</strong>
         <ul class="list-tight">
-          <li>Tree-sitter AST symbol extraction (TS/JS/Python)</li>
-          <li>SQLite FTS5 baseline</li>
-          <li>Hybrid rerank (vector cosine or fallback)</li>
+          <li>Trace/plan/mirror flags for all commands</li>
+          <li>Per-command JSON receipts with digests</li>
+          <li>Append-only command journal (.jsonl)</li>
+          <li>Verifiable zero-egress (<code>agm prove-offline</code>)</li>
         </ul>
-        <strong>Key Management</strong>
+        <strong>Diagnostics &amp; Maintenance</strong>
         <ul class="list-tight">
-          <li>key rotate (archives previous)</li>
-          <li>key status / list / prune</li>
-        </ul>
-        <strong>Diagnostics</strong>
-        <ul class="list-tight">
-          <li>health / vector-status</li>
-          <li>prove-offline (explicit no egress)</li>
-        </ul>
-        <strong>Build & Repro</strong>
-        <ul class="list-tight">
-          <li>Reproducible build notes (REPRODUCIBLE_BUILDS.md)</li>
-          <li>19 passing tests (integrity, key mgmt, tamper)</li>
+          <li>Database doctor (<code>db-doctor</code>) for integrity checks</li>
+          <li>Health and vector status commands</li>
+          <li>Garbage collection for stale data (<code>gc</code>)</li>
+          <li>Robust regression test suite</li>
         </ul>
       </div>
     </div>
@@ -146,16 +139,15 @@
     </ol>
     <p class="note">See docs/airgapped.md for bundle format & verification details.</p>
 
-    <h2>Roadmap (Not Yet Implemented)</h2>
+    <h2>Roadmap (Post-1.9.0)</h2>
     <ul class="roadmap-list">
-      <li>ANN acceleration (approximate vector search)</li>
-      <li>Merge / diff import preview</li>
-      <li>Delta / incremental exports</li>
-      <li>Time‑travel replay (point‑in‑time memory view)</li>
-      <li>Usage-based local nudges (privacy‑preserving)</li>
-      <li>Multi-key verify (archived trust chain)</li>
+      <li>High-performance ANN acceleration (Faiss, etc.)</li>
+      <li>Import preview (merge/diff view)</li>
+      <li>Point-in-time memory replay (time-travel)</li>
+      <li>Multi-key signature verification (trust chain)</li>
+      <li>Privacy-preserving usage nudges</li>
     </ul>
-    <p class="muted">Listed for transparency. Absence here means shipped above.</p>
+    <p class="muted">These features are planned for future releases.</p>
 
     <h2>Upgrade to Pro (Honor-System)</h2>
     <p class="section-desc">Pro features are available via an honor-system sponsorship. They focus on advanced code analysis, workflow automation, and stricter security controls for professional and team environments.</p>
@@ -199,7 +191,7 @@
     </ul>
   </main>
   <footer>
-  <div>AntiGoldfishMode <span class="version-marker">v__VERSION__</span> • MIT License • © 2025</div>
+  <div>AntiGoldfishMode <span class="version-marker">v1.9.0</span> • MIT License • © 2025</div>
   <div class="footer-note">Verify offline anytime: <code>agm prove-offline</code></div>
   </footer>
 </body>
