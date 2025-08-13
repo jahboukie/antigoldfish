@@ -84,12 +84,16 @@ node dist/cli.js watch-code --path src --max-chunk 180 --debounce 400
 ```
 - Say: “Dev loop: incremental reindex on change.”
 
-Optional Shot 11 — Export/import (15s)
+Optional Shot 11 — Export/import (30s)
 ```powershell
-node dist/cli.js export-context --out context.agmctx --type code
+node dist/cli.js policy status
+node dist/cli.js export-context --out context.agmctx --type code --explain
 node dist/cli.js import-context context.agmctx
+# If your policy requires signed contexts, show the trust-based bypass:
+node dist/cli.js policy trust import-context --minutes 5
+node dist/cli.js import-context context.agmctx --allow-unsigned
 ```
-- Say: “Portable, air‑gapped bundles for sharing context offline.”
+- Say: “Portable, air‑gapped bundles. Policy can default to signing exports and require signed imports; you can grant a short-lived trust and pass --allow-unsigned for demos.”
 
 Closing (5–8s)
 - Say: “Transparent, local‑only memory for devs. Receipts, policy, and code‑aware recall. Try it—agm init.”

@@ -1,443 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AntiGoldfishMode - Stop Re-Explaining Your Code to AI</title>
-    <meta name="description" content="Give your AI assistant an elephant's memory. 100% local-only, private, and free of licensing. Never lose context again.">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    
-    <!-- Open Graph / Social Media -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="AntiGoldfishMode - Stop Re-Explaining Your Code to AI">
-    <meta property="og:description" content="Give your AI assistant an elephant's memory. 100% local-only and private.">
-    <meta property="og:url" content="https://antigoldfish.dev">
-    
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="AntiGoldfishMode - Stop Re-Explaining Your Code to AI">
-    <meta name="twitter:description" content="Give your AI assistant an elephant's memory. 100% local-only and private.">
-    
-    <link rel="stylesheet" href="/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AntiGoldfishMode — Local‑Only, Air‑Gapped Memory CLI</title>
+  <meta name="description" content="Transparent, air‑gapped local memory for code. Traceable commands, signed & checksummed exports, zero egress. MIT / honor‑system." />
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --muted-soft: #64748b;
+      --header-bg: #0f172a;
+      --header-text: #ffffff;
+      --border: #e2e8f0;
+      --code-bg: #f1f5f9;
+      --panel-bg: #ffffff;
+      --accent-hover: #f1f5f9;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --muted-soft: #64748b;
+        --header-bg: #0f172a;
+        --header-text: #ffffff;
+        --border: #334155;
+        --code-bg: #1e293b;
+        --panel-bg: #1e293b;
+        --accent-hover: #1e293b;
+      }
+    }
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin:0; line-height:1.45; color:var(--text); background:var(--bg); }
+    header { background:var(--header-bg); color:var(--header-text); padding:56px 18px 48px; }
+    h1 { font-size:2.1rem; margin:0 0 12px; font-weight:600; letter-spacing:.5px; }
+    .tagline { margin:0 0 18px; font-size:1rem; max-width:780px; }
+    .prove { font-family:monospace; background:var(--code-bg); color:var(--text); padding:4px 8px; border-radius:6px; font-size:.85rem; display:inline-block; }
+    a.cta { display:inline-block; background:var(--panel-bg); color:var(--text); padding:10px 18px; border-radius:8px; text-decoration:none; font-weight:600; margin-right:10px; border:1px solid var(--border); }
+    a.cta:hover { background:var(--accent-hover); }
+    main { max-width:940px; margin:0 auto; padding:40px 18px 64px; }
+    h2 { margin-top:48px; font-size:1.4rem; letter-spacing:.3px; }
+    h2:first-of-type { margin-top:8px; }
+    ul,ol { padding-left:20px; }
+    code { background:var(--code-bg); padding:2px 6px; border-radius:4px; font-size:.85rem; }
+    table { border-collapse:collapse; width:100%; margin:16px 0; font-size:.85rem; }
+    th,td { border:1px solid var(--border); padding:6px 8px; text-align:left; }
+    th { background:var(--code-bg); }
+    .note { font-size:.75rem; color:var(--muted-soft); margin-top:4px; }
+    .list-tight li { margin-bottom:4px; }
+    .muted { color:var(--muted); font-size:.85rem; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+  .cta-row { margin-top:18px; }
+  .support-note { margin-top:10px; font-size:.72rem; color:var(--muted-soft); max-width:760px; }
+    .footer-note { margin-top:4px; }
+    @media (max-width:760px){ .two-col { grid-template-columns:1fr; } header { padding:44px 18px 40px;} a.cta { margin-bottom:8px; } }
+    footer { padding:32px 18px; text-align:center; font-size:.75rem; color:var(--muted-soft); border-top:1px solid var(--border); }
+    .roadmap-list li { margin-bottom:2px; }
+    .section-desc { margin-top:4px; color:var(--muted); font-size:.85rem; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>🧠 AntiGoldfishMode</h1>
-            <p class="subtitle">The AI Memory Engine That Remembers Everything</p>
-            <p class="subheadline">Stop wasting hours re-explaining your codebase to AI assistants</p>
-            <p class="muted">Give your AI assistant an elephant's memory. 100% local-only and private—no license, no cloud, no egress.</p>
-
-            <!-- Social Proof -->
-            <div class="social-proof">
-                <p class="social-proof-lead">🔥 Join 1,200+ developers who never lose context again</p>
-                <div class="social-stats">
-                    <span>⭐⭐⭐⭐⭐ "Game changer for AI coding"</span>
-                    <span>💰 $2.3M+ in developer time saved</span>
-                    <span>🚀 50% faster AI conversations</span>
-                </div>
-            </div>
-        </header>
-
-        <section class="hero-section">
-            
-            
-            <h2 class="hero-heading">AntiGoldfishMode: Local-Only AI Memory</h2>
-            
-            
-            
-            
-            
-            
-
-            
-
-            <!-- Problem Cards Section -->
-            <div class="section-pad-y">
-                <h2 class="section-heading">
-                    The Problem Every Developer Faces
-                </h2>
-                <div class="problem-grid">
-                    <div class="problem-card">
-                        <div class="emoji-xl">🤯</div>
-                        <h3 class="problem-title">AI Amnesia</h3>
-                        <p class="muted-body">AI assistants forget your project context between conversations, forcing you to re-explain the same code structure repeatedly.</p>
-                    </div>
-                    <div class="problem-card">
-                        <div class="emoji-xl">⏰</div>
-                        <h3 class="problem-title">Time Wasted</h3>
-                        <p class="muted-body">Spend 10-15 minutes every conversation explaining your codebase architecture, dependencies, and patterns.</p>
-                    </div>
-                    <div class="problem-card">
-                        <div class="emoji-xl">🔄</div>
-                        <h3 class="problem-title">Context Switching</h3>
-                        <p class="muted-body">Constantly switching between explaining old code and writing new code breaks your flow and productivity.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Solution Cards Section -->
-            <div class="section-pad-y">
-                <h2 class="section-heading-sm">
-                    The Solution: Persistent AI Memory
-                </h2>
-                <p class="muted-body center-lead">
-                    AntiGoldfishMode gives your AI assistant an elephant's memory
-                </p>
-
-                <div class="two-col">
-                    <div>
-                        <div class="row-center">
-                            <div class="icon-box icon-box-orange">
-                                <span class="emoji-lg">⚡</span>
-                            </div>
-                            <h3 class="card-title">Instant Context</h3>
-                        </div>
-                        <p class="muted-body mb-20">
-                            AI assistants get immediate access to your project structure, patterns, and decisions without you explaining anything.
-                        </p>
-                        <div class="col-gap-10">
-                            <div class="pill pill-blue">
-                                <span>🎯</span>
-                                <span class="pill-label">Decision History</span>
-                            </div>
-                            <div class="pill pill-blue">
-                                <span>📊</span>
-                                <span class="pill-label">Real-time Updates</span>
-                            </div>
-                            <div class="pill pill-blue">
-                                <span>💾</span>
-                                <span class="pill-label">Local SQLite Storage</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="row-center">
-                            <div class="icon-box icon-box-green">
-                                <span class="emoji-lg">🧠</span>
-                            </div>
-                            <h3 class="card-title">Remember Everything</h3>
-                        </div>
-                        <p class="muted-body mb-20">
-                            AI Memory Engine creates a persistent, local knowledge base of your project that AI assistants can reference instantly.
-                        </p>
-                        <div class="col-gap-10">
-                            <div class="pill pill-green">
-                                <span>📁</span>
-                                <span class="pill-label">Project Structure Mapping</span>
-                            </div>
-                            <div class="pill pill-green">
-                                <span>🔗</span>
-                                <span class="pill-label">Dependency Tracking</span>
-                            </div>
-                            <div class="pill pill-green">
-                                <span>🎨</span>
-                                <span class="pill-label">Code Pattern Recognition</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="text-center">
-                    <div class="center-row">
-                        <div class="icon-box icon-box-purple">
-                            <span class="emoji-lg">🔒</span>
-                        </div>
-                        <h3 class="card-title">Privacy First</h3>
-                    </div>
-                    <p class="privacy-desc">
-                        All data stays on your machine. No cloud uploads, no privacy concerns. Your code remains completely private.
-                    </p>
-                </div>
-            </div>
-
-            <h3 class="why-heading">Why This Changes Everything:</h3>
-            
-
-            <div class="yellow-callout">
-                
-                <p class="muted-body fs-11 mb-15">AntiGoldfishMode focuses on persistent, local memory for AI assistants. There is no code execution feature.</p>
-                <div class="mono-box">
-                    <strong>Focus:</strong> Persistent, local memory only. No code execution feature.
-                </div>
-            </div>
-            
-            <ul class="feature-list">
-                <li>🧠 <strong>Persistent AI Memory</strong> - AI remembers your entire project history across sessions</li>
-                <li>🔒 <strong>100% Local & Private</strong> - Your code and data never leave your machine</li>
-                <li>📝 <strong>Conversation Recording</strong> - All AI interactions automatically saved and searchable</li>
-                <li>🔐 <strong>Local encryption</strong> - Your intellectual property stays yours</li>
-                <li>�️ <strong>Works offline</strong> - No network required; prove it with <code>agm prove-offline</code></li>
-            </ul>
-        </section>
-
-        <section class="install-section">
-            <h3>🛠️ Quick Install & Setup:</h3>
-            <div class="code-block">$ npm install -g antigoldfishmode</div>
-            <div class="code-block">$ antigoldfishmode remember "My first persistent memory"</div>
-            <div class="code-block">$ antigoldfishmode recall "search anything"</div>
-            <div class="code-block">$ antigoldfishmode prove-offline --json</div>
-            
-            
-        </section>
-
-        <section class="comparison-section">
-            <h2 class="section-heading-sm">💡 Why Developers Love This</h2>
-            
-            <div class="before-after">
-                <div class="before">
-                    <h3>😤 Before AntiGoldfishMode:</h3>
-                    <ul>
-                        <li>❌ "Here's my project structure again..."</li>
-                        <li>❌ "Let me re-explain this authentication flow..."</li>
-                        <li>❌ "I already told you about this bug..."</li>
-                        <li>❌ "Wait, what was that solution from yesterday?"</li>
-                        <li>❌ Starting from scratch every conversation</li>
-                    </ul>
-                </div>
-                
-                <div class="after">
-                    <h3>🚀 After AntiGoldfishMode:</h3>
-                    <ul>
-                        <li>✅ AI remembers your architecture patterns</li>
-                        <li>✅ Builds on previous conversations seamlessly</li>
-                        <li>✅ Understands your coding style and preferences</li>
-                        <li>✅ Recalls solutions and decisions instantly</li>
-                        <li>✅ Persistent context across all sessions</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-    <section class="free-banner">
-            <h2>🆓 Free, Local-Only</h2>
-            <p>AGM is free to use and always local-first. No accounts, no telemetry, no payments.</p>
-        </section>
-
-        <!-- FAQ Section -->
-    <section class="faq-section">
-            <div class="container">
-        <h2 class="faq-title">
-                    🤔 Frequently Asked Questions
-                </h2>
-
-        <div class="faq-grid">
-
-                    <!-- Getting Started -->
-                    <div class="faq-category">
-                        <h3>
-                            🚀 Getting Started
-                        </h3>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: How do I install AntiGoldfishMode?
-                            </h4>
-                            <p>
-                                A: Simply run <code>npm install -g antigoldfishmode</code> in your terminal. You'll need Node.js 18+ installed (22+ recommended).
-                            </p>
-                        </div>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: Do I need to set up anything after installation?
-                            </h4>
-                            <p>
-                                A: After installation, run <code>antigoldfishmode init</code> in your project directory to initialize the local memory system.
-                            </p>
-                        </div>
-
-                    </div>
-
-                    <!-- Core Features -->
-                    <div class="faq-category">
-                        <h3>
-                            🧠 Core Features
-                        </h3>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: How does the AI memory system work?
-                            </h4>
-                            <p>
-                                A: AntiGoldfishMode automatically records every AI conversation and stores memories in an encrypted SQLite database. Use <code>antigoldfishmode remember "content"</code> to store insights and <code>antigoldfishmode recall "query"</code> to search them.
-                            </p>
-                        </div>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: Which AI assistants does it work with?
-                            </h4>
-                            <p>
-                                A: It works great alongside ChatGPT, Claude, and GitHub Copilot. AntiGoldfishMode provides persistent, local memory only—no code execution.
-                            </p>
-                        </div>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: Can I search through past conversations with my AI assistant?
-                            </h4>
-                            <p>
-                                A: Absolutely! Every command automatically records AI interactions with rich metadata. Use the recall command to search through everything: conversations and stored memories.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Technical Questions -->
-                    <div class="faq-category">
-                        <h3>
-                            ⚙️ Technical Details
-                        </h3>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: Where is my data stored? Is it secure?
-                            </h4>
-                            <p>
-                                A: Everything is stored locally on your machine in an encrypted SQLite database. No data ever leaves your computer. The database is machine-specific and encrypted for security.
-                            </p>
-                        </div>
-
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: What are the system requirements?
-                            </h4>
-                            <p>
-                                A: Node.js 18+ (22+ recommended), ~10MB storage for installation (variable for memories), and any modern OS (Windows, macOS, Linux). No Docker required.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Usage & Best Practices -->
-                    <div class="faq-category">
-                        <h3>
-                            💡 Usage & Best Practices
-                        </h3>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: How should I use the memory system effectively?
-                            </h4>
-                            <p>
-                                A: Store project patterns, code snippets, architectural decisions, and bug fixes. Use contexts like <code>--context "api-design"</code> to categorize memories for better organization.
-                            </p>
-                        </div>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: Can I use this with any AI assistant?
-                            </h4>
-                            <p>
-                                A: Yes! AntiGoldfishMode works with ChatGPT, Claude, Copilot, or any AI coding assistant. It's designed to enhance any AI interaction by providing persistent memory and context.
-                            </p>
-                        </div>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: What happens if I work on multiple projects?
-                            </h4>
-                            <p>
-                                A: Each project gets its own <code>.antigoldfishmode</code> directory with project-specific memories. You can also use global memories that work across all projects.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Licensing & Support -->
-                    <div class="faq-category">
-                        <h3>
-                            🎫 Licensing & Support
-                        </h3>
-
-                        
-
-                        <div class="faq-item">
-                            <h4>Q: What if I need help or have issues?</h4>
-                            <p>A: Check <code>antigoldfishmode status</code> for diagnostics and use <code>antigoldfishmode --help</code> for command reference. You can also email us at <a href="mailto:antigoldfish.dev@gmail.com">antigoldfish.dev@gmail.com</a>.</p>
-                        </div>
-
-                        
-                    </div>
-
-                    <!-- Advanced Usage -->
-                    <div class="faq-category">
-                        <h3>
-                            🔧 Advanced Usage
-                        </h3>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: Can I export or back up my memories?
-                            </h4>
-                            <p>
-                                A: Yes. Export code memories with <code>antigoldfishmode export-context --type code</code>. For raw backup, the local database lives at <code>.antigoldfishmode/memory.db</code> (encrypted and machine-specific).
-                            </p>
-                        </div>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: How do I backup or share my memories?
-                            </h4>
-                            <p>
-                                A: The database is in <code>.antigoldfishmode/memory.db</code>. You can backup this file, but it's encrypted and machine-specific. For team sharing, export specific memories and share the text.
-                            </p>
-                        </div>
-
-                        <div class="faq-item">
-                            <h4>
-                                Q: Does AntiGoldfishMode work with CI/CD or automated workflows?
-                            </h4>
-                            <p>
-                                A: AntiGoldfishMode is designed for interactive development and persistent recall. There is no code execution; the focus is memory quality and privacy.
-                            </p>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Call to Action -->
-                    <div class="cta-panel">
-                    <h3>
-                        Still have questions?
-                    </h3>
-                    <p>
-                        Try AGM now and experience the difference persistent AI memory makes—no signup required.
-                    </p>
-                    
-                </div>
-
-            </div>
-        </section>
-
-        <section class="guarantee-section">
-            <h2>🛡️ Local-Only Promise</h2>
-            <ul class="guarantee-list">
-                <li>✅ <strong>No egress</strong> - Operates fully offline</li>
-                <li>✅ <strong>No license</strong> - No activation or keys</li>
-                <li>✅ <strong>No telemetry</strong> - We don't collect usage
-                </li>
-            </ul>
-        </section>
-
-        <footer class="site-footer">
-            <h3>🎉 Build faster with persistent context</h3>
-            
-            <p class="contact">
-                Need help? Email us at <a href="mailto:antigoldfish.dev@gmail.com">antigoldfish.dev@gmail.com</a>
-            </p>
-
-            <!-- Legal Links -->
-            <div class="legal">
-                <p>
-                    <a href="privacy-policy.html">Privacy Policy</a>
-                    <a href="terms-of-service.html">Terms of Service</a>
-                </p>
-                <p class="smallprint">
-                    © 2025 AntiGoldfishMode. All rights reserved.
-                </p>
-            </div>
-        </footer>
+  <header>
+    <h1>AntiGoldfishMode</h1>
+    <p class="tagline">Local‑only, air‑gapped memory for codebases that cannot leave the machine. Every action is traceable. Exports are signed & checksummed. No telemetry. Verify zero egress at any moment.</p>
+    <div class="prove">agm prove-offline</div>
+    <div class="cta-row">
+      <a class="cta" href="https://github.com/jahboukie/antigoldfish">GitHub</a>
+      <a class="cta" href="https://github.com/sponsors/jahboukie">Sponsor (Honor‑System)</a>
+      <a class="cta" href="https://github.com/sponsors/jahboukie">Support Development</a>
+      <a class="cta" href="docs/README.md">Docs Index</a>
     </div>
+    <p class="support-note">Sponsorship is voluntary. All core features (signing, checksums, policy, receipts, export/import) are MIT‑licensed and fully functional without payment.</p>
+  </header>
+  <main>
+    <h2>Implemented (v1.8.0)</h2>
+    <div class="two-col">
+      <div>
+        <strong>Transparency</strong>
+        <ul class="list-tight">
+          <li>Trace / plan / mirror flags</li>
+          <li>Receipts with digests & verification extras</li>
+          <li>Journal (.jsonl) per command</li>
+          <li>Path redaction guard</li>
+        </ul>
+        <strong>Integrity & Export</strong>
+        <ul class="list-tight">
+          <li>Signed + checksummed <code>.agmctx</code> (dir or zip)</li>
+          <li>Provenance in manifest (exporter + keyId)</li>
+          <li>Per‑file SHA256 first, then signature verify</li>
+          <li>Deterministic exit codes 2 / 3 / 4</li>
+        </ul>
+        <strong>Policy / Zero‑Trust</strong>
+        <ul class="list-tight">
+          <li>allow-command / allow-path rules</li>
+          <li>Policy doctor (explain + remediation)</li>
+          <li>Time‑scoped trust tokens</li>
+        </ul>
+      </div>
+      <div>
+        <strong>Index & Search</strong>
+        <ul class="list-tight">
+          <li>Tree-sitter AST symbol extraction (TS/JS/Python)</li>
+          <li>SQLite FTS5 baseline</li>
+          <li>Hybrid rerank (vector cosine or fallback)</li>
+        </ul>
+        <strong>Key Management</strong>
+        <ul class="list-tight">
+          <li>key rotate (archives previous)</li>
+          <li>key status / list / prune</li>
+        </ul>
+        <strong>Diagnostics</strong>
+        <ul class="list-tight">
+          <li>health / vector-status</li>
+          <li>prove-offline (explicit no egress)</li>
+        </ul>
+        <strong>Build & Repro</strong>
+        <ul class="list-tight">
+          <li>Reproducible build notes (REPRODUCIBLE_BUILDS.md)</li>
+          <li>19 passing tests (integrity, key mgmt, tamper)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>Integrity: Import Exit Codes</h2>
+    <table>
+      <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>All verification passed</td></tr>
+        <tr><td>2</td><td>Unsigned bundle blocked (policy requires signature)</td></tr>
+        <tr><td>3</td><td>Invalid signature</td></tr>
+        <tr><td>4</td><td>Checksum mismatch (tamper/corrupt)</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">Checksums are verified before signature to surface tamper early.</p>
+
+    <h2>Quick Start</h2>
+    <ol>
+      <li><code>npm i -g antigoldfishmode</code></li>
+      <li><code>agm init</code></li>
+      <li><code>agm index-code --path src --symbols</code></li>
+      <li><code>agm search-code "auth middleware" --hybrid --preview 3</code></li>
+      <li><code>agm export-context --out ./ctx.agmctx --type code --zip --sign</code></li>
+    </ol>
+    <p class="note">See docs/airgapped.md for bundle format & verification details.</p>
+
+    <h2>Roadmap (Not Yet Implemented)</h2>
+    <ul class="roadmap-list">
+      <li>ANN acceleration (approximate vector search)</li>
+      <li>Merge / diff import preview</li>
+      <li>Delta / incremental exports</li>
+      <li>Time‑travel replay (point‑in‑time memory view)</li>
+      <li>Usage-based local nudges (privacy‑preserving)</li>
+      <li>Multi-key verify (archived trust chain)</li>
+    </ul>
+    <p class="muted">Listed for transparency. Absence here means shipped above.</p>
+
+    <h2>Honor‑System Funding</h2>
+    <p>All core capability is MIT‑licensed. No license checks, no telemetry, no crippled paths. Sponsorship funds maintenance, performance upgrades (Tree‑sitter & ANN), and better tooling (dashboards, diff preview). If it saves you time, consider supporting.</p>
+
+    <h2>Verification & Docs</h2>
+    <ul class="list-tight">
+      <li><a href="SECURITY.md">SECURITY.md</a> – zero‑egress posture & policy surface</li>
+      <li><a href="REPRODUCIBLE_BUILDS.md">REPRODUCIBLE_BUILDS.md</a> – build determinism notes</li>
+      <li><a href="docs/airgapped.md">Air‑gapped export/import</a></li>
+      <li><a href="docs/receipts.md">Receipts schema</a></li>
+      <li><a href="README.md">Project README</a></li>
+    </ul>
+    <p class="note">Pull requests improving reproducibility, verification coverage, or docs are welcome.</p>
+
+    <h2>What We Don't Do</h2>
+    <ul class="list-tight">
+      <li>No cloud or hosted service layer</li>
+      <li>No remote code execution features</li>
+      <li>No usage tracking / analytics</li>
+      <li>No gating of security features behind paywalls</li>
+    </ul>
+  </main>
+  <footer>
+  <div>AntiGoldfishMode <span class="version-marker">v__VERSION__</span> • MIT License • © 2025</div>
+  <div class="footer-note">Verify offline anytime: <code>agm prove-offline</code></div>
+  </footer>
 </body>
 </html>

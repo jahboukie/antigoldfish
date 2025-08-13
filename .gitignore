@@ -1,25 +1,34 @@
-# AntiGoldfishMode local data and backups
+###############
+# AGM Local Data & Backups
+###############
 .antigoldfishmode/
 .antigoldfishmode.bak-*/
-# Dependencies
+agm-test-*/
+###############
+# Dependencies & Package Manager Noise
+###############
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Build outputs
+###############
+# Build / Reports
+###############
 dist/
 build/
 *.tsbuildinfo
+sbom.json
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+###############
+# Env Files (none required for core CLI)
+###############
+.env*
 
-# IDE files
+###############
+# Editors / IDE / Swap
+###############
 .vscode/
 .idea/
 *.swp
@@ -36,22 +45,29 @@ build/
 ehthumbs.db
 Thumbs.db
 
+###############
 # Logs
+###############
 logs/
 *.log
 
-# Runtime data
+###############
+# Runtime PIDs
+###############
 pids/
 *.pid
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
+###############
+# Coverage
+###############
 coverage/
 *.lcov
 
-# AntiGoldfishMode specific
-.antigoldfishmode/
+###############
+# AGM Specific / Legacy
+###############
 *.db
 *.db-journal
 LICENSING.md
@@ -61,27 +77,57 @@ LICENSING.md
 
 # Website files are now tracked; do not ignore
 
-# Test files (keep source tests)
+###############
+# Ad-hoc Test Scripts (keep formal tests/*)
+###############
 test-*.js
 simulate-*.js
 verify-*.js
 
-# Temporary files
+###############
+# Temp Files
+###############
 tmp/
 temp/
+*.tmp
+*.temp
 
-# CodeContext Pro
+###############
+# Legacy CodeContext Pro Artifacts
+###############
 .codecontext/memory.db
 .codecontext/logs/
 .codecontext/sandbox/
 
 
-# Windows reserved name artifact safeguards
+###############
+# Windows Reserved Names (defensive)
+###############
 nul
 NUL
 
-# Security demo/admin files (not part of CLI)
+###############
+# Security demo/admin (not part of distributed CLI)
+###############
 security/
 admin-dashboard.js
 security-cli.js
 security/**
+
+###############
+# Air-gapped Export Bundles & Integrity Files
+###############
+*.agmctx.zip
+*.agmctx/
+checksums.json
+signature.bin
+publickey.der
+!docs/sample-export/ctx-sample.agmctx/
+!docs/sample-export/ctx-sample.agmctx/**
+
+###############
+# Archives / Misc
+###############
+*.tgz
+*.tar
+*.zip

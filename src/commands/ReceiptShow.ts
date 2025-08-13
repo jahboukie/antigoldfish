@@ -11,11 +11,37 @@ function findLastReceipt(projectRoot: string): string | null {
   return path.join(dir, files[0]);
 }
 
-export async function handleReceiptShow(idOrPath?: string, opts?: { last?: boolean }): Promise<void> {
+function findLastNReceipts(projectRoot: string, n: number): string[] {
+  const dir = path.join(projectRoot, '.antigoldfishmode', 'receipts');
+  if (!fs.existsSync(dir)) return [];
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
+  if (!files.length) return [];
+  files.sort((a, b) => (a < b ? 1 : -1));
+  return files.slice(0, Math.max(1, n)).map(f => path.join(dir, f));
+}
+
+export async function handleReceiptShow(idOrPath?: string, opts?: { last?: boolean; limit?: number }): Promise<void> {
   const projectRoot = process.cwd();
   let filePath: string | undefined;
 
-  if (opts?.last || !idOrPath) {
+  if (opts?.limit && (!idOrPath || opts.last)) {
+    const n = Math.max(1, Math.min(50, opts.limit));
+    const files = findLastNReceipts(projectRoot, n);
+    if (!files.length) { console.error('No receipts found.'); return; }
+    for (const fp of files) {
+      try {
+        const json = JSON.parse(fs.readFileSync(fp, 'utf8'));
+        const ordered: any = {};
+        const keys = ['schema','version','id','command','argv','cwd','startTime','endTime','params','resultSummary','results','success','exitCode','error','digests'];
+        for (const k of keys) if (k in json) ordered[k] = json[k];
+        for (const k of Object.keys(json)) if (!(k in ordered)) ordered[k] = json[k];
+        console.log(JSON.stringify(ordered, null, 2));
+      } catch (e) {
+        console.error('Failed to parse receipt:', (e as Error).message);
+      }
+    }
+    return;
+  } else if (opts?.last || !idOrPath) {
     const last = findLastReceipt(projectRoot);
     if (!last) { console.error('No receipts found.'); return; }
     filePath = last;

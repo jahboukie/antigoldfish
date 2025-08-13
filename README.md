@@ -12,9 +12,11 @@ For pricing details and the honor‑system approach, see: docs/pricing.md
 
 - Zero‑trust by default: command and file access must be explicitly allowed, with an audit trail.
 - Glassbox operations: plan/mirror/explain/dry‑run on every command, receipts + journal + digests.
-- Code‑aware recall: index code by files or symbols, search via FTS and hybrid vector rerank (sqlite‑vss fallback safe).
+- Code‑aware recall: index code by files or symbols with Tree-sitter precision parsing, search via FTS and hybrid vector rerank (sqlite‑vss fallback safe).
  - Diff‑aware reindex: cache file digests; skip unchanged files with `--diff` (baseline cache built automatically).
+- Tree-sitter AST parsing: Precise symbol boundary detection for TypeScript, JavaScript, Python with graceful fallback.
 - Air‑gapped protocol: export/import portable context bundles (.agmctx) for offline transfer.
+- Enterprise security suite: Cryptographic signing, audit logging, MFA support, SOC2/GDPR/HIPAA compliance ready.
 
 ## Quick start (CLI = `agm`)
 
@@ -88,7 +90,7 @@ Legend: ✅ shipped · ▶ partial · ⏳ planned · 💤 deferred
 |------|-------|-------|
 | Transparency (trace, dry-run, receipts, journal, plan/mirror) | ✅ | Receipts include verification + hybrid extras |
 | Zero‑trust policy broker | ✅ | allow-command/path, doctor, trust tokens |
-| Code indexing (file + basic symbols) | ✅ | Heuristic symbols; Tree‑sitter upcoming (Pro speed) |
+| Code indexing (file + Tree-sitter symbols) | ✅ | AST-based precision parsing for TS/JS/Python with heuristic fallback |
 | Hybrid search (FTS + vector rerank) | ✅ | ANN acceleration roadmap |
 | Air‑gapped export/import | ✅ | Dir or zip, per‑file checksums, signing, provenance |
 | Per‑file checksums + precedence | ✅ | Exit 4 checksum > signature mismatch |
@@ -97,8 +99,8 @@ Legend: ✅ shipped · ▶ partial · ⏳ planned · 💤 deferred
 | Path redaction guard | ✅ | Removes sensitive absolute prefixes in receipts |
 | Replay (basic) | ▶ | Time‑travel deferred |
 | Usage-based nudges | ⏳ | usage.json scaffold not yet |
-| Tree‑sitter precision | ⏳ | Next major performance upgrade |
-| ANN / approximate vectors | ⏳ | After Tree‑sitter baseline |
+| Tree‑sitter precision | ✅ | AST-based symbol extraction for TypeScript/JavaScript/Python |
+| ANN / approximate vectors | ⏳ | Next performance upgrade after Tree-sitter |
 | Merge/diff import preview | ⏳ | Pro feature roadmap |
 | Time-travel replay | 💤 | Post ANN + symbol precision |
 
@@ -109,7 +111,7 @@ Integrity Exit Codes (import-context):
 | 3 | Invalid signature (cryptographic failure) |
 | 4 | Checksum mismatch (file tampered/corrupt) |
 
-Symbol Mode Disclaimer: Current symbol indexing is lightweight (regex/heuristic). Tree‑sitter provides precise language‑aware segmentation soon; performance & recall accuracy will improve further (Pro acceleration, OSS baseline still benefits).
+Symbol Mode: Tree-sitter AST parsing provides precise language-aware symbol segmentation for TypeScript, JavaScript, and Python. Falls back to heuristic parsing when Tree-sitter is unavailable. Significantly improves recall accuracy over regex-based approaches.
 
 ANN Acceleration: Present build uses deterministic local cosine fallback when sqlite‑vss not available. ANN / approximate recall arrives post v1.8.0; no network calls will be introduced.
 
@@ -155,9 +157,10 @@ Security Note: See SECURITY.md for the zero‑egress posture, signing model, and
 Shipped (v1.8.0):
 - .agmctx signing (ed25519) + zipped container format + per‑file checksums + provenance
 - Prove‑offline self‑check & hardened policy broker
+- Tree‑sitter‑based symbol chunking (precision + diff-aware reindex)
+- Enterprise security suite (cryptographic signing, audit logging, MFA, compliance)
 
 Upcoming (short horizon):
-- Tree‑sitter‑based symbol chunking (precision + diff-aware reindex)
 - ANN / faster hybrid ranking
 - Merge/diff import preview & delta exports
 - Usage-based nudge scaffolding (privacy-preserving local usage.json)
@@ -196,6 +199,32 @@ More details and FAQs: docs/pricing.md
 - Better observability (receipt rollups; HTML health reports)
 - Less policy friction (policy templates; interactive doctor)
 - Enhanced .agmctx (zipped, checksums, merge, verify reports)
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
 
 <!-- delta test mutation -->
 

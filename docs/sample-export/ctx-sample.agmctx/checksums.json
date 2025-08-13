@@ -1,0 +1,6 @@
+{
+  "manifest.json": "dummy-sha256-manifest",
+  "map.csv": "dummy-sha256-map",
+  "vectors.f32": "dummy-sha256-vectors",
+  "notes.jsonl": "dummy-sha256-notes"
+}

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "type": "code",
+  "createdAt": "2025-08-11T00:00:00.000Z",
+  "exporter": {
+    "name": "antigoldfishmode",
+    "version": "1.8.0",
+    "node": "v18.x",
+    "host": "sample-host",
+    "keyId": "(unsigned-sample)"
+  },
+  "counts": {"files": 2, "symbols": 2, "vectors": 2}
+}

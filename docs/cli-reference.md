@@ -18,8 +18,8 @@ Core commands:
 - `agm receipt-show [--last] [idOrPath]`
 - `agm journal --show|--clear`
 - `agm replay [--last|--id <id>|--range <N>] [--execute] [--summary-only]`
-- `agm export-context --out <file.agmctx> --type code [--sign]` — exports manifest.json, map.csv, notes.jsonl, vectors.f32; with `--sign`, writes ED25519 signature and publickey
-- `agm import-context <dir.agmctx>` — verifies manifest/map/vectors, validates signature if present, and imports vectors/metadata into local DB
+- `agm export-context --out <file.agmctx> --type code [--sign]` — exports manifest.json, map.csv, notes.jsonl, vectors.f32; signing is defaulted by policy (`policy.signExports=true`) or `AGM_SIGN_EXPORT=1`; with `--sign`, writes ED25519 signature and public key
+- `agm import-context <dir.agmctx> [--allow-unsigned]` — verifies manifest/map/vectors, validates signature if present, and imports vectors/metadata into local DB. If `policy.requireSignedContext=true`, unsigned imports are blocked unless a trust token is granted: `agm policy trust import-context --minutes 15` then pass `--allow-unsigned`.
 - `agm ai-guide`
 - `agm policy status|allow-command|allow-path|doctor|trust`
 - `agm prove-offline` — prints an explicit no-egress proof line (add --json for structured output)

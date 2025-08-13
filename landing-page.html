@@ -3,87 +3,184 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AntiGoldfishMode — Air‑Gapped, Local‑Only Memory CLI</title>
-  <meta name="description" content="Air‑gapped, zero‑egress persistent memory for AI coding assistants. Fast FTS + hybrid search, symbol‑aware indexing, receipts/journal, exportable .agmctx, and a prove‑offline command." />
+  <title>AntiGoldfishMode — Local‑Only, Air‑Gapped Memory CLI</title>
+  <meta name="description" content="Transparent, air‑gapped local memory for code. Traceable commands, signed & checksummed exports, zero egress. MIT / honor‑system." />
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; color: #0f172a; }
-  header { background: linear-gradient(135deg, #0ea5e9, #22c55e); color: white; padding: 64px 20px; text-align: center; }
-    .cta { display: inline-block; background: white; color: #334155; padding: 12px 22px; border-radius: 10px; text-decoration: none; font-weight: 600; }
-    .container { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
-    h1 { margin: 0 0 12px; font-size: 2.2rem; }
-    .pill { display: inline-block; background: rgba(255,255,255,0.2); padding: 6px 10px; border-radius: 999px; margin-bottom: 10px; font-weight: 600; }
-    ul { line-height: 1.7; }
-    footer { padding: 32px 20px; text-align: center; color: #475569; }
-    code { background: #f1f5f9; padding: 2px 6px; border-radius: 6px; }
+    :root {
+      color-scheme: light dark;
+      --bg: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --muted-soft: #64748b;
+      --header-bg: #0f172a;
+      --header-text: #ffffff;
+      --border: #e2e8f0;
+      --code-bg: #f1f5f9;
+      --panel-bg: #ffffff;
+      --accent-hover: #f1f5f9;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --muted-soft: #64748b;
+        --header-bg: #0f172a;
+        --header-text: #ffffff;
+        --border: #334155;
+        --code-bg: #1e293b;
+        --panel-bg: #1e293b;
+        --accent-hover: #1e293b;
+      }
+    }
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin:0; line-height:1.45; color:var(--text); background:var(--bg); }
+    header { background:var(--header-bg); color:var(--header-text); padding:56px 18px 48px; }
+    h1 { font-size:2.1rem; margin:0 0 12px; font-weight:600; letter-spacing:.5px; }
+    .tagline { margin:0 0 18px; font-size:1rem; max-width:780px; }
+    .prove { font-family:monospace; background:var(--code-bg); color:var(--text); padding:4px 8px; border-radius:6px; font-size:.85rem; display:inline-block; }
+    a.cta { display:inline-block; background:var(--panel-bg); color:var(--text); padding:10px 18px; border-radius:8px; text-decoration:none; font-weight:600; margin-right:10px; border:1px solid var(--border); }
+    a.cta:hover { background:var(--accent-hover); }
+    main { max-width:940px; margin:0 auto; padding:40px 18px 64px; }
+    h2 { margin-top:48px; font-size:1.4rem; letter-spacing:.3px; }
+    h2:first-of-type { margin-top:8px; }
+    ul,ol { padding-left:20px; }
+    code { background:var(--code-bg); padding:2px 6px; border-radius:4px; font-size:.85rem; }
+    table { border-collapse:collapse; width:100%; margin:16px 0; font-size:.85rem; }
+    th,td { border:1px solid var(--border); padding:6px 8px; text-align:left; }
+    th { background:var(--code-bg); }
+    .note { font-size:.75rem; color:var(--muted-soft); margin-top:4px; }
+    .list-tight li { margin-bottom:4px; }
+    .muted { color:var(--muted); font-size:.85rem; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+  .cta-row { margin-top:18px; }
+  .support-note { margin-top:10px; font-size:.72rem; color:var(--muted-soft); max-width:760px; }
+    .footer-note { margin-top:4px; }
+    @media (max-width:760px){ .two-col { grid-template-columns:1fr; } header { padding:44px 18px 40px;} a.cta { margin-bottom:8px; } }
+    footer { padding:32px 18px; text-align:center; font-size:.75rem; color:var(--muted-soft); border-top:1px solid var(--border); }
+    .roadmap-list li { margin-bottom:2px; }
+    .section-desc { margin-top:4px; color:var(--muted); font-size:.85rem; }
   </style>
 </head>
 <body>
   <header>
-    <div class="pill">Air‑Gapped • Local‑Only • Zero‑Egress</div>
     <h1>AntiGoldfishMode</h1>
-    <p>Persistent coding memory that never leaves your machine. Prove it with <code>agm prove-offline</code>.</p>
-    <a class="cta" href="https://github.com/jahboukie/antigoldfish">View on GitHub</a>
+    <p class="tagline">Local‑only, air‑gapped memory for codebases that cannot leave the machine. Every action is traceable. Exports are signed & checksummed. No telemetry. Verify zero egress at any moment.</p>
+    <div class="prove">agm prove-offline</div>
+    <div class="cta-row">
+      <a class="cta" href="https://github.com/jahboukie/antigoldfish">GitHub</a>
+      <a class="cta" href="https://github.com/sponsors/jahboukie">Sponsor (Honor‑System)</a>
+      <a class="cta" href="https://github.com/sponsors/jahboukie">Support Development</a>
+      <a class="cta" href="docs/README.md">Docs Index</a>
+    </div>
+    <p class="support-note">Sponsorship is voluntary. All core features (signing, checksums, policy, receipts, export/import) are MIT‑licensed and fully functional without payment.</p>
   </header>
+  <main>
+    <h2>Implemented (v1.8.0)</h2>
+    <div class="two-col">
+      <div>
+        <strong>Transparency</strong>
+        <ul class="list-tight">
+          <li>Trace / plan / mirror flags</li>
+          <li>Receipts with digests & verification extras</li>
+          <li>Journal (.jsonl) per command</li>
+          <li>Path redaction guard</li>
+        </ul>
+        <strong>Integrity & Export</strong>
+        <ul class="list-tight">
+          <li>Signed + checksummed <code>.agmctx</code> (dir or zip)</li>
+          <li>Provenance in manifest (exporter + keyId)</li>
+          <li>Per‑file SHA256 first, then signature verify</li>
+          <li>Deterministic exit codes 2 / 3 / 4</li>
+        </ul>
+        <strong>Policy / Zero‑Trust</strong>
+        <ul class="list-tight">
+          <li>allow-command / allow-path rules</li>
+          <li>Policy doctor (explain + remediation)</li>
+          <li>Time‑scoped trust tokens</li>
+        </ul>
+      </div>
+      <div>
+        <strong>Index & Search</strong>
+        <ul class="list-tight">
+          <li>Tree-sitter AST symbol extraction (TS/JS/Python)</li>
+          <li>SQLite FTS5 baseline</li>
+          <li>Hybrid rerank (vector cosine or fallback)</li>
+        </ul>
+        <strong>Key Management</strong>
+        <ul class="list-tight">
+          <li>key rotate (archives previous)</li>
+          <li>key status / list / prune</li>
+        </ul>
+        <strong>Diagnostics</strong>
+        <ul class="list-tight">
+          <li>health / vector-status</li>
+          <li>prove-offline (explicit no egress)</li>
+        </ul>
+        <strong>Build & Repro</strong>
+        <ul class="list-tight">
+          <li>Reproducible build notes (REPRODUCIBLE_BUILDS.md)</li>
+          <li>19 passing tests (integrity, key mgmt, tamper)</li>
+        </ul>
+      </div>
+    </div>
 
-  <main class="container">
-    <h2>Why AGM</h2>
-    <ul>
-      <li>Zero‑trust by default: allow‑listed commands/paths, audit log, receipts, and journal.</li>
-      <li>Machine‑bound encryption‑at‑rest (optional secure mode).</li>
-      <li>Code‑aware indexing: file and symbol chunking; digest cache; rename optimization.</li>
-      <li>Fast local search: SQLite FTS5 with optional hybrid vector rerank (sqlite‑vss or local fallback).</li>
-      <li>Air‑gapped exports: portable <code>.agmctx</code> bundles with optional ED25519 signatures.</li>
-      <li>VS Code tasks and keybindings; watch mode for incremental indexing.</li>
-      <li>No subscriptions, no trials, no telemetry.</li>
-    </ul>
+    <h2>Integrity: Import Exit Codes</h2>
+    <table>
+      <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>All verification passed</td></tr>
+        <tr><td>2</td><td>Unsigned bundle blocked (policy requires signature)</td></tr>
+        <tr><td>3</td><td>Invalid signature</td></tr>
+        <tr><td>4</td><td>Checksum mismatch (tamper/corrupt)</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">Checksums are verified before signature to surface tamper early.</p>
 
-    <h2>Try It</h2>
+    <h2>Quick Start</h2>
     <ol>
-      <li>Install: <code>npm i -g antigoldfishmode</code> or clone and <code>npm run build</code>.</li>
-      <li>Initialize: <code>agm init</code> (adds <code>.antigoldfishmode/</code> and VS Code tasks).</li>
-      <li>Prove offline: <code>agm prove-offline --json</code>.</li>
-      <li>Index: <code>agm index-code --path src --symbols</code> or run watch: <code>agm watch-code --path src</code>.</li>
-      <li>Search: <code>agm search-code "handleSearch" --hybrid --preview 3</code>.</li>
+      <li><code>npm i -g antigoldfishmode</code></li>
+      <li><code>agm init</code></li>
+      <li><code>agm index-code --path src --symbols</code></li>
+      <li><code>agm search-code "auth middleware" --hybrid --preview 3</code></li>
+      <li><code>agm export-context --out ./ctx.agmctx --type code --zip --sign</code></li>
     </ol>
+    <p class="note">See docs/airgapped.md for bundle format & verification details.</p>
 
-    <h2>Privacy</h2>
-    <p>AGM blocks network egress by default for core commands. Export/import memories air‑gapped and verify operations with receipt files and a structured journal. Use <code>agm vector-status</code> and <code>agm health</code> for observability.</p>
-
-    <h2>Pricing</h2>
-    <p>
-      AGM is MIT‑licensed and fully functional for everyone. We use an honor‑system for paid tiers — there are no license checks or DRM.
-      If AGM saves you time or unlocks offline workflows, please support the project by choosing a sponsor tier. Paid benefits are delivered outside the binary (signed builds, templates, support), so the CLI stays air‑gapped.
-    </p>
-
-    <ul>
-      <li><strong>Core (OSS):</strong> Free — all features for local use: indexing, hybrid search, receipts/journal, export/import, prove‑offline, gc/health, watch‑code.</li>
-      <li><strong>Pro (Individual):</strong> $5/month or $50/year — signed prebuilt binaries, priority triage (best‑effort), early features, health/gc extras, policy template pack, email support (48–72h).</li>
-      <li><strong>Team:</strong> $8/user/month (min $80/mo) — everything in Pro, plus org policy templates, onboarding kit, signed releases channel, email support (24–48h), quarterly roadmap call, usage/receipt aggregation scripts.</li>
-      <li><strong>Enterprise:</strong> $25/user/month (min $1,000/mo or $12k/year) — everything in Team, plus security review artifacts, air‑gapped distribution playbooks, custom build signing bootstrap, priority support (business‑hours SLA), procurement docs, optional private workshop.</li>
+    <h2>Roadmap (Not Yet Implemented)</h2>
+    <ul class="roadmap-list">
+      <li>ANN acceleration (approximate vector search)</li>
+      <li>Merge / diff import preview</li>
+      <li>Delta / incremental exports</li>
+      <li>Time‑travel replay (point‑in‑time memory view)</li>
+      <li>Usage-based local nudges (privacy‑preserving)</li>
+      <li>Multi-key verify (archived trust chain)</li>
     </ul>
+    <p class="muted">Listed for transparency. Absence here means shipped above.</p>
 
-    <h3>Why upgrade to Pro</h3>
-    <ul>
-      <li>Faster, smarter indexing (improved symbol chunking; diff‑aware reindex)</li>
-      <li>Operational confidence (curated binaries; prebundled sqlite‑vss when available)</li>
-      <li>Better observability (receipt rollups; HTML health reports)</li>
-      <li>Less policy friction (ready templates; interactive policy doctor)</li>
-      <li>Enhanced .agmctx (zipped, checksums, merge, verify reports)</li>
+    <h2>Honor‑System Funding</h2>
+    <p>All core capability is MIT‑licensed. No license checks, no telemetry, no crippled paths. Sponsorship funds maintenance, performance upgrades (Tree‑sitter & ANN), and better tooling (dashboards, diff preview). If it saves you time, consider supporting.</p>
+
+    <h2>Verification & Docs</h2>
+    <ul class="list-tight">
+      <li><a href="SECURITY.md">SECURITY.md</a> – zero‑egress posture & policy surface</li>
+      <li><a href="REPRODUCIBLE_BUILDS.md">REPRODUCIBLE_BUILDS.md</a> – build determinism notes</li>
+      <li><a href="docs/airgapped.md">Air‑gapped export/import</a></li>
+      <li><a href="docs/receipts.md">Receipts schema</a></li>
+      <li><a href="README.md">Project README</a></li>
     </ul>
+    <p class="note">Pull requests improving reproducibility, verification coverage, or docs are welcome.</p>
 
-    <p><em>Honor‑system</em> means the software works regardless of payment; you sponsor to support maintenance and receive value‑add services. No telemetry, no phoning home.</p>
-
-    <p>
-      <a class="cta" href="https://github.com/sponsors/jahboukie">Sponsor (Pro $5/mo)</a>
-      &nbsp;
-      <a class="cta" href="mailto:team.mobileweb@gmail.com?subject=AGM%20Team/Enterprise%20inquiry">Team/Enterprise — Contact</a>
-    </p>
-
-  <p><a href="docs/pricing.md">Learn more about pricing & the honor‑system →</a></p>
+    <h2>What We Don’t Do</h2>
+    <ul class="list-tight">
+      <li>No cloud or hosted service layer</li>
+      <li>No remote code execution features</li>
+      <li>No usage tracking / analytics</li>
+      <li>No gating of security features behind paywalls</li>
+    </ul>
   </main>
-
   <footer>
-    <small>MIT Licensed • © 2025 AntiGoldfishMode</small>
+  <div>AntiGoldfishMode <span class="version-marker">v__VERSION__</span> • MIT License • © 2025</div>
+  <div class="footer-note">Verify offline anytime: <code>agm prove-offline</code></div>
   </footer>
 </body>
 </html>

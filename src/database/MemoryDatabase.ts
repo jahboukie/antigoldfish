@@ -708,7 +708,8 @@ export class MemoryDatabase {
         context: string = 'general',
         type: string = 'general',
         tags: string[] = [],
-        metadata: object = {}
+        metadata: object = {},
+        options: { quiet?: boolean } = {}
     ): Promise<number> {
         if (!this.db) {
             throw new Error('Database not initialized');
@@ -727,7 +728,9 @@ export class MemoryDatabase {
             `);
 
             const result = stmt.run(content, context, type, tagsJson, metadataJson, contentHash);
-            console.log(`✅ Memory stored with ID: ${result.lastInsertRowid}`);
+            if (!options.quiet) {
+                console.log(`✅ Memory stored with ID: ${result.lastInsertRowid}`);
+            }
             return result.lastInsertRowid as number;
 
         } catch (err) {

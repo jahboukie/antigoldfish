@@ -14,7 +14,6 @@
 
 import { Command } from 'commander';
 import { MemoryEngine } from './MemoryEngine';
-import { MemoryEngine2 } from './MemoryEngine2';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -270,7 +269,7 @@ export class CodeContextCLI {
             .description('Pretty-print a saved receipt by id or path')
             .option('--last', 'Show the most recent receipt')
             .option('--limit <n>', 'Show the last N receipts (implies --last)')
-            .action(async (idOrPath: string, opts: { last?: boolean; limit?: string }) => { const { handleReceiptShow } = await import('./commands/ReceiptShow.js'); await handleReceiptShow(idOrPath, { last: opts.last }); });
+            .action(async (idOrPath: string, opts: any) => { const { handleReceiptShow } = await import('./commands/ReceiptShow.js'); await handleReceiptShow(idOrPath, { last: opts.last, limit: opts.limit ? parseInt(String(opts.limit),10)||5 : undefined }); });
 
         // Air-Gapped context export/import (.agmctx)
         this.program
@@ -980,9 +979,7 @@ export class CodeContextCLI {
 
 
             const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
-            const { TreeSitterIndexer } = await import('./codeindex/TreeSitterIndexer.js');
             const symIndexer = new SymbolIndexer(root);
-            const treeSitterIndexer = new TreeSitterIndexer(root);
 
             const include: string[] | undefined = opts.include;
             const exclude: string[] | undefined = opts.exclude;
@@ -1001,7 +998,7 @@ export class CodeContextCLI {
             });
 
             const embedAndStore = async (text: string, tags: string[], metadata: any) => {
-                const id = await this.memoryEngine.database.storeMemory(text, context, 'code', tags, metadata);
+                const id = await this.memoryEngine.database.storeMemory(text, context, 'code', tags, metadata, { quiet: true });
                 if (provider && (provider as any).getInfo) {
                     try {
                         const vec = await provider.embed(text);
@@ -1036,46 +1033,19 @@ export class CodeContextCLI {
             }
 
             if (opts.symbols) {
-                // Check if Tree-sitter is available
-                const useTreeSitter = treeSitterIndexer.isAvailable();
-                if (!useTreeSitter && !this.proEnabled) {
+                if (!this.proEnabled) {
                     this.nudgePro('symbols', 'Enhanced symbol chunking (Tree-sitter pack, smarter heuristics) is available with Pro. Proceeding with basic symbol indexing.');
-                } else if (useTreeSitter) {
-                    console.log(chalk.green('🌳 Using Tree-sitter for precise AST-based symbol extraction'));
                 }
-
                 for (const file of fileList) {
                     const full = require('path').join(root, file);
                     let fileSha: string | undefined;
                     try { fileSha = crypto.createHash('sha256').update(fs.readFileSync(full)).digest('hex'); } catch {}
                     if (existingFileDigest && fileSha && existingFileDigest.get(file) === fileSha) continue; // unchanged file (diff mode)
-                    
-                    // Use Tree-sitter if available, otherwise fall back to heuristic symbol indexer
-                    const chunks = useTreeSitter ? 
-                        treeSitterIndexer.chunkFile(full).map(c => ({ 
-                            text: c.text, 
-                            meta: {
-                                file: c.meta.file,
-                                language: c.meta.language,
-                                lineStart: c.meta.lineStart,
-                                lineEnd: c.meta.lineEnd,
-                                symbol: c.meta.symbolName,
-                                symbolType: c.meta.symbolType,
-                                tags: ['symbol', c.meta.symbolType || 'unknown']
-                            }
-                        })) :
-                        symIndexer.chunkBySymbols(full);
-
+                    const chunks = symIndexer.chunkBySymbols(full);
                     for (const chunk of chunks) {
                         if (tracer.flags.dryRun) { continue; }
                         const tags = ['code', chunk.meta.language || 'unknown', 'symbol'];
-                        const metadata = { 
-                            ...chunk.meta, 
-                            contentSha: crypto.createHash('sha256').update(chunk.text).digest('hex'), 
-                            fileDigest: fileSha,
-                            indexStrategy: useTreeSitter ? 'treesitter-ast' : 'heuristic-symbols'
-                        };
-                        await embedAndStore(chunk.text, tags, metadata);
+                        await embedAndStore(chunk.text, tags, { ...chunk.meta, contentSha: crypto.createHash('sha256').update(chunk.text).digest('hex'), fileDigest: fileSha });
                     }
                     if (existingFileDigest && fileSha) existingFileDigest.set(file, fileSha); // update cache
                 }
@@ -1337,6 +1307,8 @@ export class CodeContextCLI {
         const useSymbols = !!opts.symbols;
         if (useSymbols) {
             this.nudgePro('symbols-reindex-file', 'Pro improves symbol chunking and reindex speed. Proceeding with basic symbol mode.');
+        }
+        if (useSymbols) {
             this.nudgePro('symbols-watch', 'Enhanced symbol chunking and faster diff-aware reindex are Pro features. Proceeding with basic symbol mode.');
         }
     const { Tracer } = await import('./utils/Trace.js');
@@ -1351,15 +1323,8 @@ export class CodeContextCLI {
             await this.memoryEngine.initialize();
             const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
             const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
-            const { TreeSitterIndexer } = await import('./codeindex/TreeSitterIndexer.js');
             const indexer = new CodeIndexer(root);
             const symIndexer = new SymbolIndexer(root);
-            const treeSitterIndexer = new TreeSitterIndexer(root);
-            const useTreeSitter = useSymbols && treeSitterIndexer.isAvailable();
-            
-            if (useTreeSitter) {
-                console.log(chalk.green('🌳 Watch mode using Tree-sitter for precise symbol extraction'));
-            }
 
             const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider.js');
             const provider = EmbeddingProvider.create(process.cwd());
@@ -1446,22 +1411,7 @@ export class CodeContextCLI {
                         }
                         try { await (this.memoryEngine.database as any).deleteCodeByFile?.(relUnix); } catch {}
                         try { await (this.memoryEngine.database as any).deleteCodeByFile?.(wsRel); } catch {}
-                        const chunks = useSymbols ? 
-                            (useTreeSitter ? 
-                                treeSitterIndexer.chunkFile(full).map(c => ({ 
-                                    text: c.text, 
-                                    meta: {
-                                        file: c.meta.file,
-                                        language: c.meta.language,
-                                        lineStart: c.meta.lineStart,
-                                        lineEnd: c.meta.lineEnd,
-                                        symbol: c.meta.symbolName,
-                                        symbolType: c.meta.symbolType,
-                                        tags: ['symbol', c.meta.symbolType || 'unknown']
-                                    }
-                                })) :
-                                symIndexer.chunkBySymbols(full)) :
-                            indexer.chunkFile(full, maxChunk).map(c => ({ text: c.text, meta: c.meta }));
+                        const chunks = useSymbols ? symIndexer.chunkBySymbols(full) : indexer.chunkFile(full, maxChunk).map(c => ({ text: c.text, meta: c.meta }));
                         for (const chunk of chunks) {
                             const id = await this.memoryEngine.database.storeMemory(chunk.text, context, 'code', ['code', (chunk as any).meta?.language || 'unknown', useSymbols?'symbol':undefined].filter(Boolean) as string[], chunk.meta);
                             if (provider && (provider as any).getInfo) {
@@ -2723,8 +2673,8 @@ export class CodeContextCLI {
 export function main(argv: string[]) {
     try {
         const cli = new CodeContextCLI(process.cwd(), false, false, false);
-        // Basic hyphen command cleanup (user sometimes types -status, but preserve valid flags like -V, --version)
-        if (argv[2] && /^-+/.test(argv[2]) && !argv[2].match(/^(-V|--version|--help|-h|--trace|--dry-run|--json|--explain)$/)) {
+        // Basic hyphen command cleanup (user sometimes types -status)
+        if (argv[2] && /^-+/.test(argv[2])) {
             const cleaned = argv[2].replace(/^-+/, '');
             argv[2] = cleaned;
         }
@@ -2750,27 +2700,3 @@ if (require.main === module) { main(process.argv); }
 // DIFF TEST MUTATION 1755019188496
 
 // DIFF TEST MUTATION 1755021197873
-
-// DIFF TEST MUTATION 1755021716615
-
-// DIFF TEST MUTATION 1755022298156
-
-// DIFF TEST MUTATION 1755050507445
-
-// DIFF TEST MUTATION 1755050664787
-
-// DIFF TEST MUTATION 1755050876135
-
-// DIFF TEST MUTATION 1755050940088
-
-// DIFF TEST MUTATION 1755052752181
-
-// DIFF TEST MUTATION 1755053009738
-
-// DIFF TEST MUTATION 1755054026848
-
-// DIFF TEST MUTATION 1755056174406
-
-// DIFF TEST MUTATION 1755058817389
-
-// DIFF TEST MUTATION 1755058952633
