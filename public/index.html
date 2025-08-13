@@ -157,16 +157,36 @@
     </ul>
     <p class="muted">Listed for transparency. Absence here means shipped above.</p>
 
+    <h2>Upgrade to Pro (Honor-System)</h2>
+    <p class="section-desc">Pro features are available via an honor-system sponsorship. They focus on advanced code analysis, workflow automation, and stricter security controls for professional and team environments.</p>
+    <table>
+      <thead><tr><th>Pro Feature</th><th>Benefit</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>AST-Powered Code Indexing</strong></td>
+          <td>Uses Tree-sitter for precise, syntax-aware chunking of code (TS/JS, Python, etc.). This provides far more accurate search results and context quality than the standard heuristic-based indexing.</td>
+        </tr>
+        <tr>
+          <td><strong>Enforced Supply Chain Security</strong></td>
+          <td>Set strict, non-bypassable policies like <code>forceSignedExports</code> (prevent unsigned code from leaving) and <code>requireSignedContext</code> (block untrusted imports). Essential for corporate and team environments.</td>
+        </tr>
+        <tr>
+          <td><strong>Automated Signing Workflows</strong></td>
+          <td>Enable <code>signExports</code> in your policy to make cryptographic signing the default behavior for all exports. Reduces friction and human error, improving security posture.</td>
+        </tr>
+      </tbody>
+    </table>
+
     <h2>Honor‑System Funding</h2>
     <p>All core capability is MIT‑licensed. No license checks, no telemetry, no crippled paths. Sponsorship funds maintenance, performance upgrades (Tree‑sitter & ANN), and better tooling (dashboards, diff preview). If it saves you time, consider supporting.</p>
 
     <h2>Verification & Docs</h2>
     <ul class="list-tight">
-      <li><a href="SECURITY.md">SECURITY.md</a> – zero‑egress posture & policy surface</li>
-      <li><a href="REPRODUCIBLE_BUILDS.md">REPRODUCIBLE_BUILDS.md</a> – build determinism notes</li>
-      <li><a href="docs/airgapped.md">Air‑gapped export/import</a></li>
-      <li><a href="docs/receipts.md">Receipts schema</a></li>
-      <li><a href="README.md">Project README</a></li>
+      <li><a href="https://github.com/jahboukie/antigoldfish/blob/master/SECURITY.md">SECURITY.md</a> – zero‑egress posture & policy surface</li>
+      <li><a href="https://github.com/jahboukie/antigoldfish/blob/master/REPRODUCIBLE_BUILDS.md">REPRODUCIBLE_BUILDS.md</a> – build determinism notes</li>
+      <li><a href="https://github.com/jahboukie/antigoldfish/blob/master/docs/airgapped.md">Air‑gapped export/import</a></li>
+      <li><a href="https://github.com/jahboukie/antigoldfish/blob/master/docs/receipts.md">Receipts schema</a></li>
+      <li><a href="https://github.com/jahboukie/antigoldfish/blob/master/README.md">Project README</a></li>
     </ul>
     <p class="note">Pull requests improving reproducibility, verification coverage, or docs are welcome.</p>
 

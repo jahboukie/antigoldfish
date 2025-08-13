@@ -1,6 +1,6 @@
 {
   "name": "antigoldfishmode",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "🧠 AI Memory Engine - Built by AI, for AI. Persistent, local-only memory for AI coding assistants.",
   "main": "dist/index.js",
   "bin": {
@@ -41,8 +41,9 @@
   "author": "AntiGoldfishMode Team",
   "license": "MIT",
   "files": [
-    "dist/**/*",
-    "scripts/**/*",
+    "dist/",
+    "scripts/fix-sqlite.js",
+    "scripts/ensure-sqlite.js",
     "README.md",
     "LICENSE",
     "AI_ASSISTANT_INSTRUCTIONS.md"
