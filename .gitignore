@@ -80,7 +80,6 @@ LICENSING.md
 ###############
 # Ad-hoc Test Scripts (keep formal tests/*)
 ###############
-test-*.js
 simulate-*.js
 verify-*.js
 
