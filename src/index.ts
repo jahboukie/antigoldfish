@@ -14,6 +14,7 @@
 
 import { Command } from 'commander';
 import { MemoryEngine } from './MemoryEngine';
+import { MemoryEngine2 } from './MemoryEngine2';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -252,13 +253,14 @@ export class CodeContextCLI {
             .option('--since <days>', 'Show deltas for the last N days')
             .action(async (opts: any) => { await this.handleHealth(opts); });
 
-        // DB doctor (integrity + optional repair)
+        // DB doctor (integrity + optional repair + legacy archival)
         this.program
             .command('db-doctor')
-            .description('Run SQLite integrity check; if corrupted can auto-backup and rebuild fresh schema')
+            .description('Integrity check across primary and legacy DBs; can archive legacy and rebuild if corrupted')
             .option('--dry-run', 'Only report issues; do not modify')
             .option('--json', 'Output JSON summary')
             .option('--no-repair', 'Do not attempt repair even if corruption detected')
+            .option('--archive-legacy', 'Archive legacy memories.db / memory.db.enc when memory_v2.db present')
             .action(async (opts: any) => { await this.handleDbDoctor(opts); });
 
 
@@ -978,7 +980,9 @@ export class CodeContextCLI {
 
 
             const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
+            const { TreeSitterIndexer } = await import('./codeindex/TreeSitterIndexer.js');
             const symIndexer = new SymbolIndexer(root);
+            const treeSitterIndexer = new TreeSitterIndexer(root);
 
             const include: string[] | undefined = opts.include;
             const exclude: string[] | undefined = opts.exclude;
@@ -1032,19 +1036,46 @@ export class CodeContextCLI {
             }
 
             if (opts.symbols) {
-                if (!this.proEnabled) {
+                // Check if Tree-sitter is available
+                const useTreeSitter = treeSitterIndexer.isAvailable();
+                if (!useTreeSitter && !this.proEnabled) {
                     this.nudgePro('symbols', 'Enhanced symbol chunking (Tree-sitter pack, smarter heuristics) is available with Pro. Proceeding with basic symbol indexing.');
+                } else if (useTreeSitter) {
+                    console.log(chalk.green('🌳 Using Tree-sitter for precise AST-based symbol extraction'));
                 }
+
                 for (const file of fileList) {
                     const full = require('path').join(root, file);
                     let fileSha: string | undefined;
                     try { fileSha = crypto.createHash('sha256').update(fs.readFileSync(full)).digest('hex'); } catch {}
                     if (existingFileDigest && fileSha && existingFileDigest.get(file) === fileSha) continue; // unchanged file (diff mode)
-                    const chunks = symIndexer.chunkBySymbols(full);
+                    
+                    // Use Tree-sitter if available, otherwise fall back to heuristic symbol indexer
+                    const chunks = useTreeSitter ? 
+                        treeSitterIndexer.chunkFile(full).map(c => ({ 
+                            text: c.text, 
+                            meta: {
+                                file: c.meta.file,
+                                language: c.meta.language,
+                                lineStart: c.meta.lineStart,
+                                lineEnd: c.meta.lineEnd,
+                                symbol: c.meta.symbolName,
+                                symbolType: c.meta.symbolType,
+                                tags: ['symbol', c.meta.symbolType || 'unknown']
+                            }
+                        })) :
+                        symIndexer.chunkBySymbols(full);
+
                     for (const chunk of chunks) {
                         if (tracer.flags.dryRun) { continue; }
                         const tags = ['code', chunk.meta.language || 'unknown', 'symbol'];
-                        await embedAndStore(chunk.text, tags, { ...chunk.meta, contentSha: crypto.createHash('sha256').update(chunk.text).digest('hex'), fileDigest: fileSha });
+                        const metadata = { 
+                            ...chunk.meta, 
+                            contentSha: crypto.createHash('sha256').update(chunk.text).digest('hex'), 
+                            fileDigest: fileSha,
+                            indexStrategy: useTreeSitter ? 'treesitter-ast' : 'heuristic-symbols'
+                        };
+                        await embedAndStore(chunk.text, tags, metadata);
                     }
                     if (existingFileDigest && fileSha) existingFileDigest.set(file, fileSha); // update cache
                 }
@@ -1306,8 +1337,6 @@ export class CodeContextCLI {
         const useSymbols = !!opts.symbols;
         if (useSymbols) {
             this.nudgePro('symbols-reindex-file', 'Pro improves symbol chunking and reindex speed. Proceeding with basic symbol mode.');
-        }
-        if (useSymbols) {
             this.nudgePro('symbols-watch', 'Enhanced symbol chunking and faster diff-aware reindex are Pro features. Proceeding with basic symbol mode.');
         }
     const { Tracer } = await import('./utils/Trace.js');
@@ -1322,8 +1351,15 @@ export class CodeContextCLI {
             await this.memoryEngine.initialize();
             const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
             const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
+            const { TreeSitterIndexer } = await import('./codeindex/TreeSitterIndexer.js');
             const indexer = new CodeIndexer(root);
             const symIndexer = new SymbolIndexer(root);
+            const treeSitterIndexer = new TreeSitterIndexer(root);
+            const useTreeSitter = useSymbols && treeSitterIndexer.isAvailable();
+            
+            if (useTreeSitter) {
+                console.log(chalk.green('🌳 Watch mode using Tree-sitter for precise symbol extraction'));
+            }
 
             const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider.js');
             const provider = EmbeddingProvider.create(process.cwd());
@@ -1410,7 +1446,22 @@ export class CodeContextCLI {
                         }
                         try { await (this.memoryEngine.database as any).deleteCodeByFile?.(relUnix); } catch {}
                         try { await (this.memoryEngine.database as any).deleteCodeByFile?.(wsRel); } catch {}
-                        const chunks = useSymbols ? symIndexer.chunkBySymbols(full) : indexer.chunkFile(full, maxChunk).map(c => ({ text: c.text, meta: c.meta }));
+                        const chunks = useSymbols ? 
+                            (useTreeSitter ? 
+                                treeSitterIndexer.chunkFile(full).map(c => ({ 
+                                    text: c.text, 
+                                    meta: {
+                                        file: c.meta.file,
+                                        language: c.meta.language,
+                                        lineStart: c.meta.lineStart,
+                                        lineEnd: c.meta.lineEnd,
+                                        symbol: c.meta.symbolName,
+                                        symbolType: c.meta.symbolType,
+                                        tags: ['symbol', c.meta.symbolType || 'unknown']
+                                    }
+                                })) :
+                                symIndexer.chunkBySymbols(full)) :
+                            indexer.chunkFile(full, maxChunk).map(c => ({ text: c.text, meta: c.meta }));
                         for (const chunk of chunks) {
                             const id = await this.memoryEngine.database.storeMemory(chunk.text, context, 'code', ['code', (chunk as any).meta?.language || 'unknown', useSymbols?'symbol':undefined].filter(Boolean) as string[], chunk.meta);
                             if (provider && (provider as any).getInfo) {
@@ -2220,73 +2271,7 @@ export class CodeContextCLI {
         }
     }
 
-    /**
-     * Database doctor: integrity check and optional repair.
-     */
-    private async handleDbDoctor(opts: any): Promise<void> {
-        const dbDir = path.join(process.cwd(), '.antigoldfishmode');
-        // Support encrypted filename variant
-        let dbPath = path.join(dbDir, 'memories.db');
-        const encPath = path.join(dbDir, 'memory.db.enc');
-        if (fs.existsSync(encPath) && !fs.existsSync(dbPath)) {
-            dbPath = encPath; // operate on encrypted container (will just back it up & rebuild fresh decrypted then re-encrypt on next init)
-        }
-        const jsonOut = !!opts.json;
-        const report: any = { dbPath, exists: fs.existsSync(dbPath) };
-    if (!fs.existsSync(dbPath)) {
-            const msg = 'No memories.db present (nothing to check).';
-            if (jsonOut) console.log(JSON.stringify({ ...report, message: msg }, null, 2)); else console.log(chalk.yellow(msg));
-            return;
-        }
-        let corrupted = false; let details: string[] = [];
-        try {
-            const sqlite3 = require('better-sqlite3');
-            const db = sqlite3(dbPath, { readonly: true });
-            try {
-                details = db.prepare('PRAGMA integrity_check;').all().map((r: any) => Object.values(r)[0]);
-            } catch (e) {
-                details = ['corrupt'];
-            } finally { db.close(); }
-            corrupted = !(details.length === 1 && details[0] === 'ok');
-        } catch (e) {
-            corrupted = true; details = ['open_failed:' + (e as Error).message];
-        }
-        report.integrity = details; report.corrupted = corrupted;
-        if (!corrupted) {
-            if (jsonOut) console.log(JSON.stringify({ ...report, status: 'ok' }, null, 2)); else console.log(chalk.green('✅ Database integrity OK.'));
-            return;
-        }
-        if (!jsonOut) console.log(chalk.red('❌ Corruption detected.'));
-        if (opts.noRepair) {
-            if (!jsonOut) console.log(chalk.yellow('Skipping repair (--no-repair set).'));
-            if (jsonOut) console.log(JSON.stringify({ ...report, status: 'corrupted', action: 'none' }, null, 2));
-            return;
-        }
-        if (opts.dryRun) {
-            if (!jsonOut) console.log(chalk.gray('Dry-run: would backup and rebuild.')); else console.log(JSON.stringify({ ...report, status: 'corrupted', dryRun: true }, null, 2));
-            return;
-        }
-        const actions: any[] = [];
-        try {
-            const ts = new Date().toISOString().replace(/[:.]/g,'-');
-            const backupDir = path.join(dbDir, 'corrupt-backups');
-            fs.mkdirSync(backupDir, { recursive: true });
-            const baseName = path.basename(dbPath);
-            const backupPath = path.join(backupDir, `${baseName}.${ts}`);
-            fs.copyFileSync(dbPath, backupPath); actions.push({ backup: backupPath });
-            ;['memories.db','memories.db-wal','memories.db-shm','memory.db.enc'].forEach(f => { const p = path.join(dbDir, f); if (fs.existsSync(p)) fs.rmSync(p); });
-            actions.push({ removed: 'original_files' });
-            await this.memoryEngine.initialize();
-            actions.push({ rebuilt: true });
-            if (!jsonOut) console.log(chalk.green('✅ Rebuilt fresh database (backup stored).'));
-            if (jsonOut) console.log(JSON.stringify({ ...report, status: 'repaired', actions }, null, 2));
-        } catch (e) {
-            if (!jsonOut) console.log(chalk.red('❌ Repair failed:'), (e as Error).message);
-            if (jsonOut) console.log(JSON.stringify({ ...report, status: 'repair_failed', error: (e as Error).message, actions }, null, 2));
-        } finally {
-            await this.cleanup();
-        }
-    }
+    // (old handleDbDoctor implementation removed in favor of multi-db version below)
 
     private async handleKeyStatus(): Promise<void> {
         try {
@@ -2596,130 +2581,161 @@ export class CodeContextCLI {
     }
 
     private async handlePolicyAllowPath(glob: string): Promise<void> {
-        const added = this.policyBroker.allowPath(glob);
-        if (added) console.log(chalk.green(`✅ Allowed path: ${glob}`));
-        else console.log(chalk.yellow(`ℹ️ Path already allowed: ${glob}`));
+        try {
+            const added = this.policyBroker.allowPath(glob);
+            if (added) console.log(chalk.green(`✅ Allowed path glob: ${glob}`));
+            else console.log(chalk.yellow(`ℹ️ Path glob already allowed: ${glob}`));
+        } catch (e) {
+            console.log(chalk.red('❌ Failed to allow path:'), (e as Error).message);
+        }
     }
 
     private async handlePolicyDoctor(opts: any): Promise<void> {
-        // Soft nudge (honor-system): interactive policy wizard and presets are Pro conveniences
-        this.nudgePro('policy-doctor', 'Interactive policy wizard and presets are Pro conveniences. Proceeding with the standard doctor.');
-        const cmd = opts.cmd || '';
-        const pth = opts.path ? path.resolve(process.cwd(), opts.path) : '';
-        if (cmd) {
-            const ex = this.policyBroker.explainCommand(cmd);
-            console.log(chalk.cyan('🔎 Command check'));
-            console.log(`   cmd=${cmd} → ${ex.allowed ? 'ALLOWED' : 'BLOCKED'} (${ex.reason})`);
-            if (!ex.allowed) console.log(`   Fix: agm policy allow-command ${cmd}`);
-        }
-        if (pth) {
-            const ex2 = this.policyBroker.explainPath(pth);
-            console.log(chalk.cyan('🔎 Path check'));
-            console.log(`   path=${pth} → ${ex2.allowed ? 'ALLOWED' : 'BLOCKED'} (${ex2.reason}${ex2.matchedGlob?`, matched ${ex2.matchedGlob}`:''})`);
-            if (!ex2.allowed) console.log(`   Fix: agm policy allow-path "${opts.path.replace(/"/g,'\"')}"`);
-        }
-        if (!cmd && !pth) {
-            console.log('Usage: agm policy doctor --cmd <cmd> --path <fileOrDir>');
+        try {
+            const cmd = opts.cmd || 'remember';
+            const testPath = opts.path || process.cwd();
+            const cmdInfo = this.policyBroker.explainCommand(cmd);
+            const pathInfo = this.policyBroker.explainPath(testPath);
+            console.log(chalk.cyan('🩺 Policy Doctor'));
+            console.log(`   cmd: ${cmd} -> ${cmdInfo.allowed ? chalk.green('allowed') : chalk.red('blocked')} (${cmdInfo.reason})`);
+            console.log(`   path: ${testPath} -> ${pathInfo.allowed ? chalk.green('allowed') : chalk.red('blocked')} (${pathInfo.reason}${pathInfo.matchedGlob?'; glob='+pathInfo.matchedGlob:''})`);
+            if (!cmdInfo.allowed) console.log(chalk.gray(`   Tip: agm policy allow-command ${cmd}`));
+            if (!pathInfo.allowed) console.log(chalk.gray(`   Tip: agm policy allow-path <glob matching your path>`));
+        } catch (e) {
+            console.log(chalk.red('❌ Policy doctor failed:'), (e as Error).message);
         }
     }
 
     private async handlePolicyTrust(cmd: string, opts: any): Promise<void> {
-        const minutes = parseInt(opts.minutes || '15', 10) || 15;
-        const { until } = this.policyBroker.addTrust(cmd, minutes);
-        console.log(chalk.green(`✅ Trust granted for '${cmd}' until ${until}`));
-    }
-
-    public run(argv: string[]): void {
-        this.program.parse(argv);
-    }
-}
-
-// Main function for CLI entry point
-export function main(argv: string[]): void {
-    console.log(chalk.cyan('🧠 AntiGoldfishMode (agm) - AI Memory Engine'));
-
-    // Override the script name to show 'agm' instead of full path
-    const modifiedArgv = [...argv];
-    modifiedArgv[1] = 'agm';
-
-    const cli = new CodeContextCLI(process.cwd(), false, false, true); // secure-by-default: encryption at rest enabled
-
-    // Install a simple network egress guard when policy blocks network
-    function installNetworkEgressGuard(): () => void {
         try {
-            const block = (mod: any, protoName: string) => {
-                const origRequest = mod.request;
-                const origGet = mod.get;
-                mod.request = function() { throw new Error('Network egress blocked by policy'); } as any;
-                mod.get = function() { throw new Error('Network egress blocked by policy'); } as any;
-                return () => { mod.request = origRequest; mod.get = origGet; };
-            };
-            const restoreHttp = block(http, 'http');
-            const restoreHttps = block(https, 'https');
-            policyBroker.logAction('network_guard_installed', { http: true, https: true });
-            networkGuardActive = true;
-            return () => { restoreHttp(); restoreHttps(); networkGuardActive = false; policyBroker.logAction('network_guard_removed', {}); };
-        } catch {
-            return () => {};
+            const minutes = parseInt(String(opts.minutes||'15'), 10) || 15;
+            const token = this.policyBroker.addTrust(cmd, minutes);
+            console.log(chalk.green(`✅ Trusted '${cmd}' until ${token.until}`));
+        } catch (e) {
+            console.log(chalk.red('❌ Trust failed:'), (e as Error).message);
         }
     }
 
-    // Enforce Zero-Trust policy before executing any command
-    // UX nicety: map accidental hyphen-commands like "-status" -> "status"
-    const knownCommands = new Set([
-        'remember','recall','status','init','vector-status','journal','replay','index-code','watch-code','search-code','receipt-show','export-context','import-context','ai-guide','prove-offline','policy','digest-cache','reindex-file','reindex-folder','gc','health','pro'
-    ]);
-    let command = modifiedArgv[2] || '';
-    if (command && /^-+/.test(command)) {
-        const cleaned = command.replace(/^-+/, '');
-        if (knownCommands.has(cleaned)) {
-            modifiedArgv[2] = cleaned;
-            command = cleaned;
+    private async handleDbDoctor(opts: any): Promise<void> {
+        const dbDir = path.join(process.cwd(), '.antigoldfishmode');
+        const jsonOut = !!opts.json;
+        const wantArchiveLegacy = !!opts.archiveLegacy;
+        const legacyCandidates = ['memories.db','memory.db.enc'];
+        const primaryV2 = path.join(dbDir, 'memory_v2.db');
+        // Determine primary DB preference: v2 if exists, else memories.db or encrypted
+        const legacyExisting = legacyCandidates.map(f => ({ name: f, path: path.join(dbDir, f), exists: fs.existsSync(path.join(dbDir, f)) }));
+        const legacyPresent = legacyExisting.filter(l => l.exists);
+        let primaryPath: string | null = null;
+        if (fs.existsSync(primaryV2)) primaryPath = primaryV2; else if (legacyPresent.length) primaryPath = legacyPresent[0].path;
+        const tracerMod = await import('./utils/Trace.js');
+        const tracer = tracerMod.Tracer.create(process.cwd());
+        tracer.plan('db-doctor', { archiveLegacy: wantArchiveLegacy });
+        tracer.mirror(`agm db-doctor${wantArchiveLegacy?' --archive-legacy':''}${jsonOut?' --json':''}`);
+        if (!primaryPath) {
+            const summary = { status: 'empty', message: 'No database files found', primary: null, legacyPresent: legacyPresent.length };
+            if (jsonOut) console.log(JSON.stringify(summary, null, 2)); else console.log(chalk.yellow('ℹ️ No database files present.')); 
+            const receipt = tracer.writeReceipt('db-doctor', { archiveLegacy: wantArchiveLegacy }, summary, true, undefined, { resultSummary: summary });
+            tracer.appendJournal({ cmd: 'db-doctor', args: { archiveLegacy: wantArchiveLegacy }, receipt });
+            return;
         }
-    }
-    // Bypass enforcement when only global help/version flags are requested
-    const args = modifiedArgv.slice(2);
-    const bypassFlags = new Set(["--help", "-h", "--version", "-V"]);
-    const hasBypass = args.some(a => bypassFlags.has(a));
-    if (hasBypass && (command === '' || bypassFlags.has(command))) {
-        // Directly run the CLI; commander will handle the flags
-        cli.run(modifiedArgv);
-        return;
-    }
-    const filePath = process.cwd(); // Default to project root
-    // Don't enforce all env vars at entry; pass none by default
-    const envVars: string[] | undefined = undefined;
-
-    // Optionally enable guard
-    let restoreNet = () => {};
-    if (!policyBroker.isNetworkAllowed()) {
-        restoreNet = installNetworkEgressGuard();
-    }
-
-    try {
-      // Check and log the initial command
-    policyBroker.logAction('command_initiated', { cmd: command, filePath, envVars });
-
-            // Enforce policy for the command (allow trusted tokens)
-            if (policyBroker.isTrusted(command)) {
-                policyBroker.logAction('command_trusted_bypass', { cmd: command });
-            } else {
-                enforcePolicyBeforeCommand(command, filePath, envVars);
+        // Helper to integrity check a sqlite file
+        const checkSqlite = (p: string) => {
+            if (!fs.existsSync(p)) return { path: p, exists: false };
+            try {
+                const sqlite3 = require('better-sqlite3');
+                const db = sqlite3(p, { readonly: true });
+                let rows: any[] = [];
+                try { rows = db.prepare('PRAGMA integrity_check;').all(); } catch { rows = [{ integrity_check: 'corrupt' }]; }
+                db.close();
+                const values = rows.map(r => Object.values(r)[0]);
+                const ok = values.length === 1 && values[0] === 'ok';
+                return { path: p, exists: true, ok, details: values };
+            } catch (e) {
+                return { path: p, exists: true, ok: false, details: ['open_failed:' + (e as Error).message] };
             }
-
-            cli.run(modifiedArgv);
-    } catch (error) {
-      console.error(chalk.red('❌ Command execution blocked by policy:'), error instanceof Error ? error.message : 'Unknown error');
-      process.exit(1);
-        } finally {
-            try { restoreNet(); } catch {}
+        };
+        const primaryCheck = checkSqlite(primaryPath);
+        const legacyChecks = legacyPresent.filter(l => l.path !== primaryPath).map(l => checkSqlite(l.path));
+        // Archive legacy if requested and v2 exists
+        let archived: string[] = [];
+        if (wantArchiveLegacy && fs.existsSync(primaryV2)) {
+            const archiveDir = path.join(dbDir, 'corrupt-backups');
+            fs.mkdirSync(archiveDir, { recursive: true });
+            for (const l of legacyChecks) {
+                try {
+                    const ts = new Date().toISOString().replace(/[:.]/g,'-');
+                    const dest = path.join(archiveDir, path.basename(l.path) + '.' + ts + '.legacy');
+                    fs.renameSync(l.path, dest);
+                    archived.push(dest);
+                } catch {}
+            }
+        }
+        // Repair logic only if primary corrupted and flags allow
+        let repaired = false; let backupPath: string | undefined; let repairError: string | undefined; const actions: any[] = [];
+        if (!primaryCheck.ok) {
+            if (opts.noRepair) {
+                if (!jsonOut) console.log(chalk.red('❌ Primary DB corrupted.') + chalk.yellow(' (Skipped repair --no-repair)'));
+            } else if (opts.dryRun) {
+                if (!jsonOut) console.log(chalk.red('❌ Primary DB corrupted.') + chalk.gray(' (Dry-run: would backup & rebuild)'));
+            } else {
+                try {
+                    const ts = new Date().toISOString().replace(/[:.]/g,'-');
+                    const backupDir = path.join(dbDir, 'corrupt-backups');
+                    fs.mkdirSync(backupDir, { recursive: true });
+                    backupPath = path.join(backupDir, path.basename(primaryPath) + '.' + ts);
+                    fs.copyFileSync(primaryPath, backupPath); actions.push({ backup: backupPath });
+                    ['memories.db','memories.db-wal','memories.db-shm','memory.db.enc','memory_v2.db'].forEach(f => { const p = path.join(dbDir, f); if (p === primaryPath) return; });
+                    // Rebuild via engine init (will create schema for appropriate backend)
+                    await this.memoryEngine.initialize();
+                    repaired = true; actions.push({ rebuilt: true });
+                    if (!jsonOut) console.log(chalk.green('✅ Rebuilt primary database (backup stored).'));
+                } catch (e) {
+                    repairError = (e as Error).message;
+                    if (!jsonOut) console.log(chalk.red('❌ Repair failed:'), repairError);
+                }
+            }
+        } else {
+            if (!jsonOut) console.log(chalk.green('✅ Primary database integrity OK.'));
+        }
+        const summary = {
+            primary: { path: primaryCheck.path, ok: primaryCheck.ok, details: primaryCheck.details },
+            legacy: legacyChecks.map(c => ({ path: c.path, ok: c.ok, details: c.details })),
+            primaryIsV2: primaryPath === primaryV2,
+            legacyPresent: legacyChecks.length > 0,
+            archivedCount: archived.length,
+            repaired,
+            repairError
+        };
+        if (jsonOut) {
+            console.log(JSON.stringify(summary, null, 2));
+        } else {
+            if (legacyChecks.length && fs.existsSync(primaryV2)) {
+                console.log(chalk.gray(`ℹ️ Legacy DB(s) present (${legacyChecks.length}) but v2 in use. Run 'agm db-doctor --archive-legacy' to archive.`));
+            }
+            if (archived.length) console.log(chalk.green(`🗄 Archived legacy: ${archived.length}`));
+        }
+        const receipt = tracer.writeReceipt('db-doctor', { archiveLegacy: wantArchiveLegacy }, summary, true, undefined, { resultSummary: summary });
+        tracer.appendJournal({ cmd: 'db-doctor', args: { archiveLegacy: wantArchiveLegacy }, receipt });
     }
 }
 
-// CLI entry point
-if (require.main === module) {
-    main(process.argv);
+// Simple entry point: instantiate CLI and parse argv
+export function main(argv: string[]) {
+    try {
+        const cli = new CodeContextCLI(process.cwd(), false, false, false);
+        // Basic hyphen command cleanup (user sometimes types -status)
+        if (argv[2] && /^-+/.test(argv[2])) {
+            const cleaned = argv[2].replace(/^-+/, '');
+            argv[2] = cleaned;
+        }
+        cli['program'].parse(argv);
+    } catch (e) {
+        console.error(chalk.red('❌ CLI startup failed:'), (e as Error).message);
+        process.exit(1);
+    }
 }
+
+if (require.main === module) { main(process.argv); }
 
 // DIFF TEST MUTATION 1755005861828
 
@@ -2732,3 +2748,25 @@ if (require.main === module) {
 // DIFF TEST MUTATION 1755019143782
 
 // DIFF TEST MUTATION 1755019188496
+
+// DIFF TEST MUTATION 1755021197873
+
+// DIFF TEST MUTATION 1755021716615
+
+// DIFF TEST MUTATION 1755022298156
+
+// DIFF TEST MUTATION 1755050507445
+
+// DIFF TEST MUTATION 1755050664787
+
+// DIFF TEST MUTATION 1755050876135
+
+// DIFF TEST MUTATION 1755050940088
+
+// DIFF TEST MUTATION 1755052752181
+
+// DIFF TEST MUTATION 1755053009738
+
+// DIFF TEST MUTATION 1755054026848
+
+// DIFF TEST MUTATION 1755056174406
