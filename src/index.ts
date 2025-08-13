@@ -2723,8 +2723,8 @@ export class CodeContextCLI {
 export function main(argv: string[]) {
     try {
         const cli = new CodeContextCLI(process.cwd(), false, false, false);
-        // Basic hyphen command cleanup (user sometimes types -status)
-        if (argv[2] && /^-+/.test(argv[2])) {
+        // Basic hyphen command cleanup (user sometimes types -status, but preserve valid flags like -V, --version)
+        if (argv[2] && /^-+/.test(argv[2]) && !argv[2].match(/^(-V|--version|--help|-h|--trace|--dry-run|--json|--explain)$/)) {
             const cleaned = argv[2].replace(/^-+/, '');
             argv[2] = cleaned;
         }
