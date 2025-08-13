@@ -270,7 +270,7 @@ export class CodeContextCLI {
             .description('Pretty-print a saved receipt by id or path')
             .option('--last', 'Show the most recent receipt')
             .option('--limit <n>', 'Show the last N receipts (implies --last)')
-            .action(async (idOrPath: string, opts: { last?: boolean; limit?: string }) => { const { handleReceiptShow } = await import('./commands/ReceiptShow.js'); await handleReceiptShow(idOrPath, { last: opts.last, limit: opts.limit ? parseInt(String(opts.limit),10)||5 : undefined }); });
+            .action(async (idOrPath: string, opts: { last?: boolean; limit?: string }) => { const { handleReceiptShow } = await import('./commands/ReceiptShow.js'); await handleReceiptShow(idOrPath, { last: opts.last }); });
 
         // Air-Gapped context export/import (.agmctx)
         this.program
