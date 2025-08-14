@@ -92,7 +92,7 @@ export class MemoryEngine2 {
 
     constructor(projectPath: string, options: MemoryEngine2Options = {}) {
         this.projectPath = projectPath;
-        this.dbPath = path.join(projectPath, '.antigoldfishmode', 'memory_v2.db');
+    this.dbPath = path.join(projectPath, '.securamem', 'memory_v2.db');
 
         this.options = {
             enableVectorSearch: true,
@@ -582,10 +582,10 @@ export class MemoryEngine2 {
             throw new Error(`Project path does not exist: ${this.projectPath}`);
         }
 
-        const memoryDir = path.join(this.projectPath, '.antigoldfishmode');
+    const memoryDir = path.join(this.projectPath, '.securamem');
         if (!fs.existsSync(memoryDir)) {
             fs.mkdirSync(memoryDir, { recursive: true });
-            console.log('✅ Created AntiGoldfishMode directory');
+            console.log('✅ Created SecuraMem directory');
         }
     }
 
@@ -628,7 +628,7 @@ export class MemoryEngine2 {
     private async loadVectorIndex(): Promise<void> {
         if (!this.options.enableVectorSearch) return;
 
-        const indexPath = path.join(this.projectPath, '.antigoldfishmode', 'vector_index.json');
+    const indexPath = path.join(this.projectPath, '.securamem', 'vector_index.json');
 
         if (fs.existsSync(indexPath)) {
             try {
@@ -644,7 +644,7 @@ export class MemoryEngine2 {
     private async saveVectorIndex(): Promise<void> {
         if (!this.options.enableVectorSearch) return;
 
-        const indexPath = path.join(this.projectPath, '.antigoldfishmode', 'vector_index.json');
+    const indexPath = path.join(this.projectPath, '.securamem', 'vector_index.json');
 
         try {
             const indexData = this.vectorEmbeddings.exportIndex();

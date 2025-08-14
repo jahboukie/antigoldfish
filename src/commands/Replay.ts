@@ -3,6 +3,7 @@ import * as path from 'path';
 import { spawn } from 'child_process';
 import * as crypto from 'crypto';
 import { Tracer } from '../utils/Trace';
+import { Paths } from '../utils/Paths';
 
 interface JournalEntry {
   ts?: string;
@@ -26,7 +27,7 @@ interface ReceiptFile {
 }
 
 function readJournalEntries(projectRoot: string): JournalEntry[] {
-  const journalPath = path.join(projectRoot, '.antigoldfishmode', 'journal.jsonl');
+  const journalPath = Paths.journalPath(projectRoot);
   if (!fs.existsSync(journalPath)) return [];
   const text = fs.readFileSync(journalPath, 'utf8');
   const lines = text.trim() ? text.trim().split(/\r?\n/) : [];
@@ -40,7 +41,7 @@ function readJournalEntries(projectRoot: string): JournalEntry[] {
 function readReceipt(projectRoot: string, idOrPath: string): ReceiptFile | null {
   let filePath = idOrPath;
   if (!idOrPath.endsWith('.json')) {
-    filePath = path.join(projectRoot, '.antigoldfishmode', 'receipts', `${idOrPath}.json`);
+  filePath = path.join(Paths.receiptsDir(projectRoot), `${idOrPath}.json`);
   }
   if (!fs.existsSync(filePath)) return null;
   try {
@@ -80,7 +81,7 @@ export async function handleReplay(opts: any, cleanup: () => Promise<void>) {
     if (mode === 'id') {
       const rec = readReceipt(projectRoot, opts.id);
       if (!rec) { console.log(`Receipt not found: ${opts.id}`); return; }
-      targets = [{ ts: rec.startTime, cmd: rec.command, args: rec.params, receipt: path.join(projectRoot, '.antigoldfishmode', 'receipts', `${rec.id}.json`) }];
+  targets = [{ ts: rec.startTime, cmd: rec.command, args: rec.params, receipt: path.join(Paths.receiptsDir(projectRoot), `${rec.id}.json`) }];
     } else if (mode === 'range') {
       const N = Math.max(1, parseInt(opts.range, 10) || 1);
       const replayables = entries.filter(e => e.cmd && !NON_REPLAYABLE.has(e.cmd));

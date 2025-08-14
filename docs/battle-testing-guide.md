@@ -1,6 +1,6 @@
-# AntiGoldfishMode (AGM) Battle‑Testing Guide
+# SecuraMem (smem) Battle‑Testing Guide
 
-Validate AGM end‑to‑end locally with zero network egress. Commands assume Windows PowerShell in the repo root.
+Validate SecuraMem end‑to‑end locally with zero network egress. Commands assume Windows PowerShell in the repo root.
 
 ## Prerequisites
 - Node.js 18+ (ESM/NodeNext compatible)
@@ -35,8 +35,8 @@ Expected: backend=local-js (unless sqlite-vss enabled), dimensions and count.
 
 ## 5) Memory smoke test
 ```powershell
-node dist/cli.js remember "Hello AGM" --context demo --type note
-node dist/cli.js recall "Hello AGM" -l 5
+node dist/cli.js remember "Hello smem" --context demo --type note
+node dist/cli.js recall "Hello smem" -l 5
 ```
 Expected: stored memory ID; recall returns with high relevance.
 
@@ -49,7 +49,7 @@ Real run (TS focus example):
 ```powershell
 node dist/cli.js index-code --path src --max-chunk 180 --include "**/*.ts" "**/*.tsx" --exclude "**/dist/**" "**/*.test.ts" --explain
 ```
-Expected: Saved chunks > 0; receipt saved under .antigoldfishmode/receipts.
+Expected: Saved chunks > 0; receipt saved under .securamem/receipts.
 
 ## 7) Search code
 ```powershell
@@ -88,8 +88,8 @@ Edit a file and observe incremental indexing. Stop with Ctrl+C.
 
 ## 11) Export/import (air‑gapped)
 ```powershell
-node dist/cli.js export-context --out context.agmctx --type code
-node dist/cli.js import-context context.agmctx
+node dist/cli.js export-context --out context.smemctx --type code
+node dist/cli.js import-context context.smemctx
 ```
 
 ## 12) Maintenance

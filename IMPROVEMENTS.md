@@ -1,11 +1,11 @@
 Executive Summary
-AGM is an AI‑native tool with Developer Parity: anything the agent does is transparent, reproducible, and verifiable by a human. We led with Agent Transparency & Operator Parity, then hardened zero‑trust + air‑gapped context integrity. Advanced semantic recall (Tree‑sitter + ANN) is the next performance leap. Sequence: build trust first → deliver durable recall → accelerate performance for power users.
+CodeContextPro (cctx) is a context infrastructure tool with Developer Parity: anything the agent does is transparent, reproducible, and verifiable by a human. We led with Agent Transparency & Operator Parity, then hardened zero‑trust + air‑gapped context integrity. Advanced semantic recall (Tree‑sitter + ANN) is the next performance leap. Sequence: build trust first → deliver durable recall → accelerate performance for power users.
 
 Immediate priorities (original memory‑only scope) & STATUS:
 1) Agent Transparency & Operator Parity ✅ (trace / dry‑run / receipts / journal / plan+mirror)
 2) Code‑aware hybrid recall ▶ (baseline hybrid rerank shipped; Tree‑sitter + ANN pending)
 3) Zero‑Trust policy enforcement ✅ (allow-command/path, trust tokens, doctor, network guard)
-4) Air‑Gapped Context (.agmctx) ✅ (signing, zip, per‑file checksums, provenance, exit codes)
+4) Air‑Gapped Context (.cctxctx) ✅ (signing, zip, per‑file checksums, provenance, exit codes)
 5) Context Replay ⏳ (kept minimal until after public launch)
 
 Additional delivered items:
@@ -15,7 +15,7 @@ Additional delivered items:
 9) Zipped export + checksums.json + exporter provenance ✅
 10) Key archive groundwork (multi-key verification pending) ✅
 
-This sequencing eliminated the "AI black box" criticism and made AGM safe and intuitive for both AI agents and developers—establishing trust before advanced recall.
+This sequencing eliminated the "AI black box" criticism and made CodeContextPro safe and intuitive for both AI agents and developers—establishing trust before advanced recall.
 
 STATUS MATRIX (v1.8.0)
 Legend: ✅ complete · ▶ partial · ⏳ planned · 💤 deferred
@@ -28,7 +28,7 @@ Legend: ✅ complete · ▶ partial · ⏳ planned · 💤 deferred
 | Hybrid search (FTS + cosine fallback) | ✅ | ANN + adaptive fusion (Pro) | Free |
 | Vector backend abstraction | ▶ | ANN acceleration | Free |
 | Air‑gapped export dir | ✅ | Merge/diff & role filters | Free |
-| Zipped export (.agmctx.zip) | ✅ | Incremental/delta export | Free |
+| Zipped export (.cctxctx.zip) | ✅ | Incremental/delta export | Free |
 | Signing + key rotation/archive | ✅ | Multi-key trust chain + expiry alerts | Free baseline |
 | Checksums (per-file) | ✅ | Delta mode | Free |
 | Import validation (2/3/4) | ✅ | Unified verification report (Pro) | Free |
@@ -56,7 +56,7 @@ Zero‑Trust Policy (Memory‑only)
 Impact: High (privacy and compliance)
 Effort: Low‑Medium
 Risk: Low
-Air‑Gapped Agent Protocol (.agmctx)
+Air‑Gapped Agent Protocol (.smemctx)
 Impact: High (safe portability)
 Effort: Medium
 Risk: Low‑Medium (format design, integrity)
@@ -82,9 +82,9 @@ Recommendations and Design Notes (historical + updated where marked)
 1) Agent Transparency & Operator Parity (Sprint 1)
 What:
 - Global flags: --trace, --dry-run, --json, --explain on all commands
-- Command Journal: .antigoldfishmode/journal.jsonl with timestamp, cwd, argv, digests, exit code
-- Receipts: .antigoldfishmode/receipts/<ts>.json for mutating ops (inputs, outputs, counts, hashes)
-- “Mirror this” hints: print the exact agm command a human can run
+- Command Journal: .securamem/journal.jsonl with timestamp, cwd, argv, digests, exit code
+- Receipts: .securamem/receipts/<ts>.json for mutating ops (inputs, outputs, counts, hashes)
+- “Mirror this” hints: print the exact smem command a human can run
 Why: Build trust first, eliminate black‑box behavior, enable audits and reproducibility
 How:
 - Add a small tracing utility used by CLI handlers
@@ -96,38 +96,38 @@ Transparency & Replay (Glassbox) — Current Status (UPDATED)
 - Plan & Mirror: Every core command prints plan and a copy‑pastable mirror line in trace/explain mode
 - Dry‑Run by Default (where sensitive): replay defaults to --dry-run; index/search support dry-run
 - Receipts v1: Standardized receipts (schema, version, argv, params, resultSummary, success, digests, extras.hybrid, extras.redactions)
-- Journal Trail: .antigoldfishmode/journal.jsonl + receipts/*.json (one per mutating or reporting command)
+- Journal Trail: .codecontextpro/journal.jsonl + receipts/*.json (one per mutating or reporting command)
 - Integrity Digests:
   - index-code: fileListDigest (sha256 over considered file list)
   - search-code: resultDigest (sha256 over ordered result IDs and file:line)
   - replay: batch digest over replayed receipt IDs
 - Replay UX: normalized mirrors, deduped flags, per-step summaries, safe-by-default replays (batch aggregate line TODO)
-- Inspection: agm receipt-show <idOrPath> pretty-prints receipts
+- Inspection: cctx receipt-show <idOrPath> pretty-prints receipts
 
 Examples
 - Index:
-  - agm index-code --path . --max-chunk 200 --trace --json
-  - agm index-code --path . --max-chunk 200 --trace --explain
+  - cctx index-code --path . --max-chunk 200 --trace --json
+  - cctx index-code --path . --max-chunk 200 --trace --explain
 - Search:
-  - agm search-code "SymbolName" -k 10 --preview 3 --trace
-  - agm search-code "SymbolName" -k 10 --preview 3 --filter-path src/**/*.ts --trace --json
+  - cctx search-code "SymbolName" -k 10 --preview 3 --trace
+  - cctx search-code "SymbolName" -k 10 --preview 3 --filter-path src/**/*.ts --trace --json
 - Replay:
-  - agm replay --last --trace (dry-run)
-  - agm replay --range 3 --trace (shows incremental summaries)
+  - cctx replay --last --trace (dry-run)
+  - cctx replay --range 3 --trace (shows incremental summaries)
 - Inspect:
-  - agm journal --show
-  - agm receipt-show <id>
+  - cctx journal --show
+  - cctx receipt-show <id>
 
 Near-term Transparency Roadmap (Refined)
 - Final aggregate replay summary line (batch totals)
 - Expand explain text to be consistent and concise across all commands
 - Add receipt schema v1 to docs with field meanings
-- Optionally: agm receipt-show --last for quick inspection
+- Optionally: cctx receipt-show --last for quick inspection
 
 Acceptance:
 - Every mutating command prints Plan, “Mirror this”, and Receipt path
 - --dry-run produces identical plan output with no side effects
-- agm journal show lists last N entries with digests; clear with confirmation
+- cctx journal show lists last N entries with digests; clear with confirmation
 
 2) Code‑Aware Semantic Vector Memory (Tree‑sitter + ANN/sqlite‑vss)
 What:
@@ -145,7 +145,7 @@ Acceptance:
 
 2) Zero‑Trust Policy (Memory‑only)
 What:
-Offline‑strict mode enabled by default; deny all network egress for AGM features
+Offline‑strict mode enabled by default; deny all network egress for CodeContextPro features
 Allow‑list policy for commands and paths that affect local memory/indexing operations
 Full audit: plan → mirror → receipts → journal for all mutating ops
 Why: Regulated orgs need least‑privilege, provable no‑egress operation
@@ -168,8 +168,8 @@ Hybrid search:
 Combine FTS5 on code text with FAISS kNN on structured vectors
 Filters: language, file path, symbol type
 Output:
-agm search-code “” → ranked function-level results with file:line and quick preview
-4) Air‑Gapped Context (.agmctx) — CURRENT IMPLEMENTATION
+cctx search-code “” → ranked function-level results with file:line and quick preview
+4) Air‑Gapped Context (.cctxctx) — CURRENT IMPLEMENTATION
 Shipped:
 - Directory OR zipped bundle (manifest.json, map.csv, vectors.f32, notes.jsonl, checksums.json)
 - Optional ed25519 signature (signature.bin + publickey.der) with keyId in manifest
@@ -185,14 +185,14 @@ What: Role-scoped views of memory based on tags/contexts/paths
 Role: SecurityReviewBot → auth, crypto, policy code; excludes UI strings
 How:
 Policy model: role → include/exclude rules (type, path, language, tags)
-CLI: agm assign-role UXBot ./project/ui/ and agm role describe UXBot
-Enforce at query time and during export (.agmctx)
+CLI: cctx assign-role UXBot ./project/ui/ and cctx role describe UXBot
+Enforce at query time and during export (.cctxctx)
 Why: Reduces blast radius and cognitive noise; aligns with least privilege
 6) Context Replay System (Deferred – keep basic replay only pre‑launch)
 What: Reconstruct memory state as of timestamp T to reproduce agent context
 How:
 Add an append-only event log (create/update/delete/migrate) with content_hash and metadata deltas
-agm replay --at "2025-08-01T12:00:00Z" produces a read-only snapshot and a replay report (which index versions, which memories visible)
+cctx replay --at "2025-08-01T12:00:00Z" produces a read-only snapshot and a replay report (which index versions, which memories visible)
 Why: Audits and postmortems require reproducibility
 Notes:
 Store replay indices as temp DBs; do not mutate production
@@ -200,7 +200,7 @@ Combine with Zero-Trust audit logs for end-to-end traceability
 7) Live Code‑Aware Recall (Post initial launch)
 What:
 Watch current file in the editor/CLI and bias recall to nearby functions/imports
-agm recall --related-to openFile.js or a background daemon providing suggestions
+cctx recall --related-to openFile.js or a background daemon providing suggestions
 How:
 Editor integration (VS Code): get active file + cursor symbol via LSP/VS Code API
 CLI mode: specify file path and optional line range
@@ -208,9 +208,9 @@ Enhance ranking with proximity (same file/module) and import graph (optional)
 Why: Low-latency, high-relevance recall that follows the developer
 8) CLI Shell Embedding (Lower priority pre‑launch)
 What:
-agm shell: a memory-enhanced terminal with context-aware autocomplete and #recall
+cctx shell: a memory-enhanced terminal with context-aware autocomplete and #recall
 How:
-Start a subshell where Tab completion also queries AGM index
+Start a subshell where Tab completion also queries CodeContextPro index
 #recall “token” prints snippets ready for paste; no auto-execution
 Notes:
 Keep Zero-Trust enforcement; no AI-suggested execution unless approved
@@ -229,16 +229,16 @@ Contradictions: heuristic text checks; flag human review
 Outdated: memory older than last file change; suggest reindex
 Redundant: near-duplicate content_hash or high cosine similarity
 CLI:
-agm lint-memory [--fix redundant] [--report]
+cctx lint-memory [--fix redundant] [--report]
 Why: Keeps context lean and reliable; reduces hallucination fuel
 Roadmap (Phased) — ORIGINAL (for provenance) vs CURRENT adjustments
 Phase 1 (Weeks 1–3)
 FAISS/sqlite-vss backend with IVectorIndex abstraction
 Tree-sitter based CodeIndexer; function-level embeddings
-agm index-code, agm search-code, backend selection and migration
+cctx index-code, cctx search-code, backend selection and migration
 Phase 2 (Weeks 4–6)
 Zero-Trust execution: offline-strict default, command whitelist, audit logs
-AGAP: .agmctx export/import with signing and verification
+AGAP: .cctxctx export/import with signing and verification
 Role profiles: assign-role, enforce filters in queries and exports
 Phase 3 (Weeks 7–9)
 Context Replay with event log and reconstruction
@@ -257,7 +257,7 @@ Performance on very large repos
 Mitigation: chunking strategy, language-aware filters, optional PCA/quantization; background indexing with progress
 Policy usability vs safety
 Mitigation: defaults to safest mode; policy templates; dry-run previews; audit dashboards
-Format stability (.agmctx)
+Format stability (.cctxctx)
 Mitigation: versioned manifest; backward compatibility layer; integrity checks and signatures
 Positioning (non-commercial):
 Free, local‑only tool emphasizing privacy, transparency, and high‑quality recall. No licenses, subscriptions, or telemetry.
@@ -280,7 +280,7 @@ Polish Before Posting (Fast Wins)
 1. Add STATUS section to README (link here)
 2. Add IMPORT EXIT CODES table to docs/airgapped.md (2/3/4 meanings)
 3. Add symbol mode disclaimer + “Pro precision upcoming” note in README
-4. README link to SECURITY.md near Why AGM
+4. README link to SECURITY.md near Why CodeContextPro
 5. Optional: one health output nudge about Pro ANN/diff-aware
 6. usage.json scaffold (counts of index/search/export) to support future nudges
 7. CHANGELOG entry for 1.8.0 (zip, checksums, key mgmt, checksum exit code, provenance)

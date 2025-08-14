@@ -1,0 +1,28 @@
+{
+  "schema": "v1",
+  "version": "1.9.0",
+  "id": "1755170341418-915a9714",
+  "command": "reindex-file",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\dbil\\securamem\\dist\\cli.js",
+    "reindex-file",
+    "README.md",
+    "--symbols"
+  ],
+  "cwd": "C:\\Users\\scorp\\dbil\\securamem",
+  "startTime": "2025-08-14T11:19:00.212Z",
+  "endTime": "2025-08-14T11:19:01.418Z",
+  "durationMs": 1206,
+  "params": {
+    "file": "README.md",
+    "symbols": true
+  },
+  "results": {
+    "saved": 1
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "2c4506aceb44a3854236e258b875572da018ac98fb911dcb5d9990b98ee3c63c"
+  }
+}

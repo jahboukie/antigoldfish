@@ -1,4 +1,4 @@
-# AntiGoldfishMode: AI Assistant Operating Instructions
+# SecuraMem: Context Infrastructure Operating Instructions
 
 ## 🧠 What This Tool Gives You (AI Assistant)
 
@@ -12,7 +12,7 @@ You now have **persistent memory** across all conversations with this user. No m
 
 ### Memory Storage
 ```bash
-antigoldfishmode remember "information to store"
+smem remember "information to store"
 ```
 - Store solutions, insights, user preferences, project decisions
 - Use descriptive, searchable language
@@ -20,7 +20,7 @@ antigoldfishmode remember "information to store"
 
 ### Memory Retrieval  
 ```bash
-antigoldfishmode recall "search term"
+smem recall "search term"
 ```
 - Search your stored memories with natural language
 - Use before solving problems you might have encountered
@@ -28,7 +28,7 @@ antigoldfishmode recall "search term"
 
 ### Status Check
 ```bash
-antigoldfishmode status
+smem status
 ```
 - See your memory statistics (local-only)
 - Understand your current capabilities
@@ -57,29 +57,29 @@ antigoldfishmode status
 User: "How do I fix this React error?"
 You: [Solve the problem]
 You: "I'll store this solution for future reference:"
-You: `antigoldfishmode remember "React error 'Cannot read property of undefined' fixed by adding optional chaining operator (?.) in UserProfile component"`
+You: `smem remember "React error 'Cannot read property of undefined' fixed by adding optional chaining operator (?.) in UserProfile component"`
 ```
 
 ### Pattern 2: Context Building
 ```
 User: "Let's add authentication"
 You: "Let me check what we've discussed about auth before:"
-You: `antigoldfishmode recall "authentication"`
+You: `smem recall "authentication"`
 You: [Use retrieved context to provide consistent, informed response]
 ```
 
 ### Pattern 3: Learning User Preferences
 ```
 User: "I don't like that approach"
-You: `antigoldfishmode remember "User dislikes verbose error handling, prefers clean try-catch blocks"`
+You: `smem remember "User dislikes verbose error handling, prefers clean try-catch blocks"`
 You: "I'll remember that preference for future suggestions."
 ```
 
 ## 🎯 Advanced Usage
 
 ### Context Continuity
-- Before each session, consider running: `antigoldfishmode recall "recent project work"`
-- Store conversation summaries: `antigoldfishmode remember "Session summary: Implemented user authentication with JWT, discussed database schema changes"`
+- Before each session, consider running: `smem recall "recent project work"`
+- Store conversation summaries: `smem remember "Session summary: Implemented user authentication with JWT, discussed database schema changes"`
 
 ### Problem-Solution Mapping
 - Store not just solutions, but the thinking process
@@ -100,10 +100,10 @@ You: "I'll remember that preference for future suggestions."
 - Use action words: "fixed", "implemented", "debugged"
 
 ### Example Searches:
-- `antigoldfishmode recall "database connection"`
-- `antigoldfishmode recall "React hooks error"`
-- `antigoldfishmode recall "user preferences"`
-- `antigoldfishmode recall "deployment issues"`
+- `smem recall "database connection"`
+- `smem recall "React hooks error"`
+- `smem recall "user preferences"`
+- `smem recall "deployment issues"`
 
 ## 🚨 Important Guidelines
 
@@ -122,7 +122,7 @@ You: "I'll remember that preference for future suggestions."
 
 ## 🎉 Success Indicators
 
-You're using AntiGoldfishMode effectively when:
+You're using SecuraMem effectively when:
 - You reference past solutions naturally
 - You remember user preferences without being reminded
 - You build on previous conversations seamlessly
@@ -148,7 +148,7 @@ You're using AntiGoldfishMode effectively when:
 
 ## 🚀 Your New Capabilities
 
-With AntiGoldfishMode, you are no longer a stateless assistant. You are:
+With SecuraMem, you are no longer a stateless assistant. You are:
 - **A learning development partner** who improves over time
 - **A context-aware problem solver** who builds on past solutions
 - **A personalized assistant** who adapts to user preferences

@@ -1,11 +1,11 @@
 {
-  "name": "antigoldfishmode",
+  "name": "securamem",
   "version": "1.9.0",
   "description": "🧠 AI Memory Engine - Built by AI, for AI. Persistent, local-only memory for AI coding assistants.",
   "main": "dist/index.js",
   "bin": {
-    "agm": "dist/cli.js",
-    "antigoldfishmode": "dist/cli.js"
+    "smem": "dist/cli.js",
+    "securamem": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -38,7 +38,7 @@
     "chatgpt",
     "copilot"
   ],
-  "author": "AntiGoldfishMode Team",
+  "author": "SecuraMem Team",
   "license": "MIT",
   "files": [
     "dist/",
@@ -48,13 +48,13 @@
     "LICENSE",
     "AI_ASSISTANT_INSTRUCTIONS.md"
   ],
-  "homepage": "https://github.com/antigoldfishmode/antigoldfishmode",
+  "homepage": "https://github.com/SecuraMem/smem-cli",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/antigoldfishmode/antigoldfishmode.git"
+    "url": "git+https://github.com/SecuraMem/smem-cli.git"
   },
   "bugs": {
-    "url": "https://github.com/antigoldfishmode/antigoldfishmode/issues"
+    "url": "https://github.com/SecuraMem/smem-cli/issues"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
@@ -62,7 +62,8 @@
     "@types/chokidar": "^1.7.5",
     "@types/commander": "^2.12.0",
     "@types/fs-extra": "^11.0.4",
-    "@types/node": "^24.1.0",
+    "@types/minimatch": "^5.1.2",
+    "@types/node": "^24.2.1",
     "jsonwebtoken": "^9.0.2",
     "qrcode": "^1.5.4",
     "speakeasy": "^2.0.0",
@@ -75,7 +76,7 @@
     "chokidar": "^3.6.0",
     "commander": "^14.0.0",
     "dotenv": "^17.2.1",
-    "fflate": "^0.8.1",
+    "fflate": "^0.8.2",
     "fs-extra": "^11.3.0",
     "minimatch": "^10.0.3",
     "sqlite-vss": "^0.1.2",

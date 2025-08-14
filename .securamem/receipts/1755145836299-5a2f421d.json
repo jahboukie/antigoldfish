@@ -1,0 +1,66 @@
+{
+  "schema": "v1",
+  "version": "1.9.0",
+  "id": "1755145836299-5a2f421d",
+  "command": "export-context",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\dist\\cli.js",
+    "export-context",
+    "--out",
+    ".antigoldfishmode/delta-empty.agmctx",
+    "--type",
+    "code",
+    "--delta-from",
+    ".antigoldfishmode/delta-base.agmctx"
+  ],
+  "cwd": "C:\\Users\\scorp\\dbil\\codecontextpro-cli",
+  "startTime": "2025-08-14T04:30:36.181Z",
+  "endTime": "2025-08-14T04:30:36.299Z",
+  "durationMs": 118,
+  "params": {
+    "outPath": "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\.antigoldfishmode\\delta-empty.agmctx",
+    "type": "code",
+    "sign": false,
+    "zip": false,
+    "decision": {
+      "sign": {
+        "effective": false
+      }
+    },
+    "delta": {
+      "baseManifestDigest": "29f1c5a67f2c79052dcd46835d37ef0b8d255acd24ef0fb50649ec278a129c1a",
+      "originalCount": 0,
+      "unchangedSkipped": 0,
+      "exportedCount": 0
+    },
+    "timing": {
+      "ms": 114
+    }
+  },
+  "results": {
+    "outPath": "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\.antigoldfishmode\\delta-empty.agmctx",
+    "type": "code",
+    "count": 0,
+    "signed": false,
+    "zipped": false,
+    "vectors": {
+      "dim": 0,
+      "count": 0,
+      "backend": "local-js"
+    },
+    "delta": {
+      "baseManifestDigest": "29f1c5a67f2c79052dcd46835d37ef0b8d255acd24ef0fb50649ec278a129c1a",
+      "originalCount": 0,
+      "unchangedSkipped": 0,
+      "exportedCount": 0
+    },
+    "timing": {
+      "ms": 114
+    }
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "61efde5bf83a3a5b9480c600e93300d6f012ae9186b43815f6c891c3675d128f"
+  }
+}

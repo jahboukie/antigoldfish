@@ -1,9 +1,9 @@
 /**
- * AntiGoldfishMode Memory Engine
+ * SecuraMem Memory Engine
  * Security-first, local-only persistent memory implementation with SQLite
  *
  * MIT License
- * Copyright (c) 2025 AntiGoldfishMode Team
+ * Copyright (c) 2025 SecuraMem Team
  *
  * Handles secure storage and retrieval of development context with
  * comprehensive input validation and lightweight secret detection.
@@ -36,7 +36,7 @@ export class MemoryEngine {
 
     constructor(projectPath: string, skipValidation: boolean = false, devMode: boolean = false, secureMode: boolean = false) {
         this.projectPath = projectPath;
-        this.dbPath = path.join(projectPath, '.antigoldfishmode', 'memory.db');
+    this.dbPath = path.join(projectPath, '.securamem', 'memory.db');
 
         // Determine encryption mode: secure-mode enables it, dev-mode disables it, default is disabled for reliability
         const encryptionEnabled = secureMode && !devMode;
@@ -179,18 +179,18 @@ export class MemoryEngine {
     }
 
     /**
-     * Validate project path and auto-create AntiGoldfishMode structure for unlimited local-only
+    * Validate project path and auto-create SecuraMem structure for unlimited local-only
      */
     private validateProjectPath(): void {
         if (!fs.existsSync(this.projectPath)) {
             throw new Error(`Project path does not exist: ${this.projectPath}`);
         }
 
-        const antigoldfishDir = path.join(this.projectPath, '.antigoldfishmode');
-        if (!fs.existsSync(antigoldfishDir)) {
-            console.log('🔧 Auto-creating AntiGoldfishMode directory for unlimited local-only mode');
-            fs.mkdirSync(antigoldfishDir, { recursive: true });
-            console.log('✅ AntiGoldfishMode directory created');
+            const securamemDir = path.join(this.projectPath, '.securamem');
+            if (!fs.existsSync(securamemDir)) {
+            console.log('🔧 Auto-creating SecuraMem directory for unlimited local-only mode');
+                fs.mkdirSync(securamemDir, { recursive: true });
+            console.log('✅ SecuraMem directory created');
         }
     }
 

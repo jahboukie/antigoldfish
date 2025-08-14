@@ -1,0 +1,39 @@
+{
+  "schema": "v1",
+  "version": "1.9.0",
+  "id": "1755145878546-bad9bb0c",
+  "command": "index-code",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\dist\\cli.js",
+    "index-code",
+    "--path",
+    "src",
+    "--symbols"
+  ],
+  "cwd": "C:\\Users\\scorp\\dbil\\codecontextpro-cli",
+  "startTime": "2025-08-14T04:30:43.189Z",
+  "endTime": "2025-08-14T04:31:18.546Z",
+  "durationMs": 35357,
+  "params": {
+    "root": "src",
+    "maxChunk": 200,
+    "dryRun": false,
+    "diff": false
+  },
+  "resultSummary": {
+    "saved": 311
+  },
+  "results": {
+    "saved": 311,
+    "root": "src",
+    "digest": "afa10888cac54cae05bdefa6768a81c377fdc712af747bd9d070bf188d91a333",
+    "fileCount": 21,
+    "diff": false
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "78bbdb68e297dff653c1e9169abdd58c4f0b74bc2d2b1f8071d06c51b2efcc26",
+    "fileListDigest": "afa10888cac54cae05bdefa6768a81c377fdc712af747bd9d070bf188d91a333"
+  }
+}

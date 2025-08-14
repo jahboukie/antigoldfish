@@ -1,0 +1,43 @@
+{
+  "allowedCommands": [
+    "init",
+    "status",
+    "vector-status",
+    "ai-guide",
+    "index-code",
+    "search-code",
+    "journal",
+    "replay",
+    "receipt-show",
+    "remember",
+    "recall",
+    "export-context",
+    "import-context",
+    "health",
+    "prove-offline",
+    "help",
+    "--help",
+    "-h",
+    "version",
+    "--version",
+    "-V",
+    "policy",
+    "reindex-file"
+  ],
+  "allowedGlobs": [
+    "**/*"
+  ],
+  "envPassthrough": [
+    "NODE_ENV",
+    "SMEM_MODE",
+    "PATH",
+    "HOME",
+    "USER",
+    "USERNAME"
+  ],
+  "networkEgress": false,
+  "auditTrail": true,
+  "signExports": false,
+  "requireSignedContext": false,
+  "forceSignedExports": false
+}

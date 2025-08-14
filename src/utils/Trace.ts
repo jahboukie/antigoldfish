@@ -54,17 +54,17 @@ export class Tracer {
   }
 
   private ensureDirs() {
-    const dir = path.join(this.projectRoot, '.antigoldfishmode');
+  const dir = path.join(this.projectRoot, '.securamem');
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     const receipts = path.join(dir, 'receipts');
     if (!fs.existsSync(receipts)) fs.mkdirSync(receipts, { recursive: true });
   }
 
   private journalPath(): string {
-    return path.join(this.projectRoot, '.antigoldfishmode', 'journal.jsonl');
+  return path.join(this.projectRoot, '.securamem', 'journal.jsonl');
   }
   private receiptsDir(): string {
-    return path.join(this.projectRoot, '.antigoldfishmode', 'receipts');
+  return path.join(this.projectRoot, '.securamem', 'receipts');
   }
 
   plan(title: string, details: Record<string, any>) {

@@ -1,0 +1,40 @@
+{
+  "schema": "v1",
+  "version": "1.9.0",
+  "id": "1755170378618-2ec05b90",
+  "command": "index-code",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\dbil\\securamem\\dist\\cli.js",
+    "index-code",
+    "--path",
+    "src",
+    "--symbols",
+    "--diff"
+  ],
+  "cwd": "C:\\Users\\scorp\\dbil\\securamem",
+  "startTime": "2025-08-14T11:19:37.643Z",
+  "endTime": "2025-08-14T11:19:38.618Z",
+  "durationMs": 975,
+  "params": {
+    "root": "src",
+    "maxChunk": 200,
+    "dryRun": false,
+    "diff": true
+  },
+  "resultSummary": {
+    "saved": 0
+  },
+  "results": {
+    "saved": 0,
+    "root": "src",
+    "digest": "1894f42269b1f1234d41cec10b9196b47360ff8906818159e5f62599a7c59915",
+    "fileCount": 22,
+    "diff": true
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "ee025f073b49ad0697d903a5153b6684d6c6caf07f6dd0a3f9fd380dcc332517",
+    "fileListDigest": "1894f42269b1f1234d41cec10b9196b47360ff8906818159e5f62599a7c59915"
+  }
+}

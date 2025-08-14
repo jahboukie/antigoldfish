@@ -1,15 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { Paths } from '../utils/Paths';
 
 export async function handleJournal(opts: any, cleanup: () => Promise<void>): Promise<void> {
   try {
-    const journalPath = path.join(process.cwd(), '.antigoldfishmode', 'journal.jsonl');
+  const journalPath = Paths.journalPath(process.cwd());
     if (opts.show) {
       if (!fs.existsSync(journalPath)) { console.log('No journal found.'); return; }
       const text = fs.readFileSync(journalPath, 'utf8');
       const lines = text.trim() ? text.trim().split(/\r?\n/).slice(-100) : [];
       if (!lines.length) { console.log('Journal is empty.'); return; }
-      console.log('📒 AGM Journal (latest 100 entries):');
+  console.log('📒 SecuraMem Journal (latest 100 entries):');
       lines.forEach((l) => console.log(l));
       return;
     }

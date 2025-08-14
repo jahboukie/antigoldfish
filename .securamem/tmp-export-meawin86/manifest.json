@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "type": "code",
+  "count": 1,
+  "createdAt": "2025-08-14T04:30:42.209Z",
+  "exporter": {
+    "name": "antigoldfishmode",
+    "version": "1.9.0",
+    "node": "v22.17.0",
+    "host": "DESKTOP-EVF3MAI"
+  },
+  "vectors": {
+    "dim": 384,
+    "count": 1,
+    "backend": "local-js"
+  },
+  "delta": {
+    "baseManifestDigest": "29f1c5a67f2c79052dcd46835d37ef0b8d255acd24ef0fb50649ec278a129c1a",
+    "basePath": "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\.antigoldfishmode\\delta-base.agmctx",
+    "originalCount": 1,
+    "unchangedSkipped": 0,
+    "exportedCount": 1
+  }
+}

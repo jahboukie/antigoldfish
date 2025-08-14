@@ -1,0 +1,23 @@
+{
+  "LicenseService.ts": "c6da0d5b3f7842a8c38bb12192d50e3206219457694a01686b39685c48f92fb8",
+  "MemoryEngine.ts": "70572cc299733cc34946f188783a8c665c1e577f0344399dfbfb6dda662f5b60",
+  "MemoryEngine2.ts": "734528ce5d62c4d1924f583f6369bc9f2ad6fe21f4e67bd43ff604bb8ecf1ecb",
+  "cli.ts": "ddb964ef63edefce9a5e6b6dbd80afc950c680484059d9cce546fdca4ca10eff",
+  "codeindex/CodeIndexer.ts": "781482b203ba144a7d692c6f960c785c18bc941f59c19966acc00f15bcb754f7",
+  "codeindex/SymbolIndexer.ts": "62a3d4ee42e305c1fd28bcf969fb9854b62ed0a70a06391da6b8d2759d0655b3",
+  "codeindex/TreeSitterIndexer.ts": "7161dbdc81bb469c9ec6b4df39c53a92957054fed17f4d3152a34e428cf425b6",
+  "commands/Journal.ts": "87fdc6b20fbedea4ee005cd44753106c7695ea30d1f7a7a9462c78c0fb2171dd",
+  "commands/ReceiptShow.ts": "e56baf7fded07ec514b9481062db9ad27f4db1419bccc366f39f33e1edd1f5d8",
+  "commands/Replay.ts": "178d54ae06e1cf236e3b6f3fab670fa8d2410119952b04ef583b89d91d460de4",
+  "database/EnhancedMemoryDatabase.ts": "4ffebc66581695f918aa5d95cd6eb4080e31b9d17b1118ee2cfa93d8233c1855",
+  "database/MemoryDatabase.ts": "f4f04f04a4591424f21194949045b0d0589664ebdb5ebde00148327ddf970c13",
+  "demo/MemoryEngine2Demo.ts": "437f619ee305acab4ca9e94933f59c87380aed181e9d85f5c07b0e2b9f37d1e0",
+  "engine/ConnectionPool.ts": "c80dcfed8c6ad26dbce9bfd044c7e2f1ac28b1a36bd50692edd17e38767aab3c",
+  "engine/HybridSearchEngine.ts": "b00513077f16efa3c104048e767b3382855d0c70ceeebda29579b75b8a4f1b7e",
+  "engine/MemoryCache.ts": "e9339acca08f15125e38dbf5edad5c9089af79f2e2ab96d73b29d9c5551381e6",
+  "engine/VectorEmbeddings.ts": "75d80ac0faa05cde6549f71b0f3050025418ff9849f4b50485ca594903ccfbc0",
+  "index.ts": "13ffc07e104008a9c6ba3498c775e71d4647dcd1649f85ee9701d602a96bca3a",
+  "index.ts.bak-test": "2c59cd4091ca32e4c16c2112c870e1a3e9b63400429f0eed684ecf30896f939e",
+  "utils/PolicyBroker.ts": "6416a9d4429a68a7a87ce26b0501effdd7331105add9c0c39ac77973512f4088",
+  "utils/Trace.ts": "75c2e5b21837d271e555ab9cf14b8f2791a81f20d62f37e9a4dce00d85105940"
+}

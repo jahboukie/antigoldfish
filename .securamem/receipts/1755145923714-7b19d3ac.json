@@ -1,0 +1,30 @@
+{
+  "schema": "v1",
+  "version": "1.9.0",
+  "id": "1755145923714-7b19d3ac",
+  "command": "status",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\dist\\cli.js",
+    "status"
+  ],
+  "cwd": "C:\\Users\\scorp\\dbil\\codecontextpro-cli",
+  "startTime": "2025-08-14T04:32:03.693Z",
+  "endTime": "2025-08-14T04:32:03.715Z",
+  "durationMs": 22,
+  "params": {},
+  "results": {
+    "project": {
+      "path": "C:\\Users\\scorp\\dbil\\codecontextpro-cli",
+      "dbPath": "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\.securamem\\memory.db"
+    },
+    "memory": {
+      "total": 306,
+      "sizeMB": 0.79
+    }
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "9df9e64a3317698050081ae6f830d8b50546badd92535aafb58857acb25ca1c5"
+  }
+}

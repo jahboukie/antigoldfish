@@ -6,7 +6,7 @@
  */
 
 async function testSecurityHardening() {
-    console.log('🛡️ Testing AntiGoldfishMode Security Hardening...\n');
+    console.log('🛡️ Testing SecuraMem Security Hardening...\n');
 
     let passed = 0;
     let total = 0;
@@ -115,8 +115,8 @@ async function testSecurityHardening() {
     console.log(`\n🛡️ Security Test Results: ${passed}/${total} tests passed`);
     
     if (passed === total) {
-        console.log('✅ All core security capabilities verified');
-        console.log('🏆 AntiGoldfishMode security foundation is solid');
+    console.log('✅ All core security capabilities verified');
+    console.log('🏆 SecuraMem security foundation is solid');
         
         // Security feature summary
         console.log('\n🔒 Verified Security Features:');

@@ -1,0 +1,52 @@
+{
+  "schema": "v1",
+  "version": "1.9.0",
+  "id": "1755145835939-3acf108a",
+  "command": "export-context",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\dist\\cli.js",
+    "export-context",
+    "--out",
+    ".antigoldfishmode/delta-base.agmctx",
+    "--type",
+    "code"
+  ],
+  "cwd": "C:\\Users\\scorp\\dbil\\codecontextpro-cli",
+  "startTime": "2025-08-14T04:30:35.796Z",
+  "endTime": "2025-08-14T04:30:35.939Z",
+  "durationMs": 143,
+  "params": {
+    "outPath": "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\.antigoldfishmode\\delta-base.agmctx",
+    "type": "code",
+    "sign": false,
+    "zip": false,
+    "decision": {
+      "sign": {
+        "effective": false
+      }
+    },
+    "timing": {
+      "ms": 140
+    }
+  },
+  "results": {
+    "outPath": "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\.antigoldfishmode\\delta-base.agmctx",
+    "type": "code",
+    "count": 0,
+    "signed": false,
+    "zipped": false,
+    "vectors": {
+      "dim": 0,
+      "count": 0,
+      "backend": "local-js"
+    },
+    "timing": {
+      "ms": 140
+    }
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "2de30f732377c1a1ed43e025aa9bf0e4d34c2a2f893654bb0729274b90aa038b"
+  }
+}

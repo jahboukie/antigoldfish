@@ -1,7 +1,7 @@
 {
-  "name": "antigoldfishmode-vscode",
-  "displayName": "AntiGoldfishMode",
-  "description": "AI Memory Engine for VSCode - Never lose context again",
+  "name": "securamem-vscode",
+  "displayName": "SecuraMem",
+  "description": "SecuraMem: Secure, air-gapped code memory for VSCode - Enterprise context durability and audit.",
   "version": "1.0.0",
   "publisher": "JeremyBrown",
   "engines": {
@@ -22,110 +22,110 @@
     "copilot"
   ],
   "activationEvents": [
-    "onCommand:agm.remember",
-    "onCommand:agm.recall",
-    "onCommand:agm.status",
-    "onView:agm-memories"
+  "onCommand:smem.remember",
+  "onCommand:smem.recall",
+  "onCommand:smem.status",
+  "onView:smem-memories"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "agm.remember",
-        "title": "🧠 Remember Selection",
-        "category": "AGM"
+  "command": "smem.remember",
+  "title": "🛡️ Remember Selection",
+  "category": "SecuraMem"
       },
       {
-        "command": "agm.rememberWithContext",
-        "title": "🧠 Remember with Context",
-        "category": "AGM"
+  "command": "smem.rememberWithContext",
+  "title": "🛡️ Remember with Context",
+  "category": "SecuraMem"
       },
       {
-        "command": "agm.recall",
-        "title": "🔍 Recall Memories",
-        "category": "AGM"
+  "command": "smem.recall",
+  "title": "🔍 Recall Memories",
+  "category": "SecuraMem"
       },
       {
-        "command": "agm.quickRecall",
-        "title": "⚡ Quick Recall",
-        "category": "AGM"
+  "command": "smem.quickRecall",
+  "title": "⚡ Quick Recall",
+  "category": "SecuraMem"
       },
       {
-        "command": "agm.status",
-        "title": "📊 Show Status",
-        "category": "AGM"
+  "command": "smem.status",
+  "title": "📊 Show Status",
+  "category": "SecuraMem"
       },
       {
-        "command": "agm.init",
-        "title": "🚀 Initialize Project",
-        "category": "AGM"
+  "command": "smem.init",
+  "title": "🚀 Initialize Project",
+  "category": "SecuraMem"
       },
       {
-        "command": "agm.insertMemory",
-        "title": "📝 Insert Memory",
-        "category": "AGM"
+  "command": "smem.insertMemory",
+  "title": "📝 Insert Memory",
+  "category": "SecuraMem"
       },
       {
-        "command": "agm.refreshMemories",
-        "title": "🔄 Refresh",
-        "icon": "$(refresh)"
+  "command": "smem.refreshMemories",
+  "title": "🔄 Refresh",
+  "icon": "$(refresh)"
       },
       {
-        "command": "agm.deleteMemory",
-        "title": "🗑️ Delete",
-        "icon": "$(trash)"
+  "command": "smem.deleteMemory",
+  "title": "🗑️ Delete",
+  "icon": "$(trash)"
       }
     ],
     "menus": {
       "editor/context": [
         {
           "when": "editorHasSelection",
-          "command": "agm.remember",
-          "group": "agm@1"
+          "command": "smem.remember",
+          "group": "smem@1"
         },
         {
           "when": "editorHasSelection",
-          "command": "agm.rememberWithContext",
-          "group": "agm@2"
+          "command": "smem.rememberWithContext",
+          "group": "smem@2"
         }
       ],
       "editor/title": [
         {
-          "command": "agm.quickRecall",
+          "command": "smem.quickRecall",
           "when": "resourceExtname != ''",
           "group": "navigation@1"
         }
       ],
       "view/title": [
         {
-          "command": "agm.refreshMemories",
-          "when": "view == agm-memories",
+          "command": "smem.refreshMemories",
+          "when": "view == smem-memories",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "agm.insertMemory",
-          "when": "view == agm-memories && viewItem == memory",
+          "command": "smem.insertMemory",
+          "when": "view == smem-memories && viewItem == memory",
           "group": "inline@1"
         },
         {
-          "command": "agm.deleteMemory",
-          "when": "view == agm-memories && viewItem == memory",
+          "command": "smem.deleteMemory",
+          "when": "view == smem-memories && viewItem == memory",
           "group": "inline@2"
         }
       ],
       "commandPalette": [
         {
-          "command": "agm.refreshMemories",
+          "command": "smem.refreshMemories",
           "when": "false"
         },
         {
-          "command": "agm.deleteMemory",
+          "command": "smem.deleteMemory",
           "when": "false"
         },
         {
-          "command": "agm.insertMemory",
+          "command": "smem.insertMemory",
           "when": "false"
         }
       ]
@@ -133,65 +133,65 @@
     "views": {
       "explorer": [
         {
-          "id": "agm-memories",
-          "name": "🧠 AI Memories",
-          "when": "agm.isInitialized"
+          "id": "smem-memories",
+          "name": "🛡️ SecuraMem Memories",
+          "when": "smem.isInitialized"
         }
       ]
     },
     "viewsWelcome": [
       {
-        "view": "agm-memories",
-        "contents": "No memories found.\n[🧠 Remember Something](command:agm.remember)\n[🚀 Initialize Project](command:agm.init)\nTo get started, initialize AntiGoldfishMode in your project or remember your first memory."
+  "view": "smem-memories",
+  "contents": "No memories found.\n[🛡️ Remember Something](command:smem.remember)\n[🚀 Initialize Project](command:smem.init)\nTo get started, initialize SecuraMem in your project or remember your first memory."
       }
     ],
     "keybindings": [
       {
-        "command": "agm.remember",
+  "command": "smem.remember",
         "key": "ctrl+shift+m",
         "mac": "cmd+shift+m",
         "when": "editorHasSelection"
       },
       {
-        "command": "agm.recall",
+  "command": "smem.recall",
         "key": "ctrl+shift+r",
         "mac": "cmd+shift+r"
       },
       {
-        "command": "agm.quickRecall",
+  "command": "smem.quickRecall",
         "key": "ctrl+shift+q",
         "mac": "cmd+shift+q"
       }
     ],
     "configuration": {
-      "title": "AntiGoldfishMode",
+  "title": "SecuraMem",
       "properties": {
-        "agm.autoRemember": {
+  "smem.autoRemember": {
           "type": "boolean",
           "default": false,
           "description": "Automatically remember code snippets when copying"
         },
-        "agm.showStatusBar": {
+  "smem.showStatusBar": {
           "type": "boolean",
           "default": true,
           "description": "Show memory count in status bar"
         },
-        "agm.defaultContext": {
+  "smem.defaultContext": {
           "type": "string",
           "default": "vscode",
           "description": "Default context for memories created in VSCode"
         },
-        "agm.maxRecallResults": {
+  "smem.maxRecallResults": {
           "type": "number",
           "default": 10,
           "description": "Maximum number of results to show in recall"
         },
-        "agm.showOfflineIndicator": {
+  "smem.showOfflineIndicator": {
           "type": "boolean",
           "default": true,
-          "description": "Show an offline (no egress) indicator in the status bar based on 'agm prove-offline'"
+          "description": "Show an offline (no egress) indicator in the status bar based on 'smem prove-offline'"
         },
-        "agm.offlinePollInterval": {
+  "smem.offlinePollInterval": {
           "type": "number",
           "default": 60,
           "description": "Seconds between status bar refresh polling for offline proof and memory count"
@@ -215,10 +215,10 @@
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/antigoldfishmode/vscode-extension"
+  "url": "https://github.com/SecuraMem/smem-vscode"
   },
   "bugs": {
-    "url": "https://github.com/antigoldfishmode/vscode-extension/issues"
+  "url": "https://github.com/SecuraMem/smem-vscode/issues"
   },
-  "homepage": "https://antigoldfish.dev"
+  "homepage": "https://securamem.com"
 }

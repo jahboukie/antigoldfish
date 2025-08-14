@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as minimatch from 'minimatch';
+import { Minimatch } from 'minimatch';
 
 export interface Policy {
   allowedCommands: string[];
@@ -9,8 +9,8 @@ export interface Policy {
   networkEgress: boolean;
   auditTrail: boolean;
   // New: portability and integrity toggles
-  signExports?: boolean;              // default false; if true, agm export-context signs by default
-  requireSignedContext?: boolean;     // default false; if true, agm import-context requires a valid signature
+  signExports?: boolean;              // default false; if true, smem export-context signs by default
+  requireSignedContext?: boolean;     // default false; if true, smem import-context requires a valid signature
   forceSignedExports?: boolean;       // default false; if true, signing cannot be disabled (even with --no-sign)
 }
 
@@ -19,7 +19,7 @@ export class PolicyBroker {
   private policyPath: string;
   private trustPath: string;
 
-  constructor(policyPath: string = path.join(process.cwd(), '.antigoldfishmode', 'policy.json')) {
+  constructor(policyPath: string = path.join(process.cwd(), '.securamem', 'policy.json')) {
     this.policyPath = policyPath;
     this.trustPath = path.join(path.dirname(this.policyPath), 'trust.json');
     this.policy = this.loadPolicy();
@@ -36,7 +36,7 @@ export class PolicyBroker {
   const defaultPolicy: Policy = {
     allowedCommands: [
   "init","status","vector-status","ai-guide","index-code","search-code","journal","replay","receipt-show","remember","recall","policy",
-  // .agmctx portability commands
+  // .smemctx portability commands
   "export-context","import-context",
   // Diagnostics
   "prove-offline",
@@ -44,7 +44,7 @@ export class PolicyBroker {
   "help","--help","-h","version","--version","-V"
     ],
       allowedGlobs: ["**/*"],
-      envPassthrough: ["NODE_ENV","AGM_MODE","PATH","HOME","USER","USERNAME"],
+  envPassthrough: ["NODE_ENV","SMEM_MODE","PATH","HOME","USER","USERNAME"],
       networkEgress: false,
   auditTrail: true,
   signExports: false,
@@ -90,7 +90,7 @@ export class PolicyBroker {
         // Memory ops only (license system removed in local-only pivot)
         "remember",
         "recall",
-  // .agmctx portability
+  // .smemctx portability
   "export-context",
   "import-context",
   // Health snapshot
@@ -101,7 +101,7 @@ export class PolicyBroker {
         "help","--help","-h","version","--version","-V"
       ],
       allowedGlobs: ["**/*"],  // Allow all files by default for easier testing
-      envPassthrough: ["NODE_ENV", "AGM_MODE", "PATH", "HOME", "USER", "USERNAME"],
+  envPassthrough: ["NODE_ENV", "SMEM_MODE", "PATH", "HOME", "USER", "USERNAME"],
       networkEgress: false,
   auditTrail: true,
   signExports: false,
@@ -132,7 +132,8 @@ export class PolicyBroker {
     const candidates = [posixPath, posixPath + '/', rel, rel + '/'];
     return this.policy.allowedGlobs.some(glob => {
       const pattern = glob.replace(/\\/g, '/');
-      return candidates.some(target => minimatch.minimatch(target, pattern, { dot: true, nocase: true, matchBase: true }));
+  const mm = new Minimatch(pattern, { dot: true, nocase: true, matchBase: true });
+  return candidates.some(target => mm.match(target));
     });
   }
 
@@ -150,7 +151,7 @@ export class PolicyBroker {
 
   public logAction(action: string, details: any): void {
     if (!this.shouldAudit()) return;
-    const logPath = path.join(process.cwd(), '.antigoldfishmode', 'audit.log');
+  const logPath = path.join(process.cwd(), '.securamem', 'audit.log');
     const entry = { ts: new Date().toISOString(), action, details };
     fs.appendFileSync(logPath, JSON.stringify(entry) + '\n');
   }
@@ -195,7 +196,8 @@ export class PolicyBroker {
     for (const glob of this.policy.allowedGlobs) {
       const pattern = glob.replace(/\\/g, '/');
       for (const target of candidates) {
-        if (minimatch.minimatch(target, pattern, { dot: true, nocase: true, matchBase: true })) {
+  const mm = new Minimatch(pattern, { dot: true, nocase: true, matchBase: true });
+  if (mm.match(target)) {
           return { allowed: true, reason: 'Path matches allowedGlobs', matchedGlob: glob };
         }
       }

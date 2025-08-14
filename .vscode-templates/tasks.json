@@ -2,9 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "🧠 AGM: Remember Selection",
+            "label": "🛡️ SecuraMem: Remember Selection",
             "type": "shell",
-            "command": "agm",
+            "command": "smem",
             "args": [
                 "remember",
                 "${input:memoryContent}",
@@ -23,9 +23,9 @@
             "problemMatcher": []
         },
         {
-            "label": "🔍 AGM: Quick Recall",
+            "label": "🔍 SecuraMem: Quick Recall",
             "type": "shell",
-            "command": "agm",
+            "command": "smem",
             "args": [
                 "recall",
                 "${input:searchQuery}",
@@ -44,9 +44,9 @@
             "problemMatcher": []
         },
         {
-            "label": "📊 AGM: Show Status",
+            "label": "📊 SecuraMem: Show Status",
             "type": "shell",
-            "command": "agm",
+            "command": "smem",
             "args": ["status"],
             "group": "build",
             "presentation": {
@@ -60,9 +60,9 @@
             "problemMatcher": []
         },
         {
-            "label": "🚀 AGM: Initialize Project",
+            "label": "🚀 SecuraMem: Initialize Project",
             "type": "shell",
-            "command": "agm",
+            "command": "smem",
             "args": ["init", "--force"],
             "group": "build",
             "presentation": {
@@ -76,9 +76,9 @@
             "problemMatcher": []
         },
         {
-            "label": "🧠 AGM: Remember Current File Context",
+            "label": "🛡️ SecuraMem: Remember Current File Context",
             "type": "shell",
-            "command": "agm",
+            "command": "smem",
             "args": [
                 "remember",
                 "File: ${fileBasename} - ${input:fileDescription}",
@@ -99,9 +99,9 @@
             "problemMatcher": []
         },
         {
-            "label": "🔍 AGM: Search Project Memories",
+            "label": "🔍 SecuraMem: Search Project Memories",
             "type": "shell",
-            "command": "agm",
+            "command": "smem",
             "args": [
                 "recall",
                 "${input:searchQuery}",

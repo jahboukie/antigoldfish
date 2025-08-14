@@ -13,7 +13,7 @@ export class EmbeddingProvider {
   private modelId: string;
 
   private constructor(projectRoot: string, modelId?: string) {
-    this.cacheDir = path.join(projectRoot, '.antigoldfishmode', 'models');
+  this.cacheDir = path.join(projectRoot, '.securamem', 'models');
     this.modelId = modelId || process.env.AGM_EMBED_MODEL || 'Xenova/e5-small-v2';
   }
 

@@ -1,8 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { Paths } from '../utils/Paths';
 
 function findLastReceipt(projectRoot: string): string | null {
-  const dir = path.join(projectRoot, '.antigoldfishmode', 'receipts');
+  const dir = Paths.receiptsDir(projectRoot);
   if (!fs.existsSync(dir)) return null;
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
   if (!files.length) return null;
@@ -12,7 +13,7 @@ function findLastReceipt(projectRoot: string): string | null {
 }
 
 function findLastNReceipts(projectRoot: string, n: number): string[] {
-  const dir = path.join(projectRoot, '.antigoldfishmode', 'receipts');
+  const dir = Paths.receiptsDir(projectRoot);
   if (!fs.existsSync(dir)) return [];
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
   if (!files.length) return [];
@@ -48,7 +49,7 @@ export async function handleReceiptShow(idOrPath?: string, opts?: { last?: boole
   } else {
     filePath = idOrPath;
     if (!/\.json$/i.test(filePath)) {
-      filePath = path.join(projectRoot, '.antigoldfishmode', 'receipts', `${filePath}.json`);
+      filePath = path.join(Paths.receiptsDir(projectRoot), `${filePath}.json`);
     }
   }
 

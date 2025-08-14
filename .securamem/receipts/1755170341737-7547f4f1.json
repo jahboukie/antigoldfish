@@ -1,0 +1,66 @@
+{
+  "schema": "v1",
+  "version": "1.9.0",
+  "id": "1755170341737-7547f4f1",
+  "command": "export-context",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\dbil\\securamem\\dist\\cli.js",
+    "export-context",
+    "--out",
+    ".antigoldfishmode/delta-changed.agmctx",
+    "--type",
+    "code",
+    "--delta-from",
+    ".antigoldfishmode/delta-base.agmctx"
+  ],
+  "cwd": "C:\\Users\\scorp\\dbil\\securamem",
+  "startTime": "2025-08-14T11:19:01.619Z",
+  "endTime": "2025-08-14T11:19:01.737Z",
+  "durationMs": 118,
+  "params": {
+    "outPath": "C:\\Users\\scorp\\dbil\\securamem\\.antigoldfishmode\\delta-changed.agmctx",
+    "type": "code",
+    "sign": false,
+    "zip": false,
+    "decision": {
+      "sign": {
+        "effective": false
+      }
+    },
+    "delta": {
+      "baseManifestDigest": "7cad8212aaed995a2915d81e9728a13cebd3093a49d8b9f2edd201bd632b6885",
+      "originalCount": 306,
+      "unchangedSkipped": 305,
+      "exportedCount": 1
+    },
+    "timing": {
+      "ms": 116
+    }
+  },
+  "results": {
+    "outPath": "C:\\Users\\scorp\\dbil\\securamem\\.antigoldfishmode\\delta-changed.agmctx",
+    "type": "code",
+    "count": 1,
+    "signed": false,
+    "zipped": false,
+    "vectors": {
+      "dim": 384,
+      "count": 1,
+      "backend": "local-js"
+    },
+    "delta": {
+      "baseManifestDigest": "7cad8212aaed995a2915d81e9728a13cebd3093a49d8b9f2edd201bd632b6885",
+      "originalCount": 306,
+      "unchangedSkipped": 305,
+      "exportedCount": 1
+    },
+    "timing": {
+      "ms": 116
+    }
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "da645b672894bec5f8ac9b9a73cc28c1cb14929cea55ee3372534c92e69262a7"
+  }
+}

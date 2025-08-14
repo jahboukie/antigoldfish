@@ -1,0 +1,28 @@
+{
+  "schema": "v1",
+  "version": "1.9.0",
+  "id": "1755145841848-6d6f4957",
+  "command": "reindex-file",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\dist\\cli.js",
+    "reindex-file",
+    "README.md",
+    "--symbols"
+  ],
+  "cwd": "C:\\Users\\scorp\\dbil\\codecontextpro-cli",
+  "startTime": "2025-08-14T04:30:36.641Z",
+  "endTime": "2025-08-14T04:30:41.848Z",
+  "durationMs": 5207,
+  "params": {
+    "file": "README.md",
+    "symbols": true
+  },
+  "results": {
+    "saved": 1
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "90475f9c55b9569b2fab26360cf3bcd1c2490356eaec1dd1a0aef7951a54ec97"
+  }
+}

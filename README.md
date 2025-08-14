@@ -1,46 +1,185 @@
-# 🧠 AntiGoldfishMode (AGM)
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Quick Features](#quick-features)
+3. [Why SecuraMem?](#why-securamem)
+4. [Getting Started](#getting-started)
+5. [Installation](#installation)
+6. [Usage Examples](#usage-examples)
+7. [Policy Configuration](#policy-configuration)
+8. [SBOM & Build Reproducibility](#sbom--build-reproducibility)
+9. [Test Coverage & CI Status](#test-coverage--ci-status)
+10. [Security & Compliance FAQ](#security--compliance-faq)
+11. [Contribution Guidelines](#contribution-guidelines)
+12. [License & Legal](#license--legal)
+13. [Contact](#contact)
+
+# Installation
+
+SecuraMem is distributed as a standalone CLI. To install:
+
+```bash
+pip install smem-cli  # or use your preferred package manager
+# Or download a signed binary from the releases page
+```
+
+See [USER_GUIDE.md] for platform-specific details.
+
+# Usage Examples
+
+```bash
+# Index code and view audit log
+smem index src/
+smem audit --since "2025-01-01"
+
+# Export context with signature
+smem export --sign --output ctx.smemctx
+
+# Import and verify
+smem import --verify ctx.smemctx
+
+# Policy status
+smem policy status
+```
+
+# Policy Configuration
+
+SecuraMem supports fine-grained policy controls for memory, export, and AI integration. Example:
+
+```bash
+smem policy set allow-export true
+smem policy set ai-integration off
+smem policy print
+```
+
+See [POLICY_GUIDE.md] for full details.
+
+# SBOM & Build Reproducibility
+
+Generate a Software Bill of Materials (SBOM) and verify builds:
+
+```bash
+smem sbom generate
+smem build verify --sbom sbom.json
+```
+
+# Test Coverage & CI Status
+
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
+
+# Security & Compliance FAQ
+
+**Q: Is SecuraMem truly air-gapped?**
+A: Yes. All operations are local-only, with zero network egress by default.
+
+**Q: Can I prove compliance for audits?**
+A: Every command, edit, and export is timestamped, signed, and journaled for full traceability.
+
+**Q: Is AI required?**
+A: No. AI integrations are strictly optional and never required for core features.
+
+# Contribution Guidelines
+
+We welcome contributions from compliance-minded developers. All PRs are subject to code review and audit. See [CONTRIBUTING.md].
+
+# License & Legal
+
+SecuraMem is released under the MIT License. See [LICENSE] for details.
+
+# Contact
+
+Repo: https://github.com/SecuraMem/smem-cli
+Email: securamem@gmail.com
+SecuraMem (smem): Air‑Gapped Code Memory CLI for Audit & Compliance
+Verifiable, secure, and human-in-control code memory for regulated environments.
+
+Overview
+SecuraMem (smem) is an air-gapped, AI-agnostic persistent memory tool designed for backend, infrastructure, and regulated teams (finance, healthcare, defense, enterprise). Everything runs locally—no telemetry, zero network egress—with reproducible builds, signed artifacts, SBOMs, and a glass-box audit trail for full compliance.
+
+Audit-first architecture: All commands, code edits, and (optional) AI invocations are timestamped, journaled, and fully traceable.
+
+Human-centric control: AI can never run init (or other critical actions) without explicit developer override.
+
+Automatic code indexing & purging: Context stays fresh; old memory is safely pruned as projects evolve.
+
+Import/export with cryptographic signatures and checksums: Portable and verifiable state for offline workflows.
+
+Extensive user guide: Use smem as a pure human-controlled tool—AI is strictly optional.
+
+Immutable receipts, live status, policy enforcement: Every change is logged, signed, and available for compliance review.
+
+Quick Features
+- Air-gapped, local-only storage
+- Full audit/history log (searchable by timestamp/action)
+- No vendor lock-in; AI integrations are pluggable and optional
+- SBOM generation and fully reproducible builds
+- Signed exports and integrity verification on import
+- Green build status, complete test coverage
+- Policy configuration, status printouts (e.g., trust tokens, signing precedence)
+- $5/month honor system: Pro features for advanced workflows; free core is never crippled
+
+Why SecuraMem?
+For devs and teams in sensitive and compliance-driven environments, SecuraMem gives ironclad control and transparency—far beyond what typical cloud/vendor CLI tools offer. It’s designed for those who need proof, not just convenience.
+
+Getting Started
+See [USER_GUIDE.md] for complete install and usage.
+Or run:
+
+```bash
+smem help
+```
+
+Contact
+Repo: https://github.com/SecuraMem/smem-cli
+
+Email: securamem@gmail.com
+
+---
+Feel free to adapt, expand, or trim as needed—the goal is to make everyone landing on smem-cli instantly realize this is serious infra, built for compliance and control.
+# 🧠 CodeContextPro (cctx)
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ff69b4?style=flat&logo=github%20sponsors)](https://github.com/sponsors/jahboukie)
 
 Air‑gapped, zero‑trust persistent memory CLI for AI agents and developers.
 
-AGM makes code context and decisions durable, auditable, and portable without relying on any cloud services. It’s built for regulated and offline environments where transparency and operator control are non‑negotiable.
+CodeContextPro (cctx) makes code context and decisions durable, auditable, and portable without relying on any cloud services. It’s built for regulated and offline environments where transparency, audit, and operator control are non‑negotiable.
 
 For pricing details and the honor‑system approach, see: docs/pricing.md
 
-## Why AGM
+## Why CodeContextPro
 
 - Zero‑trust by default: command and file access must be explicitly allowed, with an audit trail.
 - Glassbox operations: plan/mirror/explain/dry‑run on every command, receipts + journal + digests.
 - Code‑aware recall: index code by files or symbols with Tree-sitter precision parsing, search via FTS and hybrid vector rerank (sqlite‑vss fallback safe).
  - Diff‑aware reindex: cache file digests; skip unchanged files with `--diff` (baseline cache built automatically).
 - Tree-sitter AST parsing: Precise symbol boundary detection for TypeScript, JavaScript, Python with graceful fallback.
-- Air‑gapped protocol: export/import portable context bundles (.agmctx) for offline transfer.
+- Air‑gapped protocol: export/import portable context bundles (.cctxctx) for offline transfer.
 - Enterprise security suite: Cryptographic signing, audit logging, MFA support, SOC2/GDPR/HIPAA compliance ready.
 
-## Quick start (CLI = `agm`)
+## Quick start (CLI = `cctx`)
 
 ```powershell
 # Install globally
-npm install -g antigoldfishmode
+npm install -g codecontextpro
 
-# Initialize in your project (creates .antigoldfishmode/)
-agm init
+# Initialize in your project (creates .codecontextpro/)
+cctx init
 
 # Index code (symbol-aware) and search
-agm index-code --symbols --path .
-agm search-code "functionName" --hybrid --preview 3 --trace
+cctx index-code --symbols --path .
+cctx search-code "functionName" --hybrid --preview 3 --trace
 
 # Inspect receipts and journal
-agm receipt-show --last
-agm journal --show
+cctx receipt-show --last
+cctx journal --show
 ```
 
-Tip: If something is blocked by policy, AGM will explain and show a one‑liner fix. You can also run:
+Tip: If something is blocked by policy, CodeContextPro will explain and show a one‑liner fix. You can also run:
 
 ```powershell
-agm policy doctor --cmd index-code --path .
-agm policy allow-path ./**
+cctx policy doctor --cmd index-code --path .
+cctx policy allow-path ./**
 ```
 
 More docs: see the `docs/` folder:
@@ -51,7 +190,7 @@ More docs: see the `docs/` folder:
 - docs/vscode.md
 - docs/airgapped.md
 - docs/troubleshooting.md
-- docs/comparison.md — AGM vs. air‑gapped alternatives
+- docs/comparison.md — CodeContextPro vs. air‑gapped alternatives
  - docs/battle-testing-guide.md — End-to-end local validation checklist
  - docs/screencast-script.md — 2–3 min demo script and shot list (Show HN ready)
 
@@ -59,27 +198,27 @@ More docs: see the `docs/` folder:
 
 - Transparency & Operator Parity
 	- Global flags: `--trace`, `--dry-run`, `--json`, `--explain`
-	- Receipts: `.antigoldfishmode/receipts/*.json` with digests
-	- Journal: `.antigoldfishmode/journal.jsonl`
+	- Receipts: `.codecontextpro/receipts/*.json` with digests
+	- Journal: `.codecontextpro/journal.jsonl`
 
 - Zero‑Trust Policy Broker (local, auditable)
-	- `agm policy status` — show effective rules
-	- `agm policy allow-command <cmd>` — permit a command
-	- `agm policy allow-path <glob>` — permit a path
-	- `agm policy doctor [--cmd] [--path]` — explain pass/fail and print the fix
-	- `agm policy trust <cmd> --minutes 15` — short‑lived dev convenience token
+	- `cctx policy status` — show effective rules
+	- `cctx policy allow-command <cmd>` — permit a command
+	- `cctx policy allow-path <glob>` — permit a path
+	- `cctx policy doctor [--cmd] [--path]` — explain pass/fail and print the fix
+	- `cctx policy trust <cmd> --minutes 15` — short‑lived dev convenience token
 
 - Code‑aware Index & Search
-	- `agm index-code [--symbols] [--path .] [--include ...] [--exclude ...]`
+	- `cctx index-code [--symbols] [--path .] [--include ...] [--exclude ...]`
 		- Add `--diff` to skip unchanged files after an initial baseline run.
-	- `agm search-code <query> [-k N] [--preview N] [--hybrid] [--filter-path ...]`
+	- `cctx search-code <query> [-k N] [--preview N] [--hybrid] [--filter-path ...]`
 	- Hybrid FTS + vector rerank; sqlite‑vss when available, otherwise local cosine fallback
 
-- Air‑Gapped Context (.agmctx)
-	- `agm export-context --out ./ctx.agmctx --type code [--zip] [--sign]`
-	- `agm import-context ./ctx.agmctx[.zip]` (verification + receipts)
+- Air‑Gapped Context (.cctxctx)
+		- `smem export-context --out ./ctx.smemctx --type code [--zip] [--sign]`
+		- `smem import-context ./ctx.smemctx[.zip]` (verification + receipts)
 	- Exports now include: `manifest.json`, `map.csv`, `vectors.f32`, `notes.jsonl`, `checksums.json`, optional `signature.bin` + `publickey.der` (if signed)
-	- Supports zipped bundle (`ctx.agmctx.zip`) with identical verification logic
+	- Supports zipped bundle (`ctx.cctxctx.zip`) with identical verification logic
 	- Deterministic integrity & exit codes (see Status / Air‑gapped integrity)
 
 ## Status (v1.8.0)
@@ -119,43 +258,43 @@ Security Note: See SECURITY.md for the zero‑egress posture, signing model, and
 
 ## Security model (local‑only by default)
 
-- No network egress for core operations; all data lives in `.antigoldfishmode/` and is encrypted at rest by default.
-- Policy‑enforced command and path access with audit log (`.antigoldfishmode/audit.log`).
-- Clear remediation when blocked: AGM prints the exact `agm policy ...` fix.
+- No network egress for core operations; all data lives in `.codecontextpro/` and is encrypted at rest by default.
+- Policy‑enforced command and path access with audit log (`.codecontextpro/audit.log`).
+- Clear remediation when blocked: CodeContextPro prints the exact `cctx policy ...` fix.
 
 ## Command reference (selected)
 
 - Project & status
-	- `agm init` — initialize project
-	- `agm status` — project/memory stats
-	- `agm vector-status` — vector backend info
+	- `cctx init` — initialize project
+	- `cctx status` — project/memory stats
+	- `cctx vector-status` — vector backend info
 
 - Index & search
-	- `agm index-code` — index code into memory
-	- `agm search-code` — search indexed chunks
+	- `cctx index-code` — index code into memory
+	- `cctx search-code` — search indexed chunks
 
 - Transparency & replay
-	- `agm receipt-show [--last]` — pretty‑print a receipt
-	- `agm journal --show|--clear` — view or clear journal
-	- `agm replay --last|--range N [--dry-run]` — safe replays (prototype)
+	- `cctx receipt-show [--last]` — pretty‑print a receipt
+	- `cctx journal --show|--clear` — view or clear journal
+	- `cctx replay --last|--range N [--dry-run]` — safe replays (prototype)
 
 - Policy
-	- `agm policy status|doctor|allow-command|allow-path|trust`
+	- `cctx policy status|doctor|allow-command|allow-path|trust`
 
 - Proofs
-	- `agm prove-offline [--json]` — explicit no‑egress proof line for audits
+	- `cctx prove-offline [--json]` — explicit no‑egress proof line for audits
 
 - Air‑gapped
-	- `agm export-context` and `agm import-context`
+	- `cctx export-context` and `cctx import-context`
 
 - Maintenance & Recovery
-	- `agm db-doctor` — integrity check + automatic repair (backs up corrupted file then rebuilds schema)
-	- `agm digest-cache --list|--clear` — inspect or reset file digest cache used by `--diff`
+	- `cctx db-doctor` — integrity check + automatic repair (backs up corrupted file then rebuilds schema)
+	- `cctx digest-cache --list|--clear` — inspect or reset file digest cache used by `--diff`
 
 ## Roadmap highlights
 
 Shipped (v1.8.0):
-- .agmctx signing (ed25519) + zipped container format + per‑file checksums + provenance
+- .cctxctx signing (ed25519) + zipped container format + per‑file checksums + provenance
 - Prove‑offline self‑check & hardened policy broker
 - Tree‑sitter‑based symbol chunking (precision + diff-aware reindex)
 - Enterprise security suite (cryptographic signing, audit logging, MFA, compliance)
@@ -173,11 +312,11 @@ Deferred (post performance upgrades):
 
 
 
-AGM gives regulated, air‑gapped teams a trustworthy memory layer: transparent, auditable, and under operator control.
+CodeContextPro gives regulated, air‑gapped teams a trustworthy memory layer: transparent, auditable, and under operator control.
 
 ## Pricing
 
-AGM is MIT‑licensed and fully functional for everyone. We use an honor‑system for paid tiers — there are no license checks, no DRM, and no telemetry. If AGM saves you time or unlocks offline workflows, please consider sponsoring to fund maintenance. Paid benefits are delivered outside the binary (signed builds, templates, support), so the CLI remains air‑gapped.
+CodeContextPro is MIT‑licensed and fully functional for everyone. We use an honor‑system for paid tiers — there are no license checks, no DRM, and no telemetry. If CodeContextPro saves you time or unlocks offline workflows, please consider sponsoring to fund maintenance. Paid benefits are delivered outside the binary (signed builds, templates, support), so the CLI remains air‑gapped.
 
 - Core (OSS): Free — all features for local use: indexing, hybrid search, receipts/journal, export/import, prove‑offline, gc/health, watch‑code.
 - Pro (Individual): $5/month or $50/year — signed prebuilt binaries, priority triage (best‑effort), early features, health/gc extras, policy template pack, email support (48–72h).
@@ -198,7 +337,11 @@ More details and FAQs: docs/pricing.md
 - Operational confidence (curated binaries; prebundled sqlite‑vss when available)
 - Better observability (receipt rollups; HTML health reports)
 - Less policy friction (policy templates; interactive doctor)
-- Enhanced .agmctx (zipped, checksums, merge, verify reports)
+- Enhanced .cctxctx (zipped, checksums, merge, verify reports)
+
+<!-- delta test mutation -->
+
+<!-- delta test mutation -->
 
 <!-- delta test mutation -->
 

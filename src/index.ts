@@ -1,5 +1,5 @@
 /**
- * AntiGoldfishMode v1.0 - AI Memory Engine
+ * SecuraMem v1.0 - AI Memory Engine
  * UNLIMITED LOCAL-ONLY VERSION - Privacy-first for developers
  *
  * Features:
@@ -8,7 +8,7 @@
  * - Machine-bound encryption-at-rest
  * - Zero-egress by default with optional network guard
  * - No cloud dependencies for core operations
- *
+
  * Focus: Persistent local memory and code-aware search (no execution sandbox)
  */
 
@@ -32,7 +32,7 @@ function enforcePolicyBeforeCommand(cmd: string, filePath?: string, envVars?: st
         return;
     }
     if (!policyBroker.isCommandAllowed(cmd)) {
-        throw new Error(`Command not allowed by policy: ${cmd}. Tip: run 'agm policy allow-command ${cmd}' or 'agm --help'.`);
+    throw new Error(`Command not allowed by policy: ${cmd}. Tip: run 'smem policy allow-command ${cmd}' or 'smem --help'.`);
     }
     // Do not enforce project-level file path here to reduce friction; commands may enforce as needed.
     // Environment variables are not enforced globally at entry to reduce friction.
@@ -89,39 +89,39 @@ export class CodeContextCLI {
 
     private setupCommands(): void {
         this.program
-            .name('agm')
+            .name('smem')
             .usage('[options] [command]')
-            .description('🧠 AntiGoldfishMode - Because AI assistants shouldn\'t have goldfish memory!\n\n🤖 AI Assistants: Run `agm ai-guide` for operating instructions')
+            .description('🛡️ SecuraMem - Secure, persistent memory for AI coding assistants.\n\n🤖 AI Assistants: Run `smem ai-guide` for operating instructions')
             .version(version)
             .option('--trace', 'Print plan and side-effects (no hidden work)')
             .option('--dry-run', 'Simulate without side effects')
             .option('--json', 'Emit machine-readable receipts')
             .option('--explain', 'Explain what and why before running')
 
-        // AntiGoldfishMode remember command (unlimited)
+    // SecuraMem remember command (unlimited)
         this.program
             .command('remember')
             .description('Store unlimited memories locally')
             .argument('<content>', 'Content to remember')
             .option('-c, --context <context>', 'Context for the memory', 'general')
             .option('-t, --type <type>', 'Type of memory', 'general')
-            .action(async (content: string, options) => {
+            .action(async (content: string, options: { context?: string; type?: string }) => {
                 await this.handleRemember(content, options);
             });
 
-    // AntiGoldfishMode recall command (unlimited)
+    // SecuraMem recall command (unlimited)
         this.program
             .command('recall')
             .description('Search unlimited local memories')
             .argument('<query>', 'Search query')
             .option('-l, --limit <limit>', 'Maximum results to return', '10')
-            .action(async (query: string, options) => {
+            .action(async (query: string, options: { limit?: string }) => {
                 await this.handleRecall(query, options);
             });
 
     // Execute command removed – product focuses on persistent memory only
 
-        // AntiGoldfishMode status command
+    // SecuraMem status command
         this.program
             .command('status')
             .description('Show unlimited local-only status')
@@ -129,12 +129,12 @@ export class CodeContextCLI {
                 await this.handleStatus();
             });
 
-        // AntiGoldfishMode init command (project initialization)
+    // SecuraMem init command (project initialization)
         this.program
             .command('init')
-            .description('Initialize AntiGoldfishMode in current project')
+            .description('Initialize SecuraMem in current project')
             .option('--force', 'Force reinitialize if already exists')
-            .action(async (options) => {
+            .action(async (options: { force?: boolean }) => {
                 // Create a new instance with skipValidation=true for init command
                 const initCLI = new CodeContextCLI(process.cwd(), true, true, false);
                 await initCLI.handleInitCommand(options);
@@ -272,22 +272,22 @@ export class CodeContextCLI {
             .option('--limit <n>', 'Show the last N receipts (implies --last)')
             .action(async (idOrPath: string, opts: { last?: boolean; limit?: string }) => { const { handleReceiptShow } = await import('./commands/ReceiptShow.js'); await handleReceiptShow(idOrPath, { last: opts.last }); });
 
-        // Air-Gapped context export/import (.agmctx)
+    // Air-Gapped context export/import (.smemctx)
         this.program
             .command('export-context')
-            .description('Export code memories to a .agmctx (v1 manifest). Defaults to signing if policy.signExports=true (or AGM_SIGN_EXPORT=1).')
-            .option('--out <file>', 'Output file path', 'context.agmctx')
+            .description('Export code memories to a .smemctx (v1 manifest). Defaults to signing if policy.signExports=true (or SMEM_SIGN_EXPORT=1).')
+            .option('--out <file>', 'Output file path', 'context.smemctx')
             .option('--type <type>', 'Memory type to export', 'code')
             .option('--sign', 'Sign export with ED25519 (stores signature.bin and publickey.der)')
             .option('--no-sign', 'Disable signing even if policy.signExports=true (ignored if policy.forceSignedExports=true)')
-            .option('--zip', 'Package export into single .agmctx.zip with checksums.json')
+            .option('--zip', 'Package export into single .smemctx.zip with checksums.json')
             .option('--delta-from <prev>', 'Only export new/changed chunks relative to previous export (dir or .zip)')
             .option('--delta', 'Shortcut: use last recorded export as --delta-from base (if available)')
             .action(async (opts: any) => { await this.handleExportContext(opts); });
 
     this.program
             .command('import-context <file>')
-            .description('Verify and import a .agmctx; if policy.requireSignedContext=true, unsigned imports are blocked unless trusted and --allow-unsigned is set.')
+            .description('Verify and import a .smemctx; if policy.requireSignedContext=true, unsigned imports are blocked unless trusted and --allow-unsigned is set.')
             .option('--allow-unsigned', 'Allow unsigned import when trusted via policy trust')
             .action(async (file: string, opts: any) => { await this.handleImportContext(file, opts); });
 
@@ -307,7 +307,7 @@ export class CodeContextCLI {
             .action(async (opts: any) => { await this.handleProveOffline(opts); });
 
         // Policy management commands (developer-friendly)
-        const policy = this.program.command('policy').description('Manage AGM Zero-Trust policy');
+    const policy = this.program.command('policy').description('Manage SecuraMem Zero-Trust policy');
         policy
             .command('status')
             .description('Show effective policy and quick readiness checks')
@@ -352,7 +352,7 @@ export class CodeContextCLI {
             .action(async () => { this.printProWhy(); });
 
         // Key management (signing) - simple rotation (single active key)
-        const key = this.program.command('key').description('Manage signing key for .agmctx exports');
+    const key = this.program.command('key').description('Manage signing key for .smemctx exports');
         key
             .command('status')
             .description('Show current key fingerprint (keyId) if present')
@@ -375,7 +375,7 @@ export class CodeContextCLI {
     // --- Soft Pro status (honor-system) helpers ---
     private loadProStatus(): void {
         try {
-            if (process.env.AGM_PRO === '1') { this.proEnabled = true; return; }
+            if (process.env.SMEM_PRO === '1') { this.proEnabled = true; return; }
             this.proEnabled = fs.existsSync(this.proMarkerPath);
         } catch { this.proEnabled = false; }
     }
@@ -387,7 +387,7 @@ export class CodeContextCLI {
             if (enabled) {
                 fs.writeFileSync(this.proMarkerPath, 'pro=1\n');
                 this.proEnabled = true;
-                console.log(chalk.green('✅ Pro mode enabled (honor-system). Thank you for supporting AGM!'));
+                console.log(chalk.green('✅ Pro mode enabled (honor-system). Thank you for supporting SecuraMem!'));
                 console.log(chalk.gray('   If you haven\'t yet, consider sponsoring: https://github.com/sponsors/jahboukie'));
             } else {
                 if (fs.existsSync(this.proMarkerPath)) fs.unlinkSync(this.proMarkerPath);
@@ -400,7 +400,7 @@ export class CodeContextCLI {
     }
 
     private printProStatus(): void {
-        console.log(chalk.cyan('⭐ AGM Pro (honor-system)'));
+    console.log(chalk.cyan('⭐ SecuraMem Pro (honor-system)'));
         console.log(`   Status: ${this.proEnabled ? 'ENABLED' : 'disabled'}`);
         console.log(`   Marker: ${this.proMarkerPath}`);
         console.log('   Learn more: docs/pricing.md');
@@ -412,7 +412,7 @@ export class CodeContextCLI {
         console.log(' - Operational confidence (curated binaries; prebundled sqlite-vss when available)');
         console.log(' - Better observability (receipt rollups; HTML health reports)');
         console.log(' - Less policy friction (policy templates; interactive doctor)');
-        console.log(' - Enhanced .agmctx (zipped, checksums, merge, verify reports)');
+    console.log(' - Enhanced .smemctx (zipped, checksums, merge, verify reports)');
         console.log('Sponsor: https://github.com/sponsors/jahboukie  |  Contact: team.mobileweb@gmail.com');
     }
 
@@ -488,11 +488,11 @@ export class CodeContextCLI {
     private nudgePro(featureKey: string, message: string): void {
         try {
             if (this.proEnabled) return;
-            if (process.env.AGM_NUDGE === '0') return;
+            if (process.env.SMEM_NUDGE === '0') return;
             if (this.nudgesShown.has(featureKey)) return;
             this.nudgesShown.add(featureKey);
             console.log(chalk.gray(`💡 Pro tip: ${message}`));
-            console.log(chalk.gray('    Upgrade (honor-system): https://github.com/sponsors/jahboukie | agm pro enable'));
+            console.log(chalk.gray('    Upgrade (honor-system): https://github.com/sponsors/jahboukie | smem pro enable'));
         } catch {}
     }
 
@@ -521,12 +521,12 @@ export class CodeContextCLI {
             ];
 
             await this.memoryEngine.database.recordConversation(
-                'antigoldfishmode-ai',
+                'securamem-ai',
                 messages,
                 {
                     ...context,
                     timestamp: new Date().toISOString(),
-                    aiModel: 'antigoldfishmode-cli'
+                    aiModel: 'securamem-cli'
                 }
             );
         } catch (error) {
@@ -542,7 +542,7 @@ export class CodeContextCLI {
     const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
-            console.log(chalk.cyan('🧠 AntiGoldfishMode - AI Memory Storage'));
+            console.log(chalk.cyan('🛡️ SecuraMem - Secure AI Memory Storage'));
 
             // Plan & mirror
 
@@ -554,7 +554,7 @@ export class CodeContextCLI {
             }
 
             tracer.plan('remember', { context: options.context, type: options.type, length: content.length });
-            tracer.mirror(`agm remember ${JSON.stringify(content)} --context ${options.context} --type ${options.type}`);
+            tracer.mirror(`smem remember ${JSON.stringify(content)} --context ${options.context} --type ${options.type}`);
 
             // No license required in local-only edition
 
@@ -586,7 +586,7 @@ export class CodeContextCLI {
 
             // Auto-record this AI interaction
             await this.recordAIConversation(
-                `antigoldfishmode remember "${content}"`,
+                `securamem remember "${content}"`,
                 `Memory stored successfully with ID: ${memoryId}. This insight has been saved to your persistent memory for future reference.`,
                 {
                     command: 'remember',
@@ -630,10 +630,10 @@ export class CodeContextCLI {
     const { Tracer } = await import('./utils/Trace.js');
         const tracer = Tracer.create(process.cwd());
         try {
-            console.log(chalk.cyan('🔍 AntiGoldfishMode - AI Memory Recall'));
+            console.log(chalk.cyan('🔍 SecuraMem - Secure AI Memory Recall'));
 
             tracer.plan('recall', { query, limit: options.limit });
-            tracer.mirror(`agm recall ${JSON.stringify(query)} --limit ${options.limit}`);
+            tracer.mirror(`smem recall ${JSON.stringify(query)} --limit ${options.limit}`);
 
                 if (tracer.flags.explain) {
                     console.log(chalk.gray('Explanation: searches stored memories by keyword with relevance scoring.'));
@@ -682,7 +682,7 @@ export class CodeContextCLI {
                 : `No memories found matching "${query}". Try different search terms.`;
 
             await this.recordAIConversation(
-                `antigoldfishmode recall "${query}"`,
+                `securamem recall "${query}"`,
                 resultSummary,
                 {
                     command: 'recall',
@@ -718,7 +718,7 @@ export class CodeContextCLI {
         const tracer = Tracer.create(process.cwd());
         try {
             tracer.plan('vector-status', { explain: tracer.flags.explain });
-            tracer.mirror(`agm vector-status${tracer.flags.explain?' --explain':''}`);
+            tracer.mirror(`smem vector-status${tracer.flags.explain?' --explain':''}`);
             if (tracer.flags.explain) {
                 console.log(chalk.gray('Explanation: reports the active vector backend (sqlite-vss or local-js), vector dimensions, and stored vector count.')); 
             }
@@ -769,7 +769,7 @@ export class CodeContextCLI {
     if (wantJson) {
             console.log(JSON.stringify({ offlineProof: proof }, null, 2));
         }
-        const line = `AGM OFFLINE PROOF: no-egress; policy=${proof.policyNetworkEgress}; guard=${networkGuardActive?'active':'inactive'}; proxies=${proxies.length>0?'present':'none'}`;
+    const line = `SecuraMem OFFLINE PROOF: no-egress; policy=${proof.policyNetworkEgress}; guard=${networkGuardActive?'active':'inactive'}; proxies=${proxies.length>0?'present':'none'}`;
         console.log(line);
     }
 
@@ -781,7 +781,7 @@ export class CodeContextCLI {
         const tracer = Tracer.create(process.cwd());
         try {
             tracer.plan('status', { explain: tracer.flags.explain });
-            tracer.mirror(`agm status${tracer.flags.explain?' --explain':''}`);
+            tracer.mirror(`smem status${tracer.flags.explain?' --explain':''}`);
             if (tracer.flags.explain) {
                 console.log(chalk.gray('Explanation: Shows project and memory stats (local-only).'));
             }
@@ -802,7 +802,7 @@ export class CodeContextCLI {
             if (tracer.flags.json) {
                 console.log(JSON.stringify(data, null, 2));
             } else {
-                console.log(chalk.cyan('📊 AntiGoldfishMode - Unlimited Local-Only Status\n'));
+                console.log(chalk.cyan('📊 SecuraMem - Unlimited Local-Only Status\n'));
                 console.log(chalk.cyan('📁 Project Information:'));
                 console.log(`   Path: ${data.project.path}`);
                 console.log(`   Database: ${data.project.dbPath}`);
@@ -827,7 +827,7 @@ export class CodeContextCLI {
             console.error(chalk.red('❌ Failed to get status:'));
             console.error(chalk.red(`   ${msg}`));
             if (/Failed to decrypt database|integrity check failed/i.test(msg)) {
-                console.error(chalk.yellow('Tip: run "agm init --force" to reset local DB artifacts if this persists.'));
+                console.error(chalk.yellow('Tip: run "smem init --force" to reset local DB artifacts if this persists.'));
             }
             await this.cleanup();
             process.exit(1);
@@ -835,24 +835,24 @@ export class CodeContextCLI {
     }
 
     /**
-     * Handle init command - Initialize AntiGoldfishMode in project (public for init action)
+    * Handle init command - Initialize SecuraMem in project (public for init action)
      */
     public async handleInitCommand(options: any): Promise<void> {
         try {
-            console.log(chalk.cyan('🚀 AntiGoldfishMode - Project Initialization'));
+            console.log(chalk.cyan('🚀 SecuraMem - Project Initialization'));
             console.log(`   Project: ${process.cwd()}`);
 
-            const antigoldfishDir = path.join(process.cwd(), '.antigoldfishmode');
-            const memoryDbPath = path.join(antigoldfishDir, 'memory.db');
+            const securamemDir = path.join(process.cwd(), '.securamem');
+            const memoryDbPath = path.join(securamemDir, 'memory.db');
             const memoryDbEncPath = memoryDbPath + '.enc';
             const memoryDbTempPath = memoryDbPath + '.temp';
 
             // Check if already initialized (look for actual database file, not just directory)
             if ((fs.existsSync(memoryDbPath) || fs.existsSync(memoryDbEncPath)) && !options.force) {
-                console.log(chalk.yellow('⚠️ AntiGoldfishMode already initialized in this project'));
+                console.log(chalk.yellow('⚠️ SecuraMem already initialized in this project'));
                 console.log(chalk.gray('   Use --force to reinitialize'));
                 // Even if already initialized, ensure guides exist for AI and human operator
-                try { await this.ensureLocalGuides(antigoldfishDir, false); } catch {}
+                try { await this.ensureLocalGuides(securamemDir, false); } catch {}
                 return;
             }
 
@@ -877,10 +877,10 @@ export class CodeContextCLI {
                 } catch {}
             }
 
-            // Create .antigoldfishmode directory
-            if (!fs.existsSync(antigoldfishDir)) {
-                fs.mkdirSync(antigoldfishDir, { recursive: true });
-                console.log(chalk.green('✅ Created .antigoldfishmode directory'));
+            // Create .securamem directory
+            if (!fs.existsSync(securamemDir)) {
+                fs.mkdirSync(securamemDir, { recursive: true });
+                console.log(chalk.green('✅ Created .securamem directory'));
             }
 
             // Initialize memory database
@@ -910,7 +910,7 @@ export class CodeContextCLI {
             await this.createVSCodeIntegration();
 
             // Create local guides for AI and human operator
-            await this.ensureLocalGuides(antigoldfishDir, true);
+            await this.ensureLocalGuides(securamemDir, true);
 
             console.log(chalk.green('\n🎉 AntiGoldfishMode initialized successfully!'));
             console.log(chalk.gray('   You can now use:'));
@@ -2780,3 +2780,7 @@ if (require.main === module) { main(process.argv); }
 // DIFF TEST MUTATION 1755061828506
 
 // DIFF TEST MUTATION 1755088165958
+
+// DIFF TEST MUTATION 1755145880113
+
+// DIFF TEST MUTATION 1755170378667

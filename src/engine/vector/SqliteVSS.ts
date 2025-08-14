@@ -20,7 +20,7 @@ export class SqliteVSS {
       const platform = process.platform; // 'win32' | 'darwin' | 'linux'
       const arch = process.arch; // 'x64' | 'arm64' | ...
       const ext = platform === 'win32' ? 'dll' : platform === 'darwin' ? 'dylib' : 'so';
-      const baseDir = path.join(projectRoot, '.antigoldfishmode', 'sqlite-vss', `${platform}-${arch}`);
+  const baseDir = path.join(projectRoot, '.securamem', 'sqlite-vss', `${platform}-${arch}`);
       const candidate = path.join(baseDir, `vss0.${ext}`);
       if (fs.existsSync(candidate)) {
         // @ts-ignore better-sqlite3 loadExtension exists at runtime

@@ -1,0 +1,28 @@
+{
+  "schema": "v1",
+  "version": "1.9.0",
+  "id": "1755145371912-30d5cee6",
+  "command": "remember",
+  "argv": [
+    "C:\\nvm4w\\nodejs\\node.exe",
+    "C:\\Users\\scorp\\dbil\\codecontextpro-cli\\dist\\cli.js",
+    "remember",
+    "Test memory entry"
+  ],
+  "cwd": "C:\\Users\\scorp\\dbil\\codecontextpro-cli",
+  "startTime": "2025-08-14T04:22:51.727Z",
+  "endTime": "2025-08-14T04:22:51.913Z",
+  "durationMs": 186,
+  "params": {
+    "contentLen": 17,
+    "context": "general",
+    "type": "general"
+  },
+  "results": {
+    "memoryId": 1
+  },
+  "success": true,
+  "digests": {
+    "argsSha256": "4528340a43aa5da0e28cf4cde559861804ed120fb797c243849ce1db72e2fe2a"
+  }
+}
