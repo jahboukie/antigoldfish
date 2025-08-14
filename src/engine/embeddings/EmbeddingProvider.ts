@@ -14,7 +14,7 @@ export class EmbeddingProvider {
 
   private constructor(projectRoot: string, modelId?: string) {
   this.cacheDir = path.join(projectRoot, '.securamem', 'models');
-    this.modelId = modelId || process.env.AGM_EMBED_MODEL || 'Xenova/e5-small-v2';
+  this.modelId = modelId || process.env.SMEM_EMBED_MODEL || process.env.AGM_EMBED_MODEL || 'Xenova/e5-small-v2';
   }
 
   static create(projectRoot: string, modelId?: string): EmbeddingProvider {

@@ -6,24 +6,24 @@
 
 ## Install
 ```powershell
-npm install -g antigoldfishmode
+npm install -g securamem
 ```
 
 ## Initialize a project
 ```powershell
 cd your-project
-agm init
+smem init
 ```
-This creates `.antigoldfishmode/` with a local SQLite database and VS Code integration files.
+This creates `.securamem/` with a local SQLite database and VS Code integration files (legacy `.antigoldfishmode/` remains read-compatible).
 
 ## Quick commands
 ```powershell
-agm remember "info" --context project --type note
-agm recall "search term" --limit 10
-agm status
+smem remember "info" --context project --type note
+smem recall "search term" --limit 10
+smem status
 ```
 
 ## Next steps
-- Index your repo: `agm index-code --symbols --path .`
-- Search code: `agm search-code "symbolName" --hybrid --preview 3`
-- Review receipts/journal: `agm receipt-show --last`, `agm journal --show`
+- Index your repo: `smem index-code --symbols --path .`
+- Search code: `smem search-code "symbolName" --hybrid --preview 3`
+- Review receipts/journal: `smem receipt-show --last`, `smem journal --show`

@@ -14,10 +14,10 @@ function mkTmp() {
   return dir;
 }
 
-test('export-context creates .agmctx directory with files', async () => {
+test('export-context creates .smemctx directory with files', async () => {
   const dir = mkTmp();
-  // Initialize project to create .antigoldfishmode
-  fs.mkdirSync(path.join(dir, '.antigoldfishmode'), { recursive: true });
+  // Initialize project to create .securamem
+  fs.mkdirSync(path.join(dir, '.securamem'), { recursive: true });
   // Allow export-context in policy
   const policy = {
     allowedCommands: [
@@ -29,9 +29,9 @@ test('export-context creates .agmctx directory with files', async () => {
     networkEgress: false,
     auditTrail: true
   };
-  fs.writeFileSync(path.join(dir, '.antigoldfishmode', 'policy.json'), JSON.stringify(policy, null, 2));
+  fs.writeFileSync(path.join(dir, '.securamem', 'policy.json'), JSON.stringify(policy, null, 2));
 
-  const out = path.join(dir, 'ctx.agmctx');
+  const out = path.join(dir, 'ctx.smemctx');
   const res = run(['export-context', '--out', out, '--type', 'code'], dir);
   assert.equal(res.status, 0, `export exit: ${res.status}\n${res.stdout}\n${res.stderr}`);
 

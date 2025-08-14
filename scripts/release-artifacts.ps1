@@ -23,14 +23,19 @@ Get-ChildItem $OutDir -Recurse | Where-Object { -not $_.PSIsContainer } | ForEac
 
 # Optional ed25519 detached signatures (requires age/openssl-like tooling not guaranteed)
 if ($Sign) {
-  # Try to use ssh-keygen style ed25519 if available (Windows OpenSSH)
-  $priv = Join-Path ".antigoldfishmode/keys" "release_ed25519"
-  if (-not (Test-Path $priv)) {
-    New-Item -ItemType Directory -Force -Path (Split-Path $priv) | Out-Null
-    ssh-keygen -t ed25519 -N "" -f $priv | Out-Null
+  # Prefer .securamem/keys with legacy .antigoldfishmode fallback. Generate new key in .securamem if none exist.
+  $privNew = Join-Path ".securamem/keys" "release_ed25519"
+  $privLegacy = Join-Path ".antigoldfishmode/keys" "release_ed25519"
+  $priv = $null
+  if (Test-Path $privNew) { $priv = $privNew }
+  elseif (Test-Path $privLegacy) { $priv = $privLegacy }
+  else {
+    New-Item -ItemType Directory -Force -Path (Split-Path $privNew) | Out-Null
+    try { ssh-keygen -t ed25519 -N "" -f $privNew | Out-Null } catch {}
+    $priv = $privNew
   }
   Get-ChildItem $OutDir -Recurse | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
-    $sig = "$($_.FullName).sig"
+    $sig = "${($_.FullName)}.sig"
     # Use ssh-keygen -Y sign requires OpenSSH 8.2+
     try { ssh-keygen -Y sign -f $priv -n file $_.FullName > $sig 2>$null } catch {}
   }

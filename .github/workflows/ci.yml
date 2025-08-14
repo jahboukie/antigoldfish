@@ -2,8 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master, main, develop ]
+    branches: [ master, main, develop, 'rebrand/**' ]
   pull_request:
+    branches: [ master, main, develop, 'rebrand/**' ]
 
 jobs:
   build:
@@ -45,3 +46,32 @@ jobs:
         run: npm run smoke
       - name: Unit tests
         run: npm test
+      - name: Build and verify static landing (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          npm run -s build:landing
+          npm run -s verify:landing
+      - name: Generate SBOM (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run -s sbom
+      - name: Upload SBOM artifact (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-node${{ matrix.node }}
+          path: sbom.json
+          retention-days: 7
+      - name: Generate checksums (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        shell: pwsh
+        run: |
+          pwsh -v
+          ./scripts/release-artifacts.ps1 -OutDir .artifacts-ci
+          if (Test-Path .artifacts-ci/SHA256SUMS.txt) { Get-Content .artifacts-ci/SHA256SUMS.txt | Select-Object -First 10 }
+      - name: Upload checksums artifact (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sha256sums-node${{ matrix.node }}
+          path: .artifacts-ci/SHA256SUMS.txt
+          retention-days: 7

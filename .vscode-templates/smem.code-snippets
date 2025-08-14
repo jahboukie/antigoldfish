@@ -1,0 +1,44 @@
+{
+  "SMEM Remember Command": {
+    "prefix": "smem-remember",
+    "body": [
+      "smem remember \"$1\" --context \"$2\" --type \"$3\""
+    ],
+    "description": "SecuraMem remember command with context and type"
+  },
+  "SMEM Recall Command": {
+    "prefix": "smem-recall",
+    "body": [
+      "smem recall \"$1\" --limit $2"
+    ],
+    "description": "SecuraMem recall command with limit"
+  },
+  "SMEM Status Command": {
+    "prefix": "smem-status",
+    "body": [
+      "smem status"
+    ],
+    "description": "SecuraMem status command"
+  },
+  "SMEM Init Command": {
+    "prefix": "smem-init",
+    "body": [
+      "smem init --force"
+    ],
+    "description": "SecuraMem initialize project command"
+  },
+  "SMEM Index Code": {
+    "prefix": "smem-index",
+    "body": [
+      "smem index-code --path src --symbols"
+    ],
+    "description": "Index project source with symbol-aware chunking"
+  },
+  "SMEM Search Code": {
+    "prefix": "smem-search",
+    "body": [
+      "smem search-code \"$1\" --preview 5 --hybrid"
+    ],
+    "description": "Search indexed code"
+  }
+}

@@ -124,9 +124,9 @@ export async function handleReplay(opts: any, cleanup: () => Promise<void>) {
       if (norm) {
         const hasDry = norm.includes('--dry-run');
         const preview = hasDry || !enforceDryRun ? norm : [...norm, '--dry-run'];
-        console.log(`   agm ${preview.join(' ')}`);
+  console.log(`   smem ${preview.join(' ')}`);
       } else {
-        console.log(`   agm ${t.cmd}${enforceDryRun ? ' --dry-run' : ''}`);
+  console.log(`   smem ${t.cmd}${enforceDryRun ? ' --dry-run' : ''}`);
       }
     }
 

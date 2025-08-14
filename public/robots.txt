@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://antigoldfish.dev/sitemap.xml
+# Project homepage
+Sitemap: https://github.com/SecuraMem/smem-cli

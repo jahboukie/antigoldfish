@@ -10,7 +10,7 @@ function run(args, opts={}) {
 test('CLI --help bypasses policy and exits 0', async () => {
   const res = run(['--help']);
   assert.equal(res.status, 0, `help exit: ${res.status}\n${res.stderr}`);
-  assert.match(res.stdout, /AntiGoldfishMode|AGM/i);
+  assert.match(res.stdout, /SecuraMem|SMEM|AntiGoldfishMode|AGM/i);
 });
 
 test('CLI --version prints version and exits 0', async () => {

@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-artifacts:
+    name: Build Artifacts (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run -s build
+      - name: Install signing key (optional)
+        shell: pwsh
+        env:
+          RELEASE_ED25519_PRIV: ${{ secrets.RELEASE_ED25519_PRIV }}
+        run: |
+          if ($env:RELEASE_ED25519_PRIV) {
+            New-Item -Force -ItemType Directory .securamem/keys | Out-Null
+            $p = '.securamem/keys/release_ed25519'
+            Set-Content -Path $p -Value $env:RELEASE_ED25519_PRIV -NoNewline
+            try { ssh-keygen -y -f $p > "$p.pub" } catch {}
+            Write-Host 'Loaded signing key from secrets.'
+          } else {
+            Write-Host 'No RELEASE_ED25519_PRIV provided; script will generate a new key if needed.'
+          }
+      - name: Package artifacts (PowerShell)
+        shell: pwsh
+        run: |
+          npm run -s release:artifacts:sign
+          Compress-Archive -Path .artifacts/* -DestinationPath smem-artifacts.zip -Force
+      - name: Generate SBOM
+        run: npm run -s sbom
+      - name: Package SBOM (optional)
+        shell: pwsh
+        run: |
+          if (Test-Path sbom.json) { Write-Host 'SBOM present' } else { Write-Error 'sbom.json missing' }
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: smem-artifacts
+          path: |
+            smem-artifacts.zip
+            sbom.json
+            .artifacts/SHA256SUMS.txt
+
+  publish:
+    name: Create GitHub Release
+    needs: build-artifacts
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: smem-artifacts
+          path: .
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            smem-artifacts.zip
+            sbom.json
+            .artifacts/SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

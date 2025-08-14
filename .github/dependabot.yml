@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "02:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(npm):"
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # Keep chalk pinned to v4 for current Node/color behavior
+      - dependency-name: "chalk"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(actions):"

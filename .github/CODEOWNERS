@@ -1,0 +1,8 @@
+# CODEOWNERS
+#
+# GitHub uses this file to auto-request reviews. Owners must be GitHub users or teams in your org (e.g., @SecuraMem/maintainers).
+# Adjust the team names below to match your organization.
+# If you’re a solo maintainer, replace teams with your GitHub username (e.g., @jahboukie).
+
+# Default ownership: route all reviews to the SecuraMem org
+*                               @SecuraMem

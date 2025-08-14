@@ -1,4 +1,4 @@
-# AGM 2-minute demo (Windows PowerShell)
+# SecuraMem 2-minute demo (Windows PowerShell)
 # Run from repo root
 
 $ErrorActionPreference = 'Stop'
@@ -21,8 +21,8 @@ Step "Vector status (json + explain)"
 node dist/cli.js vector-status --json --explain
 
 Step "Remember / Recall"
-node dist/cli.js remember "Hello AGM" --context demo --type note
-node dist/cli.js recall "Hello AGM" -l 5
+node dist/cli.js remember "Hello SecuraMem" --context demo --type note
+node dist/cli.js recall "Hello SecuraMem" -l 5
 
 Step "Index code (dry-run)"
 node dist/cli.js index-code --path src --max-chunk 180 --explain --trace --dry-run
@@ -51,10 +51,10 @@ node dist/cli.js policy status
 Step "Health snapshot"
 node dist/cli.js health --since 7
 
-Step "Export context (.agmctx)"
-node dist/cli.js export-context --out ./.antigoldfishmode/ctx.agmctx --type code
+Step "Export context (.smemctx)"
+node dist/cli.js export-context --out ./.securamem/ctx.smemctx --type code
 
 Step "Import context (verify)"
-node dist/cli.js import-context ./.antigoldfishmode/ctx.agmctx
+node dist/cli.js import-context ./.securamem/ctx.smemctx
 
 Write-Host "`nDone." -ForegroundColor Green

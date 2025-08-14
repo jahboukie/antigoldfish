@@ -1,6 +1,10 @@
 ###############
-# AGM Local Data & Backups
+# SecuraMem Local Data & Backups (legacy AGM still supported)
 ###############
+.securamem/
+.securamem.bak-*/
+smem-test-*/
+# Legacy
 .antigoldfishmode/
 .antigoldfishmode.bak-*/
 agm-test-*/
@@ -116,6 +120,8 @@ security/**
 ###############
 # Air-gapped Export Bundles & Integrity Files
 ###############
+*.smemctx.zip
+*.smemctx/
 *.agmctx.zip
 *.agmctx/
 checksums.json

@@ -7,9 +7,12 @@
             "ES2020",
             "DOM"
         ],
+    // Use local shim to avoid external @types in air-gapped builds
+    // "types": ["vscode"],
         "sourceMap": true,
         "rootDir": "src",
-        "strict": true
+        "strict": true,
+        "skipLibCheck": true
     },
     "exclude": [
         "node_modules",

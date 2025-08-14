@@ -14,20 +14,20 @@ npm run fix-sqlite
 ## Policy blocks
 - Use the doctor:
 ```powershell
-agm policy doctor --cmd index-code --path .
+smem policy doctor --cmd index-code --path .
 ```
 - Then allow the suggested command/path:
 ```powershell
-agm policy allow-command index-code
-agm policy allow-path ./**
+smem policy allow-command index-code
+smem policy allow-path ./**
 ```
 
 ## Decrypt/encrypt cycles
 - If you see "Failed to decrypt database" or "integrity check failed", reinitialize local artifacts:
 ```powershell
-agm init --force
+smem init --force
 ```
-- This deletes only the local `.antigoldfishmode/memory.db(.enc/.temp)` files and recreates a fresh DB, then future closes will re‑encrypt automatically.
+- This deletes only the local `.securamem/memory.db(.enc/.temp)` files (legacy `.antigoldfishmode/` still read-compatible) and recreates a fresh DB; future closes will re‑encrypt automatically.
 
 ## Vectors
-- Hybrid search relies on optional embeddings. If initialization fails, AGM falls back to FTS-only; searches still work.
+- Hybrid search relies on optional embeddings. If initialization fails, SecuraMem falls back to FTS-only; searches still work.

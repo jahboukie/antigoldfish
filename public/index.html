@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AntiGoldfishMode — Local‑Only, Air‑Gapped Memory CLI</title>
+  <title>SecuraMem — Local‑Only, Air‑Gapped Memory CLI</title>
+  <meta http-equiv="refresh" content="0; url=https://github.com/SecuraMem/smem-cli" />
+  <script>
+    // Redirect to the GitHub repository (no public domain yet)
+    window.location.replace('https://github.com/SecuraMem/smem-cli');
+  </script>
   <meta name="description" content="Transparent, air‑gapped local memory for code. Traceable commands, signed & checksummed exports, zero egress. MIT / honor‑system." />
   <style>
     :root {
@@ -62,14 +67,20 @@
   </style>
 </head>
 <body>
+  <noscript>
+    <div style="padding:16px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;">
+      Redirecting to the project repository…
+      <a href="https://github.com/SecuraMem/smem-cli">https://github.com/SecuraMem/smem-cli</a>
+    </div>
+  </noscript>
   <header>
-    <h1>AntiGoldfishMode</h1>
+  <h1>SecuraMem</h1>
     <p class="tagline">Local‑only, air‑gapped memory for codebases that cannot leave the machine. Every action is traceable. Exports are signed & checksummed. No telemetry. Verify zero egress at any moment.</p>
-    <div class="prove">agm prove-offline</div>
+  <div class="prove">smem prove-offline</div>
     <div class="cta-row">
-      <a class="cta" href="https://github.com/jahboukie/antigoldfish">GitHub</a>
-      <a class="cta" href="https://github.com/sponsors/jahboukie">Sponsor (Honor‑System)</a>
-      <a class="cta" href="https://github.com/sponsors/jahboukie">Support Development</a>
+  <a class="cta" href="https://github.com/SecuraMem/smem-cli">GitHub</a>
+  <a class="cta" href="https://github.com/sponsors/jahboukie">Sponsor (Honor‑System)</a>
+  <a class="cta" href="https://github.com/sponsors/jahboukie">Support Development</a>
     </div>
     <p class="support-note">Sponsorship is voluntary. All core features (signing, checksums, policy, receipts, export/import) are MIT‑licensed and fully functional without payment.</p>
   </header>
@@ -86,7 +97,7 @@
         </ul>
         <strong>Integrity &amp; Export</strong>
         <ul class="list-tight">
-          <li>Signed + checksummed <code>.agmctx</code> exports</li>
+          <li>Signed + checksummed <code>.smemctx</code> exports</li>
           <li>Zipped bundle support (<code>--zip</code>)</li>
           <li>Delta exports to reduce duplication (<code>--delta</code>)</li>
           <li>Provenance data in export manifests</li>
@@ -105,7 +116,7 @@
           <li>Trace/plan/mirror flags for all commands</li>
           <li>Per-command JSON receipts with digests</li>
           <li>Append-only command journal (.jsonl)</li>
-          <li>Verifiable zero-egress (<code>agm prove-offline</code>)</li>
+          <li>Verifiable zero-egress (<code>smem prove-offline</code>)</li>
         </ul>
         <strong>Diagnostics &amp; Maintenance</strong>
         <ul class="list-tight">
@@ -131,11 +142,11 @@
 
     <h2>Quick Start</h2>
     <ol>
-      <li><code>npm i -g antigoldfishmode</code></li>
-      <li><code>agm init</code></li>
-      <li><code>agm index-code --path src --symbols</code></li>
-      <li><code>agm search-code "auth middleware" --hybrid --preview 3</code></li>
-      <li><code>agm export-context --out ./ctx.agmctx --type code --zip --sign</code></li>
+  <li><code>npm i -g securamem</code></li>
+  <li><code>smem init</code></li>
+  <li><code>smem index-code --path src --symbols</code></li>
+  <li><code>smem search-code "auth middleware" --hybrid --preview 3</code></li>
+  <li><code>smem export-context --out ./ctx.smemctx --type code --zip --sign</code> <span class="note">(legacy .agmctx imports still supported)</span></li>
     </ol>
     <p class="note">See docs/airgapped.md for bundle format & verification details.</p>
 
@@ -174,11 +185,11 @@
 
     <h2>Verification & Docs</h2>
     <ul class="list-tight">
-      <li><a href="https://github.com/jahboukie/antigoldfish/blob/master/SECURITY.md">SECURITY.md</a> – zero‑egress posture & policy surface</li>
-      <li><a href="https://github.com/jahboukie/antigoldfish/blob/master/REPRODUCIBLE_BUILDS.md">REPRODUCIBLE_BUILDS.md</a> – build determinism notes</li>
-      <li><a href="https://github.com/jahboukie/antigoldfish/blob/master/docs/airgapped.md">Air‑gapped export/import</a></li>
-      <li><a href="https://github.com/jahboukie/antigoldfish/blob/master/docs/receipts.md">Receipts schema</a></li>
-      <li><a href="https://github.com/jahboukie/antigoldfish/blob/master/README.md">Project README</a></li>
+  <li><a href="https://github.com/SecuraMem/smem-cli/blob/main/SECURITY.md">SECURITY.md</a> – zero‑egress posture & policy surface</li>
+  <li><a href="https://github.com/SecuraMem/smem-cli/blob/main/REPRODUCIBLE_BUILDS.md">REPRODUCIBLE_BUILDS.md</a> – build determinism notes</li>
+  <li><a href="https://github.com/SecuraMem/smem-cli/blob/main/docs/airgapped.md">Air‑gapped export/import</a></li>
+  <li><a href="https://github.com/SecuraMem/smem-cli/blob/main/docs/receipts.md">Receipts schema</a></li>
+  <li><a href="https://github.com/SecuraMem/smem-cli/blob/main/README.md">Project README</a></li>
     </ul>
     <p class="note">Pull requests improving reproducibility, verification coverage, or docs are welcome.</p>
 
@@ -191,8 +202,8 @@
     </ul>
   </main>
   <footer>
-  <div>AntiGoldfishMode <span class="version-marker">v1.9.0</span> • MIT License • © 2025</div>
-  <div class="footer-note">Verify offline anytime: <code>agm prove-offline</code></div>
+  <div>SecuraMem <span class="version-marker">v1.9.0</span> • MIT License • © 2025</div>
+  <div class="footer-note">Verify offline anytime: <code>smem prove-offline</code></div>
   </footer>
 </body>
 </html>

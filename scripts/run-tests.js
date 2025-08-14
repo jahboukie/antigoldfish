@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Air‑gapped hardening test harness for AntiGoldfishMode.
+ * Air‑gapped hardening test harness for SecuraMem.
  *
  * Scope:
  *  - NO external network access (any attempt → immediate failure)
@@ -76,11 +76,16 @@ const candidateScripts = [
   'test-delta-export.js',
   'test-diff-mode.js',
   'test-security-hardening.js',
-  'test-memory-engine-2.js'
+  'test-memory-engine-2.js',
+  // include Node test for .smemctx flows (kept last; uses node --test directly elsewhere too)
+  'node --test tests/smemctx-export-import.test.mjs'
 ];
 const scripts = candidateScripts
-  .map(f => ({ file: f, full: path.join(root, f) }))
-  .filter(o => fs.existsSync(o.full));
+  .map(f => {
+    if (f.startsWith('node ')) return { file: f, full: f };
+    return { file: f, full: path.join(root, f) };
+  })
+  .filter(o => (o.file.startsWith('node ') || fs.existsSync(o.full)));
 
 if (LIST_ONLY) {
   console.log('Discovered test scripts:');
@@ -138,7 +143,13 @@ const results = [];
 for (const { file, full } of scripts) {
   const started = Date.now();
   console.log(`\n▶ ${file}`);
-  const run = spawnSync(process.execPath, [full], { stdio: 'inherit', env: process.env });
+  let run;
+  if (file.startsWith('node ')) {
+    const parts = file.split(' ');
+    run = spawnSync(parts[0], parts.slice(1), { stdio: 'inherit', env: process.env });
+  } else {
+    run = spawnSync(process.execPath, [full], { stdio: 'inherit', env: process.env });
+  }
   const ms = Date.now() - started;
   const ok = run.status === 0;
   results.push({ file, ok, ms });

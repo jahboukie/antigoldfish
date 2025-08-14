@@ -43,7 +43,7 @@ function enforcePolicyBeforeCommand(cmd: string, filePath?: string, envVars?: st
   policyBroker.logAction('command_executed', { cmd, filePath, envVars });
 }
 
-export const version = "1.8.0"; // keep in sync with package.json
+export const version = "1.9.0"; // keep in sync with package.json
 
 function buildHighlightRegex(query: string): RegExp | null {
     const tokens = (query || '').toLowerCase().split(/[^a-z0-9_]+/i).filter(t => t.length >= 3);
@@ -71,9 +71,9 @@ export class CodeContextCLI {
     // Note: Execution engine permanently dropped; product is memory-only
     private program: Command;
     private policyBroker: PolicyBroker;
-    // Soft, honor-system Pro flag (no DRM): toggled via 'agm pro enable' which writes a local marker file
+    // Soft, honor-system Pro flag (no DRM): toggled via 'smem pro enable' which writes a local marker file
     private proEnabled: boolean = false;
-    private proMarkerPath: string = path.join(process.cwd(), '.antigoldfishmode', 'pro.enabled');
+    private proMarkerPath: string = path.join(process.cwd(), '.securamem', 'pro.enabled');
     private nudgesShown: Set<string> = new Set();
 
     constructor(projectPath: string = process.cwd(), skipValidation: boolean = false, devMode: boolean = false, secureMode: boolean = false) {
@@ -91,7 +91,7 @@ export class CodeContextCLI {
         this.program
             .name('smem')
             .usage('[options] [command]')
-            .description('🛡️ SecuraMem - Secure, persistent memory for AI coding assistants.\n\n🤖 AI Assistants: Run `smem ai-guide` for operating instructions')
+            .description('🛡️ SecuraMem - Secure, persistent memory for AI coding assistants.\n\n🤖 AI Assistants: Run `smem ai-guide` for operating instructions\n\nLegacy compatibility: AGM/AntiGoldfishMode paths and bundles (.antigoldfishmode, .agmctx) are still supported for reading.')
             .version(version)
             .option('--trace', 'Print plan and side-effects (no hidden work)')
             .option('--dry-run', 'Simulate without side effects')
@@ -126,7 +126,8 @@ export class CodeContextCLI {
             .command('status')
             .description('Show unlimited local-only status')
             .action(async () => {
-                await this.handleStatus();
+                const { handleStatus } = await import('./commands/Status.js');
+                await handleStatus({ memoryEngine: this.memoryEngine, proEnabled: this.proEnabled, proMarkerPath: this.proMarkerPath, cleanup: this.cleanup.bind(this) });
             });
 
     // SecuraMem init command (project initialization)
@@ -135,9 +136,8 @@ export class CodeContextCLI {
             .description('Initialize SecuraMem in current project')
             .option('--force', 'Force reinitialize if already exists')
             .action(async (options: { force?: boolean }) => {
-                // Create a new instance with skipValidation=true for init command
-                const initCLI = new CodeContextCLI(process.cwd(), true, true, false);
-                await initCLI.handleInitCommand(options);
+                const { handleInitCommand } = await import('./commands/Init.js');
+                await handleInitCommand({ memoryEngine: this.memoryEngine, cleanup: this.cleanup.bind(this) }, options);
             });
 
     // License system removed in local-only pivot
@@ -147,13 +147,14 @@ export class CodeContextCLI {
             .command('vector-status')
             .description('Show vector backend and index status')
             .action(async () => {
-                await this.handleVectorStatus();
+                const { handleVectorStatus } = await import('./commands/VectorStatus.js');
+                await handleVectorStatus({ memoryEngine: this.memoryEngine, cleanup: this.cleanup.bind(this) });
             });
 
         // Journal commands
         this.program
             .command('journal')
-            .description('Show or clear the AGM command journal')
+            .description('Show or clear the command journal')
             .option('--show', 'Show recent journal entries')
             .option('--clear', 'Clear journal (with confirmation)')
             .action(async (opts: any) => { const { handleJournal } = await import('./commands/Journal.js'); await handleJournal(opts, this.cleanup.bind(this)); });
@@ -164,7 +165,7 @@ export class CodeContextCLI {
         // Replay commands
         this.program
             .command('replay')
-            .description('Replay journaled AGM command(s) safely (dry-run by default)')
+            .description('Replay journaled command(s) safely (dry-run by default)')
             .option('--last', 'Replay the most recent command (default)')
             .option('--id <receiptId>', 'Replay by receipt id or path')
             .option('--range <N>', 'Replay last N commands in order')
@@ -178,14 +179,14 @@ export class CodeContextCLI {
         // Code indexing commands
         this.program
             .command('index-code')
-            .description('Index code files in the repository into AGM memory (local-only)')
+            .description('Index code files in the repository into SecuraMem (local-only)')
             .option('--path <dir>', 'Root directory to index')
             .option('--max-chunk <lines>', 'Max lines per chunk (default: 200)')
             .option('--include <glob...>', 'Include patterns (space-separated, supports ** and *)')
             .option('--exclude <glob...>', 'Exclude patterns (space-separated, supports ** and *)')
             .option('--symbols', 'Use symbol-aware chunking (functions/classes) where supported')
             .option('--diff', 'Skip files whose content digest matches existing indexed version (faster re-run)')
-            .action(async (opts: any) => { await this.handleIndexCode(opts); });
+            .action(async (opts: any) => { const { handleIndexCode } = await import('./commands/IndexCode.js'); await handleIndexCode({ memoryEngine: this.memoryEngine, cleanup: this.cleanup.bind(this), proEnabled: this.proEnabled, nudgePro: this.nudgePro.bind(this) }, opts); });
 
         // Watch mode for incremental code indexing
         this.program
@@ -197,7 +198,7 @@ export class CodeContextCLI {
             .option('--exclude <glob...>', 'Exclude patterns (space-separated, supports ** and *)')
             .option('--symbols', 'Use symbol-aware chunking (functions/classes) where supported')
             .option('--debounce <ms>', 'Debounce batch interval in ms (default: 400)')
-            .action(async (opts: any) => { await this.handleWatchCode(opts); });
+            .action(async (opts: any) => { const { handleWatchCode } = await import('./commands/WatchCode.js'); await handleWatchCode({ memoryEngine: this.memoryEngine, cleanup: this.cleanup.bind(this), nudgePro: this.nudgePro.bind(this) }, opts); });
 
         this.program
             .command('search-code <query>')
@@ -220,13 +221,13 @@ export class CodeContextCLI {
             .option('--clear', 'Clear all file digests')
             .option('--list', 'List recent digest entries')
             .option('--limit <n>', 'Limit for --list (default 50)')
-            .action(async (opts: any) => { await this.handleDigestCache(opts); });
+            .action(async (opts: any) => { const { handleDigestCache } = await import('./commands/DigestCache.js'); await handleDigestCache({ memoryEngine: this.memoryEngine, cleanup: this.cleanup.bind(this) }, opts); });
 
         this.program
             .command('reindex-file <file>')
             .description('Force reindex a single file (bypass digest cache)')
             .option('--symbols', 'Use symbol-aware chunking')
-            .action(async (file: string, opts: any) => { await this.handleReindexFile(file, opts); });
+            .action(async (file: string, opts: any) => { const { handleReindexFile } = await import('./commands/ReindexFile.js'); await handleReindexFile({ memoryEngine: this.memoryEngine, cleanup: this.cleanup.bind(this), nudgePro: this.nudgePro.bind(this) }, file, opts); });
 
         this.program
             .command('reindex-folder <folder>')
@@ -235,7 +236,7 @@ export class CodeContextCLI {
             .option('--include <glob...>', 'Include patterns (space-separated, supports ** and *)')
             .option('--exclude <glob...>', 'Exclude patterns (space-separated, supports ** and *)')
             .option('--max-chunk <lines>', 'Max lines per chunk (default: 200)')
-            .action(async (folder: string, opts: any) => { await this.handleReindexFolder(folder, opts); });
+            .action(async (folder: string, opts: any) => { const { handleReindexFolder } = await import('./commands/ReindexFolder.js'); await handleReindexFolder({ memoryEngine: this.memoryEngine, cleanup: this.cleanup.bind(this) }, folder, opts); });
 
         // GC maintenance
         this.program
@@ -244,14 +245,14 @@ export class CodeContextCLI {
             .option('--prune-vectors', 'Remove vectors whose ids no longer exist in memories (safe)')
             .option('--drop-stale-digests', 'Remove digest entries for files that no longer exist')
             .option('--vacuum', 'Reclaim disk space by VACUUM (may take time)')
-            .action(async (opts: any) => { await this.handleGC(opts); });
+            .action(async (opts: any) => { const { handleGC } = await import('./commands/GC.js'); await handleGC({ memoryEngine: this.memoryEngine, cleanup: this.cleanup.bind(this) }, opts); });
 
         // Health summary
         this.program
             .command('health')
             .description('Quick health snapshot: DB stats, vectors, digest cache, and readiness hints')
             .option('--since <days>', 'Show deltas for the last N days')
-            .action(async (opts: any) => { await this.handleHealth(opts); });
+            .action(async (opts: any) => { const { handleHealth } = await import('./commands/Health.js'); await handleHealth({ memoryEngine: this.memoryEngine, proEnabled: this.proEnabled, cleanup: this.cleanup.bind(this) }, opts); });
 
         // DB doctor (integrity + optional repair + legacy archival)
         this.program
@@ -340,7 +341,7 @@ export class CodeContextCLI {
             .action(async () => { this.printProStatus(); });
         pro
             .command('enable')
-            .description('Enable Pro mode locally (writes .antigoldfishmode/pro.enabled)')
+            .description('Enable Pro mode locally (writes local Pro marker)')
             .action(async () => { await this.setProEnabled(true); this.printProStatus(); });
         pro
             .command('disable')
@@ -376,7 +377,9 @@ export class CodeContextCLI {
     private loadProStatus(): void {
         try {
             if (process.env.SMEM_PRO === '1') { this.proEnabled = true; return; }
-            this.proEnabled = fs.existsSync(this.proMarkerPath);
+            // Prefer .securamem marker; fallback to legacy .antigoldfishmode marker if present
+            const legacyMarker = path.join(process.cwd(), '.antigoldfishmode', 'pro.enabled');
+            this.proEnabled = fs.existsSync(this.proMarkerPath) || fs.existsSync(legacyMarker);
         } catch { this.proEnabled = false; }
     }
 
@@ -433,7 +436,7 @@ export class CodeContextCLI {
                 const { unzipSync } = require('fflate');
                 const data = fs.readFileSync(basePath);
                 const files = unzipSync(new Uint8Array(data.buffer, data.byteOffset, data.length));
-                tempDir = path.join(process.cwd(), '.antigoldfishmode', 'tmp-prev-' + Date.now().toString(36));
+                tempDir = path.join(process.cwd(), '.securamem', 'tmp-prev-' + Date.now().toString(36));
                 fs.mkdirSync(tempDir, { recursive: true });
                 for (const name of Object.keys(files)) {
                     const out = path.join(tempDir, name);
@@ -771,6 +774,9 @@ export class CodeContextCLI {
         }
     const line = `SecuraMem OFFLINE PROOF: no-egress; policy=${proof.policyNetworkEgress}; guard=${networkGuardActive?'active':'inactive'}; proxies=${proxies.length>0?'present':'none'}`;
         console.log(line);
+        // Legacy line for backward compatibility (tests may look for this exact string)
+        const legacyLine = `AGM OFFLINE PROOF: no-egress; policy=${proof.policyNetworkEgress}; guard=${networkGuardActive?'active':'inactive'}; proxies=${proxies.length>0?'present':'none'}`;
+        console.log(legacyLine);
     }
 
     /**
@@ -887,9 +893,10 @@ export class CodeContextCLI {
             await this.memoryEngine.initialize();
             console.log(chalk.green('✅ Memory database initialized'));
 
-            // Create .gitignore entry
+            // Create .gitignore entry (.securamem primary; keep legacy ignored as well)
             const gitignorePath = path.join(process.cwd(), '.gitignore');
-            const gitignoreEntry = '\n# AntiGoldfishMode\n.antigoldfishmode/\n';
+            const giPrimary = '\n# SecuraMem\n.securamem/\n';
+            const giLegacy = '.antigoldfishmode/';
 
             try {
                 let gitignoreContent = '';
@@ -897,10 +904,10 @@ export class CodeContextCLI {
                     gitignoreContent = fs.readFileSync(gitignorePath, 'utf8');
                 }
 
-                if (!gitignoreContent.includes('.antigoldfishmode/')) {
-                    fs.appendFileSync(gitignorePath, gitignoreEntry);
-                    console.log(chalk.green('✅ Added .antigoldfishmode/ to .gitignore'));
-                }
+                let changed = false;
+                if (!gitignoreContent.includes('.securamem/')) { fs.appendFileSync(gitignorePath, giPrimary); changed = true; }
+                if (!gitignoreContent.includes(giLegacy)) { fs.appendFileSync(gitignorePath, '\n' + giLegacy + '\n'); changed = true; }
+                if (changed) console.log(chalk.green('✅ Updated .gitignore for SecuraMem (and legacy data dir)'));
             } catch (error) {
                 console.log(chalk.yellow('⚠️ Could not update .gitignore (this is optional)'));
             }
@@ -912,11 +919,11 @@ export class CodeContextCLI {
             // Create local guides for AI and human operator
             await this.ensureLocalGuides(securamemDir, true);
 
-            console.log(chalk.green('\n🎉 AntiGoldfishMode initialized successfully!'));
+            console.log(chalk.green('\n🎉 SecuraMem initialized successfully!'));
             console.log(chalk.gray('   You can now use:'));
-            console.log(chalk.gray('   • agm remember "information"'));
-            console.log(chalk.gray('   • agm recall "search term"'));
-            console.log(chalk.gray('   • agm status'));
+            console.log(chalk.gray('   • smem remember "information"'));
+            console.log(chalk.gray('   • smem recall "search term"'));
+            console.log(chalk.gray('   • smem status'));
             console.log(chalk.gray('   • VSCode: Ctrl+Shift+M to remember, Ctrl+Shift+R to recall'));
 
             // Ensure database is properly closed
@@ -930,7 +937,7 @@ export class CodeContextCLI {
     }
 
     /**
-     * Ensure AI and User guides exist under .antigoldfishmode/
+     * Ensure AI and User guides exist under .securamem/
      * If overwrite is true, recreate; else create only if missing.
      */
     private async ensureLocalGuides(antigoldfishDir: string, overwrite: boolean): Promise<void> {
@@ -945,201 +952,21 @@ export class CodeContextCLI {
             const aiExists = fs.existsSync(aiDst);
             const aiSrc = aiSrcCandidates.find(p => fs.existsSync(p));
             if (aiSrc && (overwrite || !aiExists)) {
-                try { fs.copyFileSync(aiSrc, aiDst); console.log(chalk.green('✅ Wrote AI guide to .antigoldfishmode/AI_ASSISTANT_GUIDE.md')); } catch {}
+                try { fs.copyFileSync(aiSrc, aiDst); console.log(chalk.green('✅ Wrote AI guide to .securamem/AI_ASSISTANT_GUIDE.md')); } catch {}
             }
 
             // Human User Guide: concise quickstart against this workspace
             const userDst = path.join(antigoldfishDir, 'USER_GUIDE.md');
             const userExists = fs.existsSync(userDst);
             if (overwrite || !userExists) {
-                const content = `# AntiGoldfishMode – User Guide\n\nQuick reference for this project. All data stays local under .antigoldfishmode/.\n\n## First steps\n- agm status  # show DB path and memory totals\n- agm vector-status  # backend/dimensions/count\n- agm health [--since 7]  # quick snapshot + deltas\n\n## Index & watch\n- agm index-code --symbols --path .\n- agm watch-code --path src --symbols --max-chunk 200  # background task available in VS Code\n\nPolicy tips (if blocked):\n- agm policy allow-command watch-code\n- agm policy allow-path "**/*"\n\n## Search\n- agm search-code "query" --hybrid --preview 3\n- Filters: --filter-path, --filter-language, --filter-symbol\n\n## Maintenance\n- agm digest-cache --list --limit 20\n- agm reindex-file <file> [--symbols]\n- agm reindex-folder <folder> [--symbols] [--include ...] [--exclude ...]\n- agm gc --prune-vectors --drop-stale-digests --vacuum\n\n## Air-gapped export\n- agm export-context --out ./.antigoldfishmode/ctx.agmctx --type code [--sign]\n- agm import-context ./.antigoldfishmode/ctx.agmctx\n\n## AI guide\n- agm ai-guide  # prints AI operating instructions\n- See also .antigoldfishmode/AI_ASSISTANT_GUIDE.md\n\nReceipts: .antigoldfishmode/receipts/*.json\nJournal: .antigoldfishmode/journal.jsonl\nPolicy: .antigoldfishmode/policy.json\n`;
-                try { fs.writeFileSync(userDst, content); console.log(chalk.green('✅ Wrote User guide to .antigoldfishmode/USER_GUIDE.md')); } catch {}
+                const content = `# SecuraMem – User Guide\n\nQuick reference for this project. Data lives under .securamem/. Legacy .antigoldfishmode/ is still read for compatibility.\n\n## First steps\n- smem status  # show DB path and memory totals\n- smem vector-status  # backend/dimensions/count\n- smem health [--since 7]  # quick snapshot + deltas\n\n## Index & watch\n- smem index-code --symbols --path .\n- smem watch-code --path src --symbols --max-chunk 200  # background task available in VS Code\n\nPolicy tips (if blocked):\n- smem policy allow-command watch-code\n- smem policy allow-path "**/*"\n\n## Search\n- smem search-code "query" --hybrid --preview 3\n- Filters: --filter-path, --filter-language, --filter-symbol\n\n## Maintenance\n- smem digest-cache --list --limit 20\n- smem reindex-file <file> [--symbols]\n- smem reindex-folder <folder> [--symbols] [--include ...] [--exclude ...]\n- smem gc --prune-vectors --drop-stale-digests --vacuum\n\n## Air-gapped export\n- smem export-context --out ./.securamem/ctx.smemctx --type code [--sign]  # legacy .agmctx supported on import\n- smem import-context ./.securamem/ctx.smemctx\n\n## AI guide\n- smem ai-guide  # prints AI operating instructions\n- See also .securamem/AI_ASSISTANT_GUIDE.md\n\nReceipts: .securamem/receipts/*.json\nJournal: .securamem/journal.jsonl\nPolicy: .securamem/policy.json\n`;
+                try { fs.writeFileSync(userDst, content); console.log(chalk.green('✅ Wrote User guide to .securamem/USER_GUIDE.md')); } catch {}
             }
         } catch {}
     }
 
 
-    /**
-     * Index code repository into AGM memories (prototype)
-     */
-    private async handleIndexCode(opts: any): Promise<void> {
-        const root = opts.path || process.cwd();
-        const maxChunk = parseInt(opts.maxChunk || '200', 10);
-    const { Tracer } = await import('./utils/Trace.js');
-        const tracer = Tracer.create(process.cwd());
-        try {
-            tracer.plan('index-code', { root, maxChunk, symbols: !!opts.symbols, diff: !!opts.diff, explain: tracer.flags.explain });
-            tracer.mirror(`agm index-code --path ${JSON.stringify(root)} --max-chunk ${maxChunk}${opts.symbols?' --symbols':''}${opts.diff?' --diff':''}${tracer.flags.explain?' --explain':''}`);
-            if (tracer.flags.explain) {
-                console.log(chalk.gray(`Explanation: Walk files (include/exclude), ${opts.symbols?'chunk by symbols (functions/classes/interfaces/enums)':'chunk by lines'}, store as type=code with metadata (file, language, line ranges).${opts.diff?' Diff: skip files whose contentSha already present.':''}`));
-            }
-
-            await this.memoryEngine.initialize();
-            const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
-            const indexer = new CodeIndexer(root);
-
-
-            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
-            const { TreeSitterIndexer } = await import('./codeindex/TreeSitterIndexer.js');
-            const symIndexer = new SymbolIndexer(root);
-            const treeSitterIndexer = new TreeSitterIndexer(root);
-
-            const include: string[] | undefined = opts.include;
-            const exclude: string[] | undefined = opts.exclude;
-
-            let saved = 0;
-            const pending: Promise<any>[] = [];
-            const context = 'code';
-
-            // Embeddings (Stage 1): prepare provider
-            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider.js');
-            const provider = EmbeddingProvider.create(process.cwd());
-            await provider.init().catch((e: unknown) => {
-                console.log(chalk.yellow('⚠️ Embedding provider init failed. Continuing without vectors.'));
-                if (tracer.flags.trace) console.log(String(e));
-                return undefined;
-            });
-
-            const embedAndStore = async (text: string, tags: string[], metadata: any) => {
-                const id = await this.memoryEngine.database.storeMemory(text, context, 'code', tags, metadata);
-                if (provider && (provider as any).getInfo) {
-                    try {
-                        const vec = await provider.embed(text);
-                        await this.memoryEngine.database.upsertVector(id, vec, provider.getInfo().dimensions);
-                    } catch (e) {
-                        if (tracer.flags.trace) console.log('Vector upsert skipped:', String(e));
-                    }
-                }
-                saved++;
-            };
-
-            // Pre-list files once (applies to both symbol and line modes)
-            const fileList = new (await import('./codeindex/CodeIndexer.js')).CodeIndexer(root).listFiles({ include, exclude, maxChunkLines: maxChunk });
-            // Load / build file digest cache (persisted) if --diff
-            let existingFileDigest: Map<string,string> | null = null;
-            let fileDigestCachePath: string | null = null;
-            if (opts.diff) {
-                existingFileDigest = new Map();
-                try {
-                    fileDigestCachePath = path.join(process.cwd(), '.antigoldfishmode', 'file-digests.json');
-                    if (fs.existsSync(fileDigestCachePath)) {
-                        const raw = JSON.parse(fs.readFileSync(fileDigestCachePath, 'utf8'));
-                        Object.keys(raw || {}).forEach(f => existingFileDigest!.set(f, raw[f]));
-                    }
-                } catch {}
-            } else {
-                // Build baseline cache so future --diff run can skip unchanged files
-                existingFileDigest = new Map();
-                try {
-                    fileDigestCachePath = path.join(process.cwd(), '.antigoldfishmode', 'file-digests.json');
-                } catch {}
-            }
-
-            if (opts.symbols) {
-                // Check if Tree-sitter is available
-                const useTreeSitter = treeSitterIndexer.isAvailable();
-                if (!useTreeSitter && !this.proEnabled) {
-                    this.nudgePro('symbols', 'Enhanced symbol chunking (Tree-sitter pack, smarter heuristics) is available with Pro. Proceeding with basic symbol indexing.');
-                } else if (useTreeSitter) {
-                    console.log(chalk.green('🌳 Using Tree-sitter for precise AST-based symbol extraction'));
-                }
-
-                for (const file of fileList) {
-                    const full = require('path').join(root, file);
-                    let fileSha: string | undefined;
-                    try { fileSha = crypto.createHash('sha256').update(fs.readFileSync(full)).digest('hex'); } catch {}
-                    if (existingFileDigest && fileSha && existingFileDigest.get(file) === fileSha) continue; // unchanged file (diff mode)
-                    
-                    // Use Tree-sitter if available, otherwise fall back to heuristic symbol indexer
-                    const chunks = useTreeSitter ? 
-                        treeSitterIndexer.chunkFile(full).map(c => ({ 
-                            text: c.text, 
-                            meta: {
-                                file: c.meta.file,
-                                language: c.meta.language,
-                                lineStart: c.meta.lineStart,
-                                lineEnd: c.meta.lineEnd,
-                                symbol: c.meta.symbolName,
-                                symbolType: c.meta.symbolType,
-                                tags: ['symbol', c.meta.symbolType || 'unknown']
-                            }
-                        })) :
-                        symIndexer.chunkBySymbols(full);
-
-                    for (const chunk of chunks) {
-                        if (tracer.flags.dryRun) { continue; }
-                        const tags = ['code', chunk.meta.language || 'unknown', 'symbol'];
-                        const metadata = { 
-                            ...chunk.meta, 
-                            contentSha: crypto.createHash('sha256').update(chunk.text).digest('hex'), 
-                            fileDigest: fileSha,
-                            indexStrategy: useTreeSitter ? 'treesitter-ast' : 'heuristic-symbols'
-                        };
-                        await embedAndStore(chunk.text, tags, metadata);
-                    }
-                    if (existingFileDigest && fileSha) existingFileDigest.set(file, fileSha); // update cache
-                }
-            } else {
-                // Need file digests: build map file->fileDigest first
-                const fileDigestMap = new Map<string,string>();
-                for (const f of fileList) {
-                    try { fileDigestMap.set(f, crypto.createHash('sha256').update(fs.readFileSync(path.join(root, f))).digest('hex')); } catch {}
-                }
-                indexer.indexFiles({ maxChunkLines: maxChunk, context, include, exclude }, (chunk: { text: string; meta: { language?: string } }) => {
-                    if (tracer.flags.dryRun) { return; }
-                    const rel = (chunk as any).meta?.file;
-                    if (existingFileDigest && rel && existingFileDigest.get(rel) === fileDigestMap.get(rel)) return; // unchanged file in diff mode
-                    const tags = ['code', chunk.meta.language || 'unknown'];
-                    pending.push(embedAndStore(chunk.text, tags, { ...chunk.meta, contentSha: crypto.createHash('sha256').update(chunk.text).digest('hex'), fileDigest: rel ? fileDigestMap.get(rel) : undefined }));
-                    if (existingFileDigest && rel) existingFileDigest.set(rel, fileDigestMap.get(rel)!);
-                });
-            }
-
-            await Promise.all(pending);
-
-            // reuse dynamic import above; construct a temporary indexer for digest
-            const listForDigest = fileList; // already computed
-            const digest = crypto.createHash('sha256').update(JSON.stringify(listForDigest)).digest('hex');
-
-            const result = { saved, root, digest, fileCount: listForDigest.length, diff: !!opts.diff };
-            if (tracer.flags.json) {
-                console.log(JSON.stringify(result, null, 2));
-
-            if (tracer.flags.explain) {
-                const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
-                const files = new CodeIndexer(root).listFiles({ include, exclude, maxChunkLines: maxChunk });
-                console.log(chalk.gray(`Explain: include=${JSON.stringify(include||['**/*'])} exclude=${JSON.stringify(exclude||['**/node_modules/**', '**/.git/**', '**/dist/**'])}`));
-                console.log(chalk.gray(`Explain: files considered=${files.length}`));
-            }
-
-            } else {
-                console.log(`✅ Indexed code from ${root}. Saved chunks: ${saved}${opts.diff?' (diff)':''}`);
-                console.log(chalk.gray(`   Files considered: ${listForDigest.length}, digest: ${digest.slice(0,8)}…${opts.diff?' (skipped unchanged)':''}`));
-                if (opts.diff && saved === 0) {
-                    console.log(chalk.gray('   All files unchanged (nothing new to index).'));
-                }
-            }
-
-            const receipt = tracer.writeReceipt('index-code', { root, maxChunk, include, exclude, dryRun: tracer.flags.dryRun, diff: !!opts.diff }, result, true, undefined, { resultSummary: { saved }, digests: { fileListDigest: digest } });
-            tracer.appendJournal({ cmd: 'index-code', args: { root, maxChunk, include, exclude, dryRun: tracer.flags.dryRun }, receipt });
-
-            // Persist updated file digest cache if diff
-            if (fileDigestCachePath && existingFileDigest) {
-                try {
-                    fs.mkdirSync(path.dirname(fileDigestCachePath), { recursive: true });
-                    const obj: Record<string,string> = {};
-                    existingFileDigest.forEach((v,k) => { obj[k] = v; });
-                    fs.writeFileSync(fileDigestCachePath, JSON.stringify(obj, null, 2));
-                } catch {}
-            }
-        } catch (error) {
-            const receipt = tracer.writeReceipt('index-code', { root, maxChunk }, {}, false, (error as Error).message);
-            tracer.appendJournal({ cmd: 'index-code', error: (error as Error).message, receipt });
-            console.error(chalk.red('❌ Code indexing failed:'), error instanceof Error ? error.message : error);
-        } finally {
-            await this.cleanup();
-        }
-    }
+    // extracted: handleIndexCode → src/commands/IndexCode.ts
 
     /**
      * Search code-aware memories (prototype)
@@ -1153,7 +980,7 @@ export class CodeContextCLI {
             const filterPath: string[] | undefined = opts.filterPath || opts.filter || opts.p;
             const hybrid = !!(opts.hybrid || opts.semantic);
             tracer.plan('search-code', { query, topk, preview, filterPath, hybrid, explain: tracer.flags.explain });
-            tracer.mirror(`agm search-code ${JSON.stringify(query)} -k ${topk}${preview?` --preview ${preview}`:''}${filterPath?` --filter-path ${filterPath.join(' ')}`:''}${hybrid?' --hybrid':''}${tracer.flags.explain?' --explain':''}`);
+            tracer.mirror(`smem search-code ${JSON.stringify(query)} -k ${topk}${preview?` --preview ${preview}`:''}${filterPath?` --filter-path ${filterPath.join(' ')}`:''}${hybrid?' --hybrid':''}${tracer.flags.explain?' --explain':''}`);
             const rerankN = parseInt(opts.rerank || '200', 10) || 200;
             if (tracer.flags.explain) {
                 const backend = 'fallback'; // vss query path not yet wired
@@ -1318,496 +1145,20 @@ export class CodeContextCLI {
             const msg = error instanceof Error ? error.message : String(error);
             console.error(chalk.red('❌ search-code failed:'), msg);
             if (/Failed to decrypt database|integrity check failed/i.test(msg)) {
-                console.error(chalk.yellow('Tip: run "agm init --force" to reset local DB artifacts if this persists.'));
+                console.error(chalk.yellow('Tip: run "smem init --force" to reset local DB artifacts if this persists.'));
             }
         } finally {
             await this.cleanup();
         }
     }
 
-    /**
-     * Watch and incrementally index code changes
-     */
-    private async handleWatchCode(opts: any): Promise<void> {
-        const root = opts.path || process.cwd();
-        const maxChunk = parseInt(opts.maxChunk || '200', 10);
-        const debounceMs = parseInt(opts.debounce || '400', 10);
-        const include: string[] | undefined = opts.include;
-        const exclude: string[] | undefined = opts.exclude;
-        const useSymbols = !!opts.symbols;
-        if (useSymbols) {
-            this.nudgePro('symbols-reindex-file', 'Pro improves symbol chunking and reindex speed. Proceeding with basic symbol mode.');
-            this.nudgePro('symbols-watch', 'Enhanced symbol chunking and faster diff-aware reindex are Pro features. Proceeding with basic symbol mode.');
-        }
-    const { Tracer } = await import('./utils/Trace.js');
-        const tracer = Tracer.create(process.cwd());
-        tracer.plan('watch-code', { root, maxChunk, include, exclude, symbols: useSymbols, debounceMs, explain: tracer.flags.explain });
-        tracer.mirror(`agm watch-code --path ${JSON.stringify(root)} --max-chunk ${maxChunk}${useSymbols?' --symbols':''}${include?` --include ${include.join(' ')}`:''}${exclude?` --exclude ${exclude.join(' ')}`:''}${debounceMs!==400?` --debounce ${debounceMs}`:''}${tracer.flags.explain?' --explain':''}`);
-        if (tracer.flags.explain) {
-            console.log(chalk.gray('Explanation: Watches file changes and re-chunks only changed files; removes stale entries on delete. Emits receipts per batch.'));    
-        }
+    // extracted: handleWatchCode → src/commands/WatchCode.ts
 
-        try {
-            await this.memoryEngine.initialize();
-            const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
-            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
-            const { TreeSitterIndexer } = await import('./codeindex/TreeSitterIndexer.js');
-            const indexer = new CodeIndexer(root);
-            const symIndexer = new SymbolIndexer(root);
-            const treeSitterIndexer = new TreeSitterIndexer(root);
-            const useTreeSitter = useSymbols && treeSitterIndexer.isAvailable();
-            
-            if (useTreeSitter) {
-                console.log(chalk.green('🌳 Watch mode using Tree-sitter for precise symbol extraction'));
-            }
+    // reindex-file and reindex-folder now handled in src/commands/ReindexFile.ts and ReindexFolder.ts
 
-            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider.js');
-            const provider = EmbeddingProvider.create(process.cwd());
-            try { await provider.init(); } catch { /* proceed without vectors */ }
+    // extracted: handleGC → src/commands/GC.ts
 
-            const chokidar = await import('chokidar');
-
-            // Build watch globs and ignored function
-            const defaultExcludes = ['**/node_modules/**','**/.git/**','**/dist/**','**/build/**','**/.next/**','**/.cache/**','**/.antigoldfishmode/**'];
-            const includes = (include && include.length) ? include : ['**/*'];
-            const excludes = [...defaultExcludes, ...(exclude||[])];
-            const shouldIgnore = (relUnix: string): boolean => {
-                return excludes.some(g => globToRegex(g).test(relUnix.endsWith('/')?relUnix:relUnix));
-            };
-
-            const watcher = chokidar.watch(includes, {
-                cwd: root,
-                ignored: (pth: string) => {
-                    const relUnix = pth.replace(/\\/g,'/');
-                    return shouldIgnore(relUnix);
-                },
-                ignoreInitial: true,
-                awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 100 },
-                persistent: true,
-            });
-
-            console.log(chalk.cyan(`👀 Watching ${root} for code changes… Press Ctrl+C to stop.`));
-
-            const pending = new Map<string, 'add'|'change'|'unlink'>();
-            // Helper to compute a stable digest of file contents
-            const fileDigest = (fullPath: string): string => {
-                try { const buf = fs.readFileSync(fullPath); return crypto.createHash('sha1').update(buf).digest('hex'); } catch { return ''; }
-            };
-            // Track recent unlinks to enable simple rename detection (digest → oldPath)
-            const recentUnlinks = new Map<string, { path: string; at: number }>();
-            let timer: NodeJS.Timeout | null = null;
-
-            const flush = async () => {
-                if (pending.size === 0) return;
-                const batch = Array.from(pending.entries());
-                pending.clear();
-                let added = 0, updated = 0, removed = 0, errors: string[] = [];
-                const context = 'code';
-                const processFile = async (rel: string, kind: 'add'|'change'|'unlink') => {
-                    try {
-                        const relUnix = rel.replace(/\\/g,'/');
-                        const full = path.join(root, relUnix);
-                        // Derive workspace-relative path (used by SymbolIndexer meta.file)
-                        const wsRel = path.relative(process.cwd(), full).replace(/\\/g,'/');
-                        if (kind === 'unlink') {
-                            // Remember unlink by digest (if available) for rename pairing
-                            const d = fileDigest(full);
-                            if (d) recentUnlinks.set(d, { path: relUnix, at: Date.now() });
-                            const n1 = await (this.memoryEngine.database as any).deleteCodeByFile?.(relUnix) ?? 0;
-                            const n2 = await (this.memoryEngine.database as any).deleteCodeByFile?.(wsRel) ?? 0;
-                            const n = n1 + n2;
-                            removed += n;
-                            return;
-                        }
-                        // For add/change: delete existing entries, then (re)index file
-                        const digest = fileDigest(full);
-                        // Rename optimization: if we see an add with same digest as a very recent unlink, update paths without re-embedding
-                        if (kind === 'add' && digest) {
-                            const recent = recentUnlinks.get(digest);
-                            if (recent && (Date.now() - recent.at) < 5000) {
-                                try {
-                                    const oldRel = recent.path;
-                                    const oldWsRel = path.relative(process.cwd(), path.join(root, oldRel)).replace(/\\/g,'/');
-                                    const moved1 = await (this.memoryEngine.database as any).updateCodeFilePath?.(oldRel, relUnix);
-                                    const moved2 = await (this.memoryEngine.database as any).updateCodeFilePath?.(oldWsRel, wsRel);
-                                    if ((moved1||0) + (moved2||0) > 0) {
-                                        updated++;
-                                        recentUnlinks.delete(digest);
-                                        await (this.memoryEngine.database as any).setFileDigest?.(relUnix, digest);
-                                        return; // Skip re-embedding; metadata updated
-                                    }
-                                } catch {}
-                            }
-                        }
-                        // Skip if unchanged (same digest as last processed)
-                        const prev = await (this.memoryEngine.database as any).getFileDigest?.(relUnix) || null;
-                        if (prev && digest && prev === digest && (kind === 'change' || kind === 'add')) {
-                            return; // No content change detected
-                        }
-                        try { await (this.memoryEngine.database as any).deleteCodeByFile?.(relUnix); } catch {}
-                        try { await (this.memoryEngine.database as any).deleteCodeByFile?.(wsRel); } catch {}
-                        const chunks = useSymbols ? 
-                            (useTreeSitter ? 
-                                treeSitterIndexer.chunkFile(full).map(c => ({ 
-                                    text: c.text, 
-                                    meta: {
-                                        file: c.meta.file,
-                                        language: c.meta.language,
-                                        lineStart: c.meta.lineStart,
-                                        lineEnd: c.meta.lineEnd,
-                                        symbol: c.meta.symbolName,
-                                        symbolType: c.meta.symbolType,
-                                        tags: ['symbol', c.meta.symbolType || 'unknown']
-                                    }
-                                })) :
-                                symIndexer.chunkBySymbols(full)) :
-                            indexer.chunkFile(full, maxChunk).map(c => ({ text: c.text, meta: c.meta }));
-                        for (const chunk of chunks) {
-                            const id = await this.memoryEngine.database.storeMemory(chunk.text, context, 'code', ['code', (chunk as any).meta?.language || 'unknown', useSymbols?'symbol':undefined].filter(Boolean) as string[], chunk.meta);
-                            if (provider && (provider as any).getInfo) {
-                                try {
-                                    const vec = await provider.embed(chunk.text);
-                                    await this.memoryEngine.database.upsertVector(id, vec, provider.getInfo().dimensions);
-                                } catch { /* skip vector */ }
-                            }
-                            added++;
-                        }
-                        updated++;
-                        if (digest) await (this.memoryEngine.database as any).setFileDigest?.(relUnix, digest);
-                    } catch (e) {
-                        errors.push(`${rel}: ${(e as Error).message}`);
-                    }
-                };
-
-                for (const [rel, kind] of batch) {
-                    await processFile(rel, kind);
-                }
-
-                const summary = { files: batch.length, added, updated, removed, errors: errors.length };
-                console.log(chalk.green(`🔄 Indexed batch: +${added} ~${updated} -${removed}${errors.length?` (errors=${errors.length})`:''}`));
-                try {
-                    const receipt = tracer.writeReceipt('watch-code', { root, maxChunk, include, exclude, symbols: useSymbols, debounceMs }, summary, true, undefined, { resultSummary: summary });
-                    tracer.appendJournal({ cmd: 'watch-code', args: { root, maxChunk, include, exclude, symbols: useSymbols, debounceMs }, receipt });
-                } catch {}
-            };
-
-            const schedule = () => {
-                if (timer) clearTimeout(timer);
-                timer = setTimeout(() => { timer = null; flush().catch(() => {}); }, debounceMs);
-            };
-
-            watcher.on('add', (p: string) => { const rel = p.replace(/\\/g,'/'); pending.set(rel, 'add'); schedule(); });
-            watcher.on('change', (p: string) => { const rel = p.replace(/\\/g,'/'); pending.set(rel, 'change'); schedule(); });
-            watcher.on('unlink', async (p: string) => { const rel = p.replace(/\\/g,'/'); pending.set(rel, 'unlink'); try { await (this.memoryEngine.database as any).deleteFileDigest?.(rel); } catch {} schedule(); });
-
-            const stop = async () => {
-                try { if (timer) { clearTimeout(timer); timer = null; } } catch {}
-                try { await flush(); } catch {}
-                try { await watcher.close(); } catch {}
-                await this.cleanup();
-                console.log(chalk.gray('👋 watch-code stopped.'));
-            };
-
-            process.on('SIGINT', async () => { console.log(); console.log(chalk.yellow('Caught interrupt signal (Ctrl+C). Shutting down…')); await stop(); process.exit(0); });
-            process.on('SIGTERM', async () => { await stop(); process.exit(0); });
-
-        } catch (error) {
-            const msg = error instanceof Error ? error.message : String(error);
-            console.error(chalk.red('❌ watch-code failed:'), msg);
-            if (/Failed to decrypt database|integrity check failed/i.test(msg)) {
-                console.error(chalk.yellow('Tip: run "agm init --force" to reset local DB artifacts if this persists.'));
-            }
-            await this.cleanup();
-            process.exit(1);
-        }
-    }
-
-    // --- Digest cache maintenance ---
-    private async handleDigestCache(opts: any): Promise<void> {
-    const { Tracer } = await import('./utils/Trace.js');
-        const tracer = Tracer.create(process.cwd());
-        try {
-            await this.memoryEngine.initialize();
-            if (opts.clear) {
-                const n = await (this.memoryEngine.database as any).clearFileDigests?.();
-                console.log(chalk.green(`✅ Cleared ${n} digest entr${(n===1)?'y':'ies'}`));
-                const receipt = tracer.writeReceipt('digest-cache', { action: 'clear' }, { cleared: n }, true);
-                tracer.appendJournal({ cmd: 'digest-cache', args: { clear: true }, receipt });
-            } else if (opts.list) {
-                const limit = parseInt(String(opts.limit || '50'), 10) || 50;
-                const rows = await (this.memoryEngine.database as any).listFileDigests?.(limit);
-                if (!rows || rows.length === 0) {
-                    console.log('ℹ️ No digests cached.');
-                } else {
-                    for (const r of rows) {
-                        console.log(`${r.updatedAt}  ${r.digest}  ${r.file}`);
-                    }
-                    console.log(`\nTotal: ${rows.length} shown${rows.length === limit ? ' (truncated)' : ''}.`);
-                }
-                const receipt = tracer.writeReceipt('digest-cache', { action: 'list', limit }, { shown: rows?.length || 0 }, true);
-                tracer.appendJournal({ cmd: 'digest-cache', args: { list: true, limit }, receipt });
-            } else {
-                console.log('Usage: agm digest-cache --clear | --list [--limit <n>]');
-            }
-        } catch (e) {
-            console.error(chalk.red('❌ digest-cache failed:'), (e as Error).message);
-        } finally {
-            await this.cleanup();
-        }
-    }
-
-    // --- Force reindex one file ---
-    private async handleReindexFile(file: string, opts: any): Promise<void> {
-        const abs = path.resolve(process.cwd(), file);
-        const root = process.cwd();
-        const useSymbols = !!opts.symbols;
-        if (useSymbols) {
-            this.nudgePro('symbols-reindex-folder', 'Pro enhances symbol chunking and speeds up bulk reindex. Proceeding with basic symbol mode.');
-        }
-        const maxChunk = 200;
-    const { Tracer } = await import('./utils/Trace.js');
-        const tracer = Tracer.create(process.cwd());
-        try {
-            await this.memoryEngine.initialize();
-            const relUnix = path.relative(root, abs).replace(/\\/g,'/');
-            const wsRel = path.relative(process.cwd(), abs).replace(/\\/g,'/');
-            try { await (this.memoryEngine.database as any).deleteCodeByFile?.(relUnix); } catch {}
-            try { await (this.memoryEngine.database as any).deleteCodeByFile?.(wsRel); } catch {}
-            const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
-            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
-            const idx = new CodeIndexer(root);
-            const sym = new SymbolIndexer(root);
-            const chunks = useSymbols ? sym.chunkBySymbols(abs) : idx.chunkFile(abs, maxChunk).map((c: { text: string; meta: any }) => ({ text: c.text, meta: c.meta }));
-            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider.js');
-            const provider = EmbeddingProvider.create(process.cwd());
-            try { await provider.init(); } catch {}
-            let saved = 0;
-            for (const chunk of chunks) {
-                const id = await this.memoryEngine.database.storeMemory(chunk.text, 'code', 'code', ['code', (chunk as any).meta?.language || 'unknown', useSymbols?'symbol':undefined].filter(Boolean) as string[], chunk.meta);
-                if (provider && (provider as any).getInfo) {
-                    try { const vec = await provider.embed(chunk.text); await this.memoryEngine.database.upsertVector(id, vec, provider.getInfo().dimensions); } catch {}
-                }
-                saved++;
-            }
-            // Update digest
-            try { const buf = fs.readFileSync(abs); const dig = crypto.createHash('sha1').update(buf).digest('hex'); await (this.memoryEngine.database as any).setFileDigest?.(relUnix, dig); } catch {}
-            console.log(chalk.green(`✅ Reindexed ${relUnix} (${saved} chunk${saved===1?'':'s'})`));
-            const receipt = tracer.writeReceipt('reindex-file', { file: relUnix, symbols: useSymbols }, { saved }, true);
-            tracer.appendJournal({ cmd: 'reindex-file', args: { file: relUnix, symbols: useSymbols }, receipt });
-        } catch (e) {
-            console.error(chalk.red('❌ reindex-file failed:'), (e as Error).message);
-        } finally {
-            await this.cleanup();
-        }
-    }
-
-    // --- Force reindex a whole folder ---
-    private async handleReindexFolder(folder: string, opts: any): Promise<void> {
-        const absFolder = path.resolve(process.cwd(), folder);
-        const root = process.cwd();
-        const include: string[] | undefined = opts.include;
-        const exclude: string[] | undefined = opts.exclude;
-        const useSymbols = !!opts.symbols;
-        const maxChunk = parseInt(String(opts.maxChunk || '200'), 10) || 200;
-    const { Tracer } = await import('./utils/Trace.js');
-        const tracer = Tracer.create(process.cwd());
-        try {
-            await this.memoryEngine.initialize();
-            const { CodeIndexer } = await import('./codeindex/CodeIndexer.js');
-            const { SymbolIndexer } = await import('./codeindex/SymbolIndexer.js');
-            const idx = new CodeIndexer(absFolder);
-            const sym = new SymbolIndexer(absFolder);
-
-            const files = idx.listFiles({ include, exclude, maxChunkLines: maxChunk });
-            let added = 0, errors = 0;
-            const { EmbeddingProvider } = await import('./engine/embeddings/EmbeddingProvider.js');
-            const provider = EmbeddingProvider.create(process.cwd());
-            try { await provider.init(); } catch {}
-            for (const rel of files) {
-                const full = path.join(absFolder, rel);
-                const projectRel = path.relative(root, full).replace(/\\/g, '/');
-                try {
-                    // wipe existing
-                    try { await (this.memoryEngine.database as any).deleteCodeByFile?.(projectRel); } catch {}
-                    const chunks = useSymbols ? sym.chunkBySymbols(full) : idx.chunkFile(full, maxChunk).map((c: { text: string; meta: any }) => ({ text: c.text, meta: c.meta }));
-                    for (const chunk of chunks) {
-                        const id = await this.memoryEngine.database.storeMemory(chunk.text, 'code', 'code', ['code', (chunk as any).meta?.language || 'unknown', useSymbols?'symbol':undefined].filter(Boolean) as string[], chunk.meta);
-                        if (provider && (provider as any).getInfo) {
-                            try { const vec = await provider.embed(chunk.text); await this.memoryEngine.database.upsertVector(id, vec, provider.getInfo().dimensions); } catch {}
-                        }
-                        added++;
-                    }
-                    // refresh digest
-                    try { const buf = fs.readFileSync(full); const dig = crypto.createHash('sha1').update(buf).digest('hex'); await (this.memoryEngine.database as any).setFileDigest?.(projectRel, dig); } catch {}
-                } catch (e) {
-                    errors++;
-                    console.error(`❌ Failed to index ${projectRel}:`, (e as Error).message);
-                }
-            }
-            console.log(chalk.green(`✅ Reindexed ${files.length} files under ${path.relative(root, absFolder)||'.'}; chunks added: ${added}, errors: ${errors}`));
-            const receipt = tracer.writeReceipt('reindex-folder', { folder: path.relative(root, absFolder), include, exclude, symbols: useSymbols, maxChunk }, { files: files.length, added, errors }, true);
-            tracer.appendJournal({ cmd: 'reindex-folder', args: { folder: path.relative(root, absFolder), include, exclude, symbols: useSymbols, maxChunk }, receipt });
-        } catch (e) {
-            console.error(chalk.red('❌ reindex-folder failed:'), (e as Error).message);
-        } finally {
-            await this.cleanup();
-        }
-    }
-
-    // --- GC maintenance ---
-    private async handleGC(opts: any): Promise<void> {
-    const { Tracer } = await import('./utils/Trace.js');
-        const tracer = Tracer.create(process.cwd());
-        const root = process.cwd();
-        try {
-            await this.memoryEngine.initialize();
-            let prunedVectors = 0;
-            let staleDigestsRemoved = 0;
-            let vacuumed = false;
-
-            if (opts.pruneVectors) {
-                try { prunedVectors = await (this.memoryEngine.database as any).pruneOrphanVectors?.(); } catch {}
-            }
-
-            if (opts.dropStaleDigests) {
-                try {
-                    const rows = await (this.memoryEngine.database as any).listAllFileDigests?.();
-                    if (rows && rows.length) {
-                        for (const r of rows) {
-                            const full = path.join(root, r.file.replace(/\\/g,'/'));
-                            if (!fs.existsSync(full)) {
-                                try { await (this.memoryEngine.database as any).deleteFileDigest?.(r.file); staleDigestsRemoved++; } catch {}
-                            }
-                        }
-                    }
-                } catch {}
-            }
-
-            if (opts.vacuum) {
-                try { await (this.memoryEngine.database as any).vacuum?.(); vacuumed = true; } catch {}
-            }
-
-            console.log(chalk.green(`🧹 GC complete: orphanVectors=${prunedVectors}, staleDigests=${staleDigestsRemoved}${vacuumed?', vacuumed':''}`));
-            const receipt = tracer.writeReceipt('gc', { pruneVectors: !!opts.pruneVectors, dropStaleDigests: !!opts.dropStaleDigests, vacuum: !!opts.vacuum }, { prunedVectors, staleDigestsRemoved, vacuumed }, true);
-            tracer.appendJournal({ cmd: 'gc', args: { pruneVectors: !!opts.pruneVectors, dropStaleDigests: !!opts.dropStaleDigests, vacuum: !!opts.vacuum }, receipt });
-        } catch (e) {
-            console.error(chalk.red('❌ gc failed:'), (e as Error).message);
-        } finally {
-            await this.cleanup();
-        }
-    }
-
-    // --- Health summary ---
-    private async handleHealth(opts?: any): Promise<void> {
-    const { Tracer } = await import('./utils/Trace.js');
-        const tracer = Tracer.create(process.cwd());
-        try {
-            await this.memoryEngine.initialize();
-            const project = this.memoryEngine.getProjectInfo();
-            const stats = await this.memoryEngine.getStats();
-            const vec = await this.memoryEngine.database.vectorStats();
-            let digests = 0;
-            try { digests = await (this.memoryEngine.database as any).countFileDigests?.(); } catch {}
-
-            // Optional deltas since N days
-            let sinceDays: number | null = null;
-            let memDelta = 0;
-            let vecDelta = 0;
-            let sinceISO: string | null = null;
-            if (opts && opts.since !== undefined) {
-                const n = parseInt(String(opts.since), 10);
-                if (Number.isFinite(n) && n > 0) {
-                    sinceDays = n;
-                    const since = new Date(Date.now() - n * 24 * 60 * 60 * 1000);
-                    sinceISO = new Date(since.getTime() - since.getTimezoneOffset()*60000).toISOString().replace('Z', '');
-                    try { memDelta = await (this.memoryEngine.database as any).countMemoriesSince?.(sinceISO); } catch {}
-                    try { vecDelta = await (this.memoryEngine.database as any).countVectorsSince?.(sinceISO); } catch {}
-                }
-            }
-
-            // Lightweight local rollups from receipts (last 7 days default when sinceDays not set)
-            const receiptsDir = path.join(process.cwd(), '.antigoldfishmode', 'receipts');
-            let sinceWindowDays = sinceDays ?? 7;
-            const cutoffTs = Date.now() - sinceWindowDays * 24 * 60 * 60 * 1000;
-            let searchDurations: number[] = [];
-            let cmdCounts: Record<string, { ok: number; err: number }> = {};
-            try {
-                if (fs.existsSync(receiptsDir)) {
-                    const files = fs.readdirSync(receiptsDir).filter(f => f.endsWith('.json'));
-                    for (const f of files) {
-                        try {
-                            const full = path.join(receiptsDir, f);
-                            const rec = JSON.parse(fs.readFileSync(full, 'utf8')) as any;
-                            const started = Date.parse(rec.startTime || '');
-                            if (!Number.isFinite(started) || started < cutoffTs) continue;
-                            const cmd = String(rec.command || 'unknown');
-                            if (!cmdCounts[cmd]) cmdCounts[cmd] = { ok: 0, err: 0 };
-                            if (rec.success) cmdCounts[cmd].ok++; else cmdCounts[cmd].err++;
-                            if (cmd === 'search-code' && typeof rec.durationMs === 'number') {
-                                searchDurations.push(rec.durationMs);
-                            }
-                        } catch {}
-                    }
-                }
-            } catch {}
-
-            const pct = (arr: number[], p: number): number | null => {
-                if (!arr.length) return null; const s = [...arr].sort((a,b)=>a-b); const idx = Math.min(s.length-1, Math.floor((p/100)*s.length)); return s[idx];
-            };
-            const searchP50 = pct(searchDurations, 50);
-            const searchP95 = pct(searchDurations, 95);
-            const totalSearches = searchDurations.length;
-            const errorRateByCmd = Object.fromEntries(Object.entries(cmdCounts).map(([k,v]) => [k, v.ok+v.err>0? +(v.err/(v.ok+v.err)*100).toFixed(1) : 0]));
-
-            const data = {
-                projectPath: project.path,
-                dbPath: project.dbPath,
-                memories: stats.totalMemories,
-                dbSizeMB: +(stats.totalSizeBytes / 1024 / 1024).toFixed(2),
-                vectors: vec,
-                digestEntries: digests,
-                sinceDays: sinceDays ?? undefined,
-                deltas: sinceDays ? { memories: memDelta, vectors: vecDelta } : undefined,
-                metrics: {
-                    search: { count: totalSearches, p50Ms: searchP50 ?? undefined, p95Ms: searchP95 ?? undefined },
-                    errors: errorRateByCmd,
-                }
-            };
-
-            if ((this.program as any).opts?.().json) {
-                console.log(JSON.stringify(data, null, 2));
-            } else {
-                console.log(chalk.cyan('🩺 AGM Health'));
-                console.log(`   Project: ${data.projectPath}`);
-                console.log(`   DB: ${data.dbPath} (${data.dbSizeMB} MB)`);
-                console.log(`   Memories: ${data.memories}`);
-                console.log(`   Vectors: backend=${vec.backend}, dim=${vec.dimensions}, count=${vec.count}${vec.note?`, note=${vec.note}`:''}`);
-                console.log(`   Digest cache entries: ${digests}`);
-                if (data.metrics.search.count) {
-                    console.log(`   Search latency: p50=${data.metrics.search.p50Ms}ms p95=${data.metrics.search.p95Ms}ms (n=${data.metrics.search.count})`);
-                }
-                if (Object.keys(data.metrics.errors).length) {
-                    const worst = Object.entries(data.metrics.errors).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${k}=${v}%`).join(', ');
-                    console.log(`   Error rate by cmd: ${worst}`);
-                }
-                console.log(`   Pro (honor-system): ${this.proEnabled ? 'ENABLED' : 'disabled'}`);
-                if (sinceDays) {
-                    console.log(`   𝚫 Last ${sinceDays} day(s): +${memDelta} memories, +${vecDelta} vectors`);
-                    if (vecDelta > 0 && digests > 0) {
-                        console.log(chalk.gray('   Hint: run "agm gc --prune-vectors --drop-stale-digests" to tidy up if growth is high.'));
-                    }
-                }
-                console.log(chalk.gray('   Tip: run "agm gc --prune-vectors --drop-stale-digests --vacuum" to tidy up.'));
-            }
-
-            const receipt = tracer.writeReceipt('health', { sinceDays }, data, true);
-            tracer.appendJournal({ cmd: 'health', args: { sinceDays }, receipt });
-        } catch (e) {
-            console.error(chalk.red('❌ health failed:'), (e as Error).message);
-        } finally {
-            await this.cleanup();
-        }
-    }
+    // extracted: handleHealth → src/commands/Health.ts
 
     /**
      * Create VSCode integration files
@@ -1863,12 +1214,19 @@ export class CodeContextCLI {
                 console.log(chalk.green('✅ VSCode keybindings configured (Ctrl+Shift+M, Ctrl+Shift+R)'));
             }
 
-            // Copy snippets
-            const snippetsTemplate = path.join(templateDir, 'agm.code-snippets');
-            const snippetsDestination = path.join(vscodeDir, 'agm.code-snippets');
-            if (fs.existsSync(snippetsTemplate)) {
-                fs.copyFileSync(snippetsTemplate, snippetsDestination);
-                console.log(chalk.green('✅ VSCode snippets configured (type "agm-" for autocomplete)'));
+            // Copy snippets: keep legacy agm.* for compatibility and add smem.*
+            const snippetsLegacyTemplate = path.join(templateDir, 'agm.code-snippets');
+            const snippetsSmemTemplate = path.join(templateDir, 'smem.code-snippets');
+            const snippetsSmemDestination = path.join(vscodeDir, 'smem.code-snippets');
+            const snippetsLegacyDestination = path.join(vscodeDir, 'agm.code-snippets');
+            if (fs.existsSync(snippetsSmemTemplate)) {
+                try { fs.copyFileSync(snippetsSmemTemplate, snippetsSmemDestination); } catch {}
+            }
+            if (fs.existsSync(snippetsLegacyTemplate)) {
+                try { fs.copyFileSync(snippetsLegacyTemplate, snippetsLegacyDestination); } catch {}
+            }
+            if (fs.existsSync(snippetsSmemTemplate) || fs.existsSync(snippetsLegacyTemplate)) {
+                console.log(chalk.green('✅ VSCode snippets configured (type "smem-"; legacy "agm-" remains available)'));
             }
 
         } catch (error) {
@@ -1902,7 +1260,7 @@ export class CodeContextCLI {
                 // If parsing fails, backup existing and use template
                 fs.writeFileSync(destinationPath + '.backup', existingContent);
                 fs.writeFileSync(destinationPath, templateContent);
-                console.log(chalk.yellow(`   ⚠️ Backed up existing ${type}.json and replaced with AGM version`));
+                console.log(chalk.yellow(`   ⚠️ Backed up existing ${type}.json and replaced with SecuraMem template version`));
                 return;
             }
 
@@ -1938,12 +1296,15 @@ export class CodeContextCLI {
                 existingJson.version = templateJson.version || existingJson.version;
 
             } else if (type === 'settings') {
-                // Merge settings (template takes precedence for AGM-specific settings)
+                // Merge settings (template takes precedence for SecuraMem/legacy-specific settings)
                 Object.keys(templateJson).forEach(key => {
-                    if (key.startsWith('agm.') || key.includes('AGM') || key === 'search.exclude' || key === 'files.associations') {
+                    if (key.startsWith('smem.') || key.includes('SMEM') || key.startsWith('agm.') || key.includes('AGM') || key === 'search.exclude' || key === 'files.associations') {
                         existingJson[key] = templateJson[key];
                     }
                 });
+                // Ensure .securamem is hidden from search like legacy
+                existingJson['search.exclude'] = Object.assign({}, existingJson['search.exclude'] || {}, { '.securamem/': true, '**/.securamem': true });
+                existingJson['files.associations'] = Object.assign({}, existingJson['files.associations'] || {}, { '.securamem/**': 'json' });
             }
 
             fs.writeFileSync(destinationPath, JSON.stringify(existingJson, null, 2));
@@ -1963,7 +1324,7 @@ export class CodeContextCLI {
      */
     private async handleAIGuide(): Promise<void> {
         try {
-            console.log(chalk.cyan('📖 AntiGoldfishMode - AI Assistant Operating Guide'));
+            console.log(chalk.cyan('📖 SecuraMem - AI Assistant Operating Guide'));
             console.log('');
 
             // Try to read the AI instructions file from the package
@@ -1979,9 +1340,9 @@ export class CodeContextCLI {
 
                 console.log('');
                 console.log(chalk.green('🧠 Memory Commands:'));
-                console.log('  antigoldfishmode remember "information to store"');
-                console.log('  antigoldfishmode recall "search term"');
-                console.log('  antigoldfishmode status');
+                console.log('  smem remember "information to store"');
+                console.log('  smem recall "search term"');
+                console.log('  smem status');
                 console.log('');
                 console.log(chalk.blue('🎯 AI Assistant Tips:'));
                 console.log('  • Store solutions, insights, and user preferences');
@@ -1989,25 +1350,26 @@ export class CodeContextCLI {
                 console.log('  • Be proactive - remember important decisions');
                 console.log('  • Use descriptive, searchable language');
                 console.log('');
-                console.log(chalk.gray('📖 Full guide: https://github.com/antigoldfishmode/antigoldfishmode/blob/main/AI_ASSISTANT_INSTRUCTIONS.md'));
+                console.log(chalk.gray('📖 Full guide: https://github.com/SecuraMem/smem-cli/blob/main/AI_ASSISTANT_INSTRUCTIONS.md'));
             }
         } catch (error) {
             console.log(chalk.red('❌ Failed to show AI guide:'), error instanceof Error ? error.message : 'Unknown error');
         }
     }
 
-    // ----- .agmctx export/import -----
+    // ----- context export/import (.smemctx primary, .agmctx compatible) -----
     private async handleExportContext(opts: any): Promise<void> {
-    const outPath = path.resolve(process.cwd(), opts.out || 'context.agmctx');
+    const outPath = path.resolve(process.cwd(), opts.out || 'context.smemctx');
         const type = String(opts.type || 'code');
     const { Tracer } = await import('./utils/Trace.js');
+    const { Paths } = await import('./utils/Paths.js');
         const tracer = Tracer.create(process.cwd());
         try {
             const startedAt = Date.now();
             // Resolve --delta shorthand to last export base if present
             if (opts.delta && !opts.deltaFrom) {
                 try {
-                    const markerPath = path.join(process.cwd(), '.antigoldfishmode', 'last-export.json');
+                    const markerPath = path.join(Paths.baseDir(process.cwd()), 'last-export.json');
                     if (fs.existsSync(markerPath)) {
                         const meta = JSON.parse(fs.readFileSync(markerPath, 'utf8'));
                         if (meta && meta.outPath && fs.existsSync(meta.outPath)) {
@@ -2022,15 +1384,15 @@ export class CodeContextCLI {
             if (pol.forceSignedExports) { wantSign = true; signReason = 'force'; }
             else if (typeof opts.sign === 'boolean') { wantSign = !!opts.sign; signReason = 'flag'; }
             else if (pol.signExports) { wantSign = true; signReason = 'policy'; }
-            else if (process.env.AGM_SIGN_EXPORT === '1') { wantSign = true; signReason = 'env'; }
+            else if (process.env.SMEM_SIGN_EXPORT === '1' || process.env.AGM_SIGN_EXPORT === '1') { wantSign = true; signReason = 'env'; }
             else { wantSign = false; }
             if (pol.forceSignedExports && opts.sign === false) {
                 console.log(chalk.yellow('ℹ️ --no-sign ignored: policy.forceSignedExports=true'));
             }
             tracer.plan('export-context', { outPath, type, sign: wantSign, decision: { sign: { effective: wantSign, reason: signReason } } });
-            tracer.mirror(`agm export-context --out ${JSON.stringify(opts.out||'context.agmctx')} --type ${type}${wantSign?' --sign':''}`);
+            tracer.mirror(`smem export-context --out ${JSON.stringify(opts.out||'context.smemctx')} --type ${type}${wantSign?' --sign':''}`);
             if (tracer.flags.explain) {
-                console.log(chalk.gray('Explanation: exports type-filtered memories, metadata map, and vectors as a portable .agmctx directory. If --sign, emits ED25519 signature using a local private key.'));
+                console.log(chalk.gray('Explanation: exports type-filtered memories, metadata map, and vectors as a portable context bundle directory. If --sign, emits ED25519 signature using a local private key.'));
             }
 
             await this.memoryEngine.initialize();
@@ -2068,7 +1430,7 @@ export class CodeContextCLI {
             }
             const list = fullList;
             // Prepare container dir
-            const tmpDir = path.join(process.cwd(), '.antigoldfishmode', 'tmp-export-' + Date.now().toString(36));
+            const tmpDir = path.join(Paths.baseDir(process.cwd()), 'tmp-export-' + Date.now().toString(36));
             fs.mkdirSync(tmpDir, { recursive: true });
             // map.csv (write first)
             const mapLines = ['id,file,lang,line_start,line_end,symbol,type,timestamp,chunk_sha256'];
@@ -2121,13 +1483,13 @@ export class CodeContextCLI {
                 }
             } catch {}
 
-            const manifest: any = {
+        const manifest: any = {
                 schemaVersion: 1,
                 type,
                 count: list.length,
                 createdAt: new Date().toISOString(),
                 exporter: {
-                    name: 'antigoldfishmode',
+            name: 'securamem',
                     version: require('../package.json').version,
                     node: process.version,
                     host: require('os').hostname()
@@ -2146,21 +1508,28 @@ export class CodeContextCLI {
             // keyId will be injected below if signing
             fs.writeFileSync(path.join(tmpDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
 
-            // Optional signing (ED25519) using a local keypair stored under .antigoldfishmode/keys
+            // Optional signing (ED25519). Prefer .securamem/keys/smem_ed25519.*, fallback to legacy .antigoldfishmode/keys/agm_ed25519.*
             if (wantSign) {
-                this.nudgePro('sign', 'Signed exports (.agmctx + signature) are a Pro convenience feature. Proceeding with local signing.');
+                this.nudgePro('sign', 'Signed exports (bundle + signature) are a Pro convenience feature. Proceeding with local signing.');
                 try {
-                    const keyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
-                    const pubKeyPath = path.join(keyDir, 'agm_ed25519.pub');
-                    const privKeyPath = path.join(keyDir, 'agm_ed25519.key');
-                    if (!fs.existsSync(keyDir)) fs.mkdirSync(keyDir, { recursive: true });
+                    const newDir = path.join(process.cwd(), '.securamem', 'keys');
+                    const legacyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
+                    const candidates = [
+                        { dir: newDir, pub: 'smem_ed25519.pub', key: 'smem_ed25519.key' },
+                        { dir: legacyDir, pub: 'agm_ed25519.pub', key: 'agm_ed25519.key' }
+                    ];
+                    let useDir = candidates.find(c => fs.existsSync(path.join(c.dir, c.pub)) && fs.existsSync(path.join(c.dir, c.key)))?.dir || newDir;
+                    if (!fs.existsSync(useDir)) fs.mkdirSync(useDir, { recursive: true });
                     let publicKey: Buffer;
                     let privateKey: Buffer;
+                    const chosen = candidates.find(c => c.dir === useDir) || candidates[0];
+                    const pubKeyPath = path.join(useDir, chosen.pub);
+                    const privKeyPath = path.join(useDir, chosen.key);
                     if (fs.existsSync(pubKeyPath) && fs.existsSync(privKeyPath)) {
                         publicKey = fs.readFileSync(pubKeyPath);
                         privateKey = fs.readFileSync(privKeyPath);
                     } else {
-                        // Create new keypair
+                        // Create new keypair in preferred (.securamem) location
                         const { generateKeyPairSync } = await import('crypto');
                         const { publicKey: pub, privateKey: priv } = generateKeyPairSync('ed25519');
                         publicKey = pub.export({ type: 'spki', format: 'der' }) as Buffer;
@@ -2188,10 +1557,10 @@ export class CodeContextCLI {
 
                     // ed25519 uses sign.update directly not createSign; use sign by KeyObject
                     const { createPrivateKey, sign: cryptoSign } = await import('crypto');
-                    const keyObj = createPrivateKey({ key: fs.readFileSync(path.join(process.cwd(), '.antigoldfishmode', 'keys', 'agm_ed25519.key')), format: 'der', type: 'pkcs8' });
+                    const keyObj = createPrivateKey({ key: privateKey, format: 'der', type: 'pkcs8' });
                     const signature = cryptoSign(null, digest, keyObj);
                     fs.writeFileSync(path.join(tmpDir, 'signature.bin'), signature);
-                    fs.writeFileSync(path.join(tmpDir, 'publickey.der'), fs.readFileSync(path.join(process.cwd(), '.antigoldfishmode', 'keys', 'agm_ed25519.pub')));
+                    fs.writeFileSync(path.join(tmpDir, 'publickey.der'), publicKey);
                 } catch (e) {
                     console.log(chalk.yellow('⚠️ Signing failed; continuing without signature:'), (e as Error).message);
                 }
@@ -2209,7 +1578,13 @@ export class CodeContextCLI {
             baseFiles.push('checksums.json');
             const wantZip = !!opts.zip || /\.zip$/i.test(outPath);
             if (wantZip) {
-                const zipTarget = outPath.endsWith('.zip') ? outPath : (outPath.endsWith('.agmctx') ? outPath + '.zip' : outPath + '.agmctx.zip');
+                const zipTarget = (() => {
+                    if (outPath.endsWith('.zip')) return outPath;
+                    if (outPath.endsWith('.smemctx')) return outPath + '.zip';
+                    if (outPath.endsWith('.agmctx')) return outPath + '.zip';
+                    // default to .smemctx.zip when no known extension
+                    return outPath + '.smemctx.zip';
+                })();
                 const { zipSync } = await import('fflate');
                 const zipInput: any = {};
                 for (const f of baseFiles) {
@@ -2259,7 +1634,7 @@ export class CodeContextCLI {
                 tracer.appendJournal({ cmd: 'export-context', args: { outPath, type, sign: wantSign }, receipt });
                 // Persist last export marker (always record full outPath; prefer directory if not zipped)
                 try {
-                    const markerDir = path.join(process.cwd(), '.antigoldfishmode');
+                    const markerDir = Paths.baseDir(process.cwd());
                     fs.mkdirSync(markerDir, { recursive: true });
                     fs.writeFileSync(path.join(markerDir, 'last-export.json'), JSON.stringify({ outPath, type, at: new Date().toISOString(), count: list.length, delta: !!opts.deltaFrom }, null, 2));
                 } catch {}
@@ -2275,8 +1650,9 @@ export class CodeContextCLI {
 
     private async handleKeyStatus(): Promise<void> {
         try {
-            const keyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
-            const pubKeyPath = path.join(keyDir, 'agm_ed25519.pub');
+            const primary = path.join(process.cwd(), '.securamem', 'keys', 'smem_ed25519.pub');
+            const legacy = path.join(process.cwd(), '.antigoldfishmode', 'keys', 'agm_ed25519.pub');
+            const pubKeyPath = fs.existsSync(primary) ? primary : legacy;
             if (!fs.existsSync(pubKeyPath)) {
                 console.log(chalk.yellow('ℹ️ No signing key present (will auto-generate on first signed export).'));
                 return;
@@ -2286,6 +1662,9 @@ export class CodeContextCLI {
             console.log(chalk.cyan('🔑 Signing Key'));
             console.log(`   keyId: ${keyId}`);
             console.log(`   pub: ${pub.length} bytes (ed25519)`);
+            if (pubKeyPath === legacy && !fs.existsSync(primary)) {
+                console.log(chalk.gray('   Note: Using legacy key from .antigoldfishmode/keys. New keys live under .securamem/keys (smem_ed25519.*).'));
+            }
         } catch (e) {
             console.log(chalk.red('❌ Key status failed:'), (e as Error).message);
         }
@@ -2293,10 +1672,10 @@ export class CodeContextCLI {
 
     private async handleKeyRotate(): Promise<void> {
         try {
-            const keyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
+            const keyDir = path.join(process.cwd(), '.securamem', 'keys');
             if (!fs.existsSync(keyDir)) fs.mkdirSync(keyDir, { recursive: true });
-            const pubKeyPath = path.join(keyDir, 'agm_ed25519.pub');
-            const privKeyPath = path.join(keyDir, 'agm_ed25519.key');
+            const pubKeyPath = path.join(keyDir, 'smem_ed25519.pub');
+            const privKeyPath = path.join(keyDir, 'smem_ed25519.key');
             // Archive existing key if present
             if (fs.existsSync(pubKeyPath) && fs.existsSync(privKeyPath)) {
                 try {
@@ -2319,7 +1698,7 @@ export class CodeContextCLI {
             fs.writeFileSync(privKeyPath, privateKey);
             const keyId = crypto.createHash('sha256').update(publicKey).digest('hex').slice(0,16);
             console.log(chalk.green(`✅ Rotated signing key. New keyId=${keyId}`));
-            console.log(chalk.gray('   Existing signed .agmctx remain verifiable (they embed their public key).'));
+            console.log(chalk.gray('   Existing signed bundles remain verifiable (they embed their public key).'));
         } catch (e) {
             console.log(chalk.red('❌ Key rotation failed:'), (e as Error).message);
         }
@@ -2327,8 +1706,9 @@ export class CodeContextCLI {
 
     private async handleKeyList(): Promise<void> {
         try {
-            const keyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
-            const pubKeyPath = path.join(keyDir, 'agm_ed25519.pub');
+            const newDir = path.join(process.cwd(), '.securamem', 'keys');
+            const legacyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
+            const pubKeyPath = fs.existsSync(path.join(newDir,'smem_ed25519.pub')) ? path.join(newDir,'smem_ed25519.pub') : path.join(legacyDir,'agm_ed25519.pub');
             console.log(chalk.cyan('🔑 Keyring'));
             if (fs.existsSync(pubKeyPath)) {
                 try {
@@ -2339,7 +1719,7 @@ export class CodeContextCLI {
             } else {
                 console.log('   current: (none)');
             }
-            const archiveDir = path.join(keyDir, 'archive');
+            const archiveDir = path.join(path.dirname(pubKeyPath), 'archive');
             if (fs.existsSync(archiveDir)) {
                 const entries = fs.readdirSync(archiveDir).filter(f => /\.pub$/.test(f));
                 if (entries.length) {
@@ -2360,7 +1740,7 @@ export class CodeContextCLI {
         try {
             const days = parseInt(String(opts.days||'30'),10) || 30;
             const cutoff = Date.now() - days*24*60*60*1000;
-            const keyDir = path.join(process.cwd(), '.antigoldfishmode', 'keys');
+            const keyDir = path.join(process.cwd(), '.securamem', 'keys');
             const archiveDir = path.join(keyDir, 'archive');
             if (!fs.existsSync(archiveDir)) { console.log(chalk.gray('ℹ️ No archive directory')); return; }
             let removed = 0;
@@ -2380,6 +1760,7 @@ export class CodeContextCLI {
     private async handleImportContext(file: string, opts?: any): Promise<void> {
         let dir = path.resolve(process.cwd(), file);
     const { Tracer } = await import('./utils/Trace.js');
+    const { Paths } = await import('./utils/Paths.js');
         const tracer = Tracer.create(process.cwd());
         try {
             // If a zip archive is provided, unzip to a temp directory first
@@ -2388,7 +1769,7 @@ export class CodeContextCLI {
                     const buf = fs.readFileSync(dir);
                     const { unzipSync } = await import('fflate');
                     const unzipped = unzipSync(new Uint8Array(buf));
-                    const tmpDir = path.join(process.cwd(), '.antigoldfishmode', 'tmp-import-' + Date.now().toString(36));
+                    const tmpDir = path.join(Paths.baseDir(process.cwd()), 'tmp-import-' + Date.now().toString(36));
                     fs.mkdirSync(tmpDir, { recursive: true });
                     for (const [name, data] of Object.entries(unzipped)) {
                         const out = path.join(tmpDir, name);
@@ -2404,7 +1785,7 @@ export class CodeContextCLI {
             const mapPath = path.join(dir, 'map.csv');
             const vecPath = path.join(dir, 'vectors.f32');
             if (!fs.existsSync(manifestPath) || !fs.existsSync(mapPath) || !fs.existsSync(vecPath)) {
-                console.log(chalk.red('❌ Invalid .agmctx: missing required files'));
+                console.log(chalk.red('❌ Invalid context bundle: missing required files'));
                 process.exit(1);
                 return;
             }
@@ -2464,7 +1845,7 @@ export class CodeContextCLI {
                     console.log(chalk.red('❌ Import blocked: checksum mismatch (exit 4)'));
                     process.exit(4); return;
                 }
-                if (pol.requireSignedContext) {
+        if (pol.requireSignedContext) {
                     if (invalidSignature) {
                         const receipt = tracer.writeReceipt('import-context', { file, decision: { unsignedBypass: { allowed: false, reason: 'invalid_signature' } } }, {}, false, 'invalid_signature', { exitCode: 3 });
                         tracer.appendJournal({ cmd: 'import-context', args: { file }, receipt });
@@ -2475,8 +1856,8 @@ export class CodeContextCLI {
                     if (!verified && !allowUnsigned) {
                         const receipt = tracer.writeReceipt('import-context', { file, decision: { unsignedBypass: { allowed: false, reason: 'policy' } } }, {}, false, 'unsigned_blocked', { exitCode: 2 });
                         tracer.appendJournal({ cmd: 'import-context', args: { file }, receipt });
-                        console.log(chalk.red('❌ Import blocked: policy requires a valid signed .agmctx (signature.bin/publickey.der)'));
-                        console.log(chalk.gray('   Tip: agm policy trust import-context --minutes 15, then rerun with --allow-unsigned to bypass temporarily.'));
+            console.log(chalk.red('❌ Import blocked: policy requires a valid signed context bundle (signature.bin/publickey.der)'));
+            console.log(chalk.gray('   Tip: smem policy trust import-context --minutes 15, then rerun with --allow-unsigned to bypass temporarily.'));
                         process.exit(2);
                         return;
                     }
@@ -2554,14 +1935,14 @@ export class CodeContextCLI {
     // ----- Policy command handlers -----
     private async handlePolicyStatus(): Promise<void> {
         const pol = this.policyBroker.getPolicy();
-        console.log(chalk.cyan('🔐 AGM Policy Status'));
-        console.log(`   Policy file: ${path.join(process.cwd(), '.antigoldfishmode', 'policy.json')}`);
+    console.log(chalk.cyan('🔐 SecuraMem Policy Status'));
+    console.log(`   Policy file: ${path.join(process.cwd(), '.securamem', 'policy.json')}`);
         console.log(`   Commands allowed: ${pol.allowedCommands.join(', ')}`);
         console.log(`   Paths allowed: ${pol.allowedGlobs.join(', ')}`);
         console.log(`   Network egress: ${pol.networkEgress ? 'allowed' : 'blocked'}`);
         console.log(`   Audit trail: ${pol.auditTrail ? 'on' : 'off'}`);
         if (typeof pol.signExports === 'boolean' || typeof pol.requireSignedContext === 'boolean') {
-            console.log(`   .agmctx defaults: signExports=${!!pol.signExports}, requireSignedContext=${!!pol.requireSignedContext}, forceSignedExports=${!!(pol as any).forceSignedExports}`);
+            console.log(`   .smemctx defaults: signExports=${!!pol.signExports}, requireSignedContext=${!!pol.requireSignedContext}, forceSignedExports=${!!(pol as any).forceSignedExports}`);
         }
         try {
             const trust = this.policyBroker.listTrust();
@@ -2599,8 +1980,8 @@ export class CodeContextCLI {
             console.log(chalk.cyan('🩺 Policy Doctor'));
             console.log(`   cmd: ${cmd} -> ${cmdInfo.allowed ? chalk.green('allowed') : chalk.red('blocked')} (${cmdInfo.reason})`);
             console.log(`   path: ${testPath} -> ${pathInfo.allowed ? chalk.green('allowed') : chalk.red('blocked')} (${pathInfo.reason}${pathInfo.matchedGlob?'; glob='+pathInfo.matchedGlob:''})`);
-            if (!cmdInfo.allowed) console.log(chalk.gray(`   Tip: agm policy allow-command ${cmd}`));
-            if (!pathInfo.allowed) console.log(chalk.gray(`   Tip: agm policy allow-path <glob matching your path>`));
+            if (!cmdInfo.allowed) console.log(chalk.gray(`   Tip: smem policy allow-command ${cmd}`));
+            if (!pathInfo.allowed) console.log(chalk.gray(`   Tip: smem policy allow-path <glob matching your path>`));
         } catch (e) {
             console.log(chalk.red('❌ Policy doctor failed:'), (e as Error).message);
         }
@@ -2630,7 +2011,7 @@ export class CodeContextCLI {
         const tracerMod = await import('./utils/Trace.js');
         const tracer = tracerMod.Tracer.create(process.cwd());
         tracer.plan('db-doctor', { archiveLegacy: wantArchiveLegacy });
-        tracer.mirror(`agm db-doctor${wantArchiveLegacy?' --archive-legacy':''}${jsonOut?' --json':''}`);
+    tracer.mirror(`smem db-doctor${wantArchiveLegacy?' --archive-legacy':''}${jsonOut?' --json':''}`);
         if (!primaryPath) {
             const summary = { status: 'empty', message: 'No database files found', primary: null, legacyPresent: legacyPresent.length };
             if (jsonOut) console.log(JSON.stringify(summary, null, 2)); else console.log(chalk.yellow('ℹ️ No database files present.')); 
@@ -2710,7 +2091,7 @@ export class CodeContextCLI {
             console.log(JSON.stringify(summary, null, 2));
         } else {
             if (legacyChecks.length && fs.existsSync(primaryV2)) {
-                console.log(chalk.gray(`ℹ️ Legacy DB(s) present (${legacyChecks.length}) but v2 in use. Run 'agm db-doctor --archive-legacy' to archive.`));
+                console.log(chalk.gray(`ℹ️ Legacy DB(s) present (${legacyChecks.length}) but v2 in use. Run 'smem db-doctor --archive-legacy' to archive.`));
             }
             if (archived.length) console.log(chalk.green(`🗄 Archived legacy: ${archived.length}`));
         }
@@ -2784,3 +2165,37 @@ if (require.main === module) { main(process.argv); }
 // DIFF TEST MUTATION 1755145880113
 
 // DIFF TEST MUTATION 1755170378667
+
+// DIFF TEST MUTATION 1755177535166
+
+// DIFF TEST MUTATION 1755178636614
+
+// DIFF TEST MUTATION 1755178877425
+
+// DIFF TEST MUTATION 1755179423377
+
+// DIFF TEST MUTATION 1755194890204
+
+// DIFF TEST MUTATION 1755197395474
+
+// DIFF TEST MUTATION 1755198414909
+
+// DIFF TEST MUTATION 1755199310716
+
+// DIFF TEST MUTATION 1755201690009
+
+// DIFF TEST MUTATION 1755202153214
+
+// DIFF TEST MUTATION 1755202275363
+
+// DIFF TEST MUTATION 1755202452504
+
+// DIFF TEST MUTATION 1755202967961
+
+// DIFF TEST MUTATION 1755204033815
+
+// DIFF TEST MUTATION 1755204860521
+
+// DIFF TEST MUTATION 1755206689748
+
+// DIFF TEST MUTATION 1755206913732
